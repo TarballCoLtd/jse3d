@@ -194,7 +194,7 @@ public class Display extends JComponent {
 				    }
 				    renderFrame();
 				    if (fpsLimit) {
-				    	try {Thread.sleep((lastLoopTime-System.nanoTime()+JSE3DConst.OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
+				    	try {Thread.sleep((lastLoopTime-System.nanoTime()+optimalTime)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 				    }
 				}
 			}
@@ -204,8 +204,8 @@ public class Display extends JComponent {
 		}
 	}
 	public void setTargetFPS(int fps) {
-		JSE3DConst.TARGET_FPS = fps;
-		JSE3DConst.OPTIMAL_TIME = 1000000000 / JSE3DConst.TARGET_FPS;
+		targetFps = fps;
+		optimalTime = 1000000000 / targetFps;
 	}
 	public void enableFPSLimit() {
 		fpsLimit = true;
