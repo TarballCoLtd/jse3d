@@ -153,7 +153,6 @@ public class Display extends JComponent {
 				graphics.drawLine(points[point1].x, points[point1].y, points[point2].x, points[point2].y);
 			}
 		}
-		lastFrameTime = System.nanoTime();
 		this.revalidate();
 	}
 	private class Renderer extends Thread {
