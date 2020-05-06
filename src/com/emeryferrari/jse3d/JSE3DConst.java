@@ -1,5 +1,4 @@
 package com.emeryferrari.jse3d;
-import java.awt.*;
 public class JSE3DConst {
 	public static final String NAME = "jse3d";
 	public static final String VERSION = "v1.2.4 beta";
