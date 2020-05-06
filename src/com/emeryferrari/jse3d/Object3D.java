@@ -21,4 +21,14 @@ public class Object3D {
 	public Object3D(Point3D[] points) {
 		this.points = points;
 	}
+	public void movePos(double xDiff, double yDiff, double zDiff) {
+		for (int i = 0; i < points.length; i++) {
+			points[i].movePos(points[i].x+xDiff, points[i].y+yDiff, points[i].z+zDiff);
+		}
+	}
+	public void transitionPos(double xDiff, double yDiff, double zDiff, int millis) {
+		for (int i = 0; i < points.length; i++) {
+			points[i].transitionPos(points[i].x+xDiff, points[i].y+yDiff, points[i].z+zDiff, millis);
+		}
+	}
 }
