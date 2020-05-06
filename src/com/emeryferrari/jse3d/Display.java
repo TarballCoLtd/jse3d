@@ -13,6 +13,9 @@ public class Display extends JComponent {
 	private boolean rendererStarted;
 	private boolean fpsLimit;
 	private boolean fpsLogging;
+	private Color lineColor = Color.BLACK;
+	private boolean lineRender;
+	private boolean faceRender;
 	
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
@@ -58,6 +61,8 @@ public class Display extends JComponent {
 		rendererStarted = false;
 		fpsLimit = true;
 		fpsLogging = false;
+		lineRender = true;
+		faceRender = true;
 	}
 	public void startRender() {
 		if (!rendererStarted) {
@@ -116,45 +121,49 @@ public class Display extends JComponent {
 					graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 				}
 			}
-			for (int x = 0; x < scene.object[a].faces.length; x++) {
-				int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-				double[] distances = new double[pointIDs.length];
-				for (int y = 0; y < pointIDs.length; y++) {
-					for (int z = 0; z < distance.get(a).size(); z++) {
-						if (distance.get(a).get(z).pointID == pointIDs[y]) {
-							distances[y] = distance.get(a).get(z).distance;
+			if (faceRender) {
+				for (int x = 0; x < scene.object[a].faces.length; x++) {
+					int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+					double[] distances = new double[pointIDs.length];
+					for (int y = 0; y < pointIDs.length; y++) {
+						for (int z = 0; z < distance.get(a).size(); z++) {
+							if (distance.get(a).get(z).pointID == pointIDs[y]) {
+								distances[y] = distance.get(a).get(z).distance;
+							}
+						}
+					}
+					double average = 0.0;
+					for (int i = 0; i < distances.length; i++) {
+						average += distances[i];
+					}
+					average /= (double) distances.length;
+					scene.object[a].faces[x].camDist = average;
+				}
+				for (int x = 0; x < scene.object[a].faces.length; x++) {
+					for (int y = x+1; y < scene.object[a].faces.length; y++) {
+						if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
+							Face temp = scene.object[a].faces[x];
+							scene.object[a].faces[x] = scene.object[a].faces[y];
+							scene.object[a].faces[y] = temp;
 						}
 					}
 				}
-				double average = 0.0;
-				for (int i = 0; i < distances.length; i++) {
-					average += distances[i];
-				}
-				average /= (double) distances.length;
-				scene.object[a].faces[x].camDist = average;
-			}
-			for (int x = 0; x < scene.object[a].faces.length; x++) {
-				for (int y = x+1; y < scene.object[a].faces.length; y++) {
-					if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
-						Face temp = scene.object[a].faces[x];
-						scene.object[a].faces[x] = scene.object[a].faces[y];
-						scene.object[a].faces[y] = temp;
+				for (int x = 0; x < scene.object[a].faces.length; x++) {
+					for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
+						int[] xs = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
+						int[] ys = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
+						graphics.setColor(scene.object[a].faces[x].triangles[y].color);
+						graphics.fillPolygon(xs, ys, 3);
 					}
 				}
 			}
-			for (int x = 0; x < scene.object[a].faces.length; x++) {
-				for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
-					int[] xs = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
-					int[] ys = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
-					graphics.setColor(scene.object[a].faces[x].triangles[y].color);
-					graphics.fillPolygon(xs, ys, 3);
+			if (lineRender) {
+				graphics.setColor(lineColor);
+				for (int i = 0; i < scene.object[a].edges.length; i++) {
+					int point1 = scene.object[a].edges[i].pointID1;
+					int point2 = scene.object[a].edges[i].pointID2;
+					graphics.drawLine(points[point1].x, points[point1].y, points[point2].x, points[point2].y);
 				}
-			}
-			graphics.setColor(Color.BLACK);
-			for (int i = 0; i < scene.object[a].edges.length; i++) {
-				int point1 = scene.object[a].edges[i].pointID1;
-				int point2 = scene.object[a].edges[i].pointID2;
-				graphics.drawLine(points[point1].x, points[point1].y, points[point2].x, points[point2].y);
 			}
 		}
 		this.revalidate();
@@ -205,5 +214,20 @@ public class Display extends JComponent {
 	}
 	public void disableFPSLogging() {
 		fpsLogging = false;
+	}
+	public void enableLineRendering() {
+		lineRender = true;
+	}
+	public void disableLineRendering() {
+		lineRender = false;
+	}
+	public void enableFaceRendering() {
+		faceRender = true;
+	}
+	public void disableFaceRendering() {
+		faceRender = false;
+	}
+	public void setLineColor(Color color) {
+		lineColor = color;
 	}
 }
