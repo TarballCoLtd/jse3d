@@ -10,7 +10,6 @@ public class Display extends JComponent {
 	private boolean rendering;
 	private int pointWidth;
 	private int pointHeight;
-	private long lastFrameTime;
 	private boolean rendererStarted;
 	
 	private ArrayList<ArrayList<Distance>> distance;
