@@ -13,11 +13,13 @@ public class Display extends JComponent {
 	private boolean rendererStarted;
 	private boolean fpsLimit;
 	private boolean fpsLogging;
-	private Color lineColor = Color.BLACK;
+	private Color lineColor;
 	private boolean lineRender;
 	private boolean faceRender;
 	private int targetFps;
 	private long optimalTime;
+	private boolean invertColors;
+	private Color backgroundColor;
 	
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
@@ -67,6 +69,9 @@ public class Display extends JComponent {
 		faceRender = true;
 		targetFps = 60;
 		optimalTime = 1000000000/targetFps;
+		invertColors = false;
+		lineColor = Color.BLACK;
+		backgroundColor = Color.WHITE;
 	}
 	public void startRender() {
 		if (!rendererStarted) {
@@ -89,6 +94,16 @@ public class Display extends JComponent {
 	}
 	@Override
 	public void paintComponent(Graphics graphics) {
+		if (invertColors) {
+			int red = 255-backgroundColor.getRed();
+			int green = 255-backgroundColor.getGreen();
+			int blue = 255-backgroundColor.getBlue();
+			int alpha = backgroundColor.getAlpha();
+			graphics.setColor(new Color(red, green, blue, alpha));
+		} else {
+			graphics.setColor(backgroundColor);
+		}
+		graphics.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 		Point mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 		for (int a = 0; a < scene.object.length; a++) {
 			Point[] points = new Point[scene.object[a].points.length];
@@ -122,6 +137,11 @@ public class Display extends JComponent {
 				camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
 				points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
 				if (renderPoints) {
+					if (invertColors) {
+						graphics.setColor(Color.WHITE);
+					} else {
+						graphics.setColor(Color.BLACK);
+					}
 					graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 				}
 			}
@@ -156,13 +176,29 @@ public class Display extends JComponent {
 					for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
 						int[] xs = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
 						int[] ys = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
-						graphics.setColor(scene.object[a].faces[x].triangles[y].color);
+						if (invertColors) {
+							int red = 255-scene.object[a].faces[x].triangles[y].color.getRed();
+							int green = 255-scene.object[a].faces[x].triangles[y].color.getGreen();
+							int blue = 255-scene.object[a].faces[x].triangles[y].color.getBlue();
+							int alpha = scene.object[a].faces[x].triangles[y].color.getAlpha();
+							graphics.setColor(new Color(red, green, blue, alpha));
+						} else {
+							graphics.setColor(scene.object[a].faces[x].triangles[y].color);
+						}
 						graphics.fillPolygon(xs, ys, 3);
 					}
 				}
 			}
 			if (lineRender) {
-				graphics.setColor(lineColor);
+				if (invertColors) {
+					int red = 255-lineColor.getRed();
+					int green = 255-lineColor.getGreen();
+					int blue = 255-lineColor.getBlue();
+					int alpha = lineColor.getAlpha();
+					graphics.setColor(new Color(red, green, blue, alpha));
+				} else {
+					graphics.setColor(lineColor);
+				}
 				for (int i = 0; i < scene.object[a].edges.length; i++) {
 					int point1 = scene.object[a].edges[i].pointID1;
 					int point2 = scene.object[a].edges[i].pointID2;
@@ -233,5 +269,14 @@ public class Display extends JComponent {
 	}
 	public void setLineColor(Color color) {
 		lineColor = color;
+	}
+	public void enableInvertColors() {
+		invertColors = true;
+	}
+	public void disableInvertColors() {
+		invertColors = false;
+	}
+	public void setBackgroundColor(Color color) {
+		backgroundColor = color;
 	}
 }
