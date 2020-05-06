@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.*;
 public class Display extends JComponent {
 	private static final long serialVersionUID = 1L;
-	private Scene scene;
+	public Scene scene;
 	private JFrame frame;
 	private boolean renderPoints;
 	private boolean rendering;
@@ -175,10 +175,13 @@ public class Display extends JComponent {
 				        lastFpsTime = 0;
 				        fps = 0;
 				    }
-				    repaint();
+				    renderFrame();
 				    try{Thread.sleep( (lastLoopTime-System.nanoTime() + OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 				}
 			}
+		}
+		private void renderFrame() {
+			repaint();
 		}
 	}
 }
