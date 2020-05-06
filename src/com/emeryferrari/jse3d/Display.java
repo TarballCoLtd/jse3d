@@ -54,7 +54,6 @@ public class Display extends JComponent {
 		pointWidth = width;
 		pointHeight = height;
 		rendererStarted = false;
-		lastFrameTime = System.nanoTime();
 	}
 	public void startRender() {
 		if (!rendererStarted) {
