@@ -1,6 +1,7 @@
 package com.emeryferrari.jse3d;
 import javax.swing.*;
 import java.awt.*;
+import java.util.*;
 public class Display extends JComponent {
 	private static final long serialVersionUID = 1L;
 	private Scene scene;
@@ -10,11 +11,11 @@ public class Display extends JComponent {
 	private int pointWidth;
 	private int pointHeight;
 	
-	private Distance distance[];
+	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
 	private double camPosY = 0;
 	private double camPosZ = 0;
-	private double camScale[];
+	private ArrayList<ArrayList<Double>> camScale;
 	private double scale = 125;
 	private double sensitivity = 125;
 	private double xTransform = 0;
@@ -36,8 +37,18 @@ public class Display extends JComponent {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		rendering = true;
 		frame.getContentPane().add(BorderLayout.CENTER, this);
-		distance = new Distance[scene.object.points.length];
-		camScale = new double[scene.object.points.length];
+		distance = new ArrayList<ArrayList<Distance>>(scene.object.length);
+		camScale = new ArrayList<ArrayList<Double>>(scene.object.length);
+		for (int x = 0; x < scene.object.length; x++) {
+			ArrayList<Distance> distTemp = new ArrayList<Distance>(scene.object[x].points.length);
+			ArrayList<Double> camScaleTemp = new ArrayList<Double>(scene.object[x].points.length);
+			for (int y = 0; y < scene.object[x].points.length; y++) {
+				distTemp.add(new Distance(0, -1));
+				camScaleTemp.add(0.0);
+			}
+			distance.add(distTemp);
+			camScale.add(camScaleTemp);
+		}
 		this.renderPoints = renderPoints;
 		pointWidth = width;
 		pointHeight = height;
@@ -58,79 +69,81 @@ public class Display extends JComponent {
 	public void paintComponent(Graphics graphics) {
 		Point mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 		if (rendering) {
-			Point[] points = new Point[scene.object.points.length];
-			for (int i = 0; i < scene.object.points.length; i++) {
-				double zAngle = Math.atan(scene.object.points[i].z/scene.object.points[i].x);
-				if (scene.object.points[i].x == 0 && scene.object.points[i].z == 0) {
-					zAngle = 0;
-				}
-				double mag = Math.sqrt(Math.pow(scene.object.points[i].x, 2) + Math.pow(scene.object.points[i].z, 2));
-				viewAngleY = -(mouse.y-frame.getHeight()/2)/sensitivity;
-				if (Math.abs(mouse.y-frame.getHeight()/2)>Math.PI/2*sensitivity) {
-					if (viewAngleY < 0) {
-						viewAngleY = -Math.PI/2*sensitivity;
+			for (int a = 0; a < scene.object.length; a++) {
+				Point[] points = new Point[scene.object[a].points.length];
+				for (int i = 0; i < scene.object[a].points.length; i++) {
+					double zAngle = Math.atan(scene.object[a].points[i].z/scene.object[a].points[i].x);
+					if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+						zAngle = 0;
+					}
+					double mag = Math.sqrt(Math.pow(scene.object[a].points[i].x, 2) + Math.pow(scene.object[a].points[i].z, 2));
+					viewAngleY = -(mouse.y-frame.getHeight()/2)/sensitivity;
+					if (Math.abs(mouse.y-frame.getHeight()/2)>Math.PI/2*sensitivity) {
+						if (viewAngleY < 0) {
+							viewAngleY = -Math.PI/2*sensitivity;
+						} else {
+							viewAngleY = Math.PI/2*sensitivity;
+						}
+					}
+					viewAngleX = -(mouse.x-frame.getWidth()/2)/sensitivity;
+					if (scene.object[a].points[i].x < 0) {
+						xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+						yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+scene.object[a].points[i].y*scale*Math.cos(viewAngleY);
 					} else {
-						viewAngleY = Math.PI/2*sensitivity;
+						xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+						yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+scene.object[a].points[i].y*scale*Math.cos(viewAngleY);
+					}
+					camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
+					camPosY = -scene.camDist*Math.sin(viewAngleY);
+					camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
+					distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-scene.object[a].points[i].x, 2)+Math.pow(camPosY-scene.object[a].points[i].y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z, 2)), i));
+					double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
+					camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
+					points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
+					if (renderPoints) {
+						graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 					}
 				}
-				viewAngleX = -(mouse.x-frame.getWidth()/2)/sensitivity;
-				if (scene.object.points[i].x < 0) {
-					xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-					yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+scene.object.points[i].y*scale*Math.cos(viewAngleY);
-				} else {
-					xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-					yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+scene.object.points[i].y*scale*Math.cos(viewAngleY);
+				for (int x = 0; x < scene.object[a].faces.length; x++) {
+					int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+					double[] distances = new double[pointIDs.length];
+					for (int y = 0; y < pointIDs.length; y++) {
+						for (int z = 0; z < distance.get(a).size(); z++) {
+							if (distance.get(a).get(z).pointID == pointIDs[y]) {
+								distances[y] = distance.get(a).get(z).distance;
+							}
+						}
+					}
+					double average = 0.0;
+					for (int i = 0; i < distances.length; i++) {
+						average += distances[i];
+					}
+					average /= (double) distances.length;
+					scene.object[a].faces[x].camDist = average;
 				}
-				camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
-				camPosY = -scene.camDist*Math.sin(viewAngleY);
-				camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
-				distance[i] = new Distance(Math.sqrt(Math.pow(camPosX-scene.object.points[i].x, 2)+Math.pow(camPosY-scene.object.points[i].y, 2)+Math.pow(camPosZ-scene.object.points[i].z, 2)), i);
-				double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance[i].distance);
-				camScale[i] = distance[i].distance*Math.cos(theta)*Math.sin(scene.viewAngle/2);
-				points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale[i]), (int)(frame.getHeight()/2-yTransform/camScale[i]));
-				if (renderPoints) {
-					graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
-				}
-			}
-			for (int x = 0; x < scene.object.faces.length; x++) {
-				int[] pointIDs = scene.object.faces[x].getPointIDs();
-				double[] distances = new double[pointIDs.length];
-				for (int y = 0; y < pointIDs.length; y++) {
-					for (int z = 0; z < distance.length; z++) {
-						if (distance[z].pointID == pointIDs[y]) {
-							distances[y] = distance[z].distance;
+				for (int x = 0; x < scene.object[a].faces.length; x++) {
+					for (int y = x+1; y < scene.object[a].faces.length; y++) {
+						if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
+							Face temp = scene.object[a].faces[x];
+							scene.object[a].faces[x] = scene.object[a].faces[y];
+							scene.object[a].faces[y] = temp;
 						}
 					}
 				}
-				double average = 0.0;
-				for (int i = 0; i < distances.length; i++) {
-					average += distances[i];
-				}
-				average /= (double) distances.length;
-				scene.object.faces[x].camDist = average;
-			}
-			for (int x = 0; x < scene.object.faces.length; x++) {
-				for (int y = x+1; y < scene.object.faces.length; y++) {
-					if (scene.object.faces[x].camDist < scene.object.faces[y].camDist) {
-						Face temp = scene.object.faces[x];
-						scene.object.faces[x] = scene.object.faces[y];
-						scene.object.faces[y] = temp;
+				for (int x = 0; x < scene.object[a].faces.length; x++) {
+					for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
+						int[] xs = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
+						int[] ys = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
+						graphics.setColor(scene.object[a].faces[x].triangles[y].color);
+						graphics.fillPolygon(xs, ys, 3);
 					}
 				}
-			}
-			for (int x = 0; x < scene.object.faces.length; x++) {
-				for (int y = 0; y < scene.object.faces[x].triangles.length; y++) {
-					int[] xs = {points[scene.object.faces[x].triangles[y].pointID1].x, points[scene.object.faces[x].triangles[y].pointID2].x, points[scene.object.faces[x].triangles[y].pointID3].x};
-					int[] ys = {points[scene.object.faces[x].triangles[y].pointID1].y, points[scene.object.faces[x].triangles[y].pointID2].y, points[scene.object.faces[x].triangles[y].pointID3].y};
-					graphics.setColor(scene.object.faces[x].triangles[y].color);
-					graphics.fillPolygon(xs, ys, 3);
+				graphics.setColor(Color.BLACK);
+				for (int i = 0; i < scene.object[a].edges.length; i++) {
+					int point1 = scene.object[a].edges[i].pointID1;
+					int point2 = scene.object[a].edges[i].pointID2;
+					graphics.drawLine(points[point1].x, points[point1].y, points[point2].x, points[point2].y);
 				}
-			}
-			graphics.setColor(Color.BLACK);
-			for (int i = 0; i < scene.object.edges.length; i++) {
-				int point1 = scene.object.edges[i].pointID1;
-				int point2 = scene.object.edges[i].pointID2;
-				graphics.drawLine(points[point1].x, points[point1].y, points[point2].x, points[point2].y);
 			}
 		}
 		this.revalidate();
