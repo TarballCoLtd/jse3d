@@ -16,6 +16,8 @@ public class Display extends JComponent {
 	private Color lineColor = Color.BLACK;
 	private boolean lineRender;
 	private boolean faceRender;
+	private int targetFps;
+	private long optimalTime;
 	
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
@@ -63,6 +65,8 @@ public class Display extends JComponent {
 		fpsLogging = false;
 		lineRender = true;
 		faceRender = true;
+		targetFps = 60;
+		optimalTime = 1000000000/targetFps;
 	}
 	public void startRender() {
 		if (!rendererStarted) {
