@@ -11,6 +11,8 @@ public class Display extends JComponent {
 	private int pointWidth;
 	private int pointHeight;
 	private boolean rendererStarted;
+	private boolean fpsLimit;
+	private boolean fpsLogging;
 	
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
@@ -54,6 +56,8 @@ public class Display extends JComponent {
 		pointWidth = width;
 		pointHeight = height;
 		rendererStarted = false;
+		fpsLimit = true;
+		fpsLogging = false;
 	}
 	public void startRender() {
 		if (!rendererStarted) {
@@ -162,8 +166,6 @@ public class Display extends JComponent {
 				int fps = 0;
 				long lastFpsTime = 0L;
 				long lastLoopTime = System.nanoTime();
-				final int TARGET_FPS = 60;
-				final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
 				while (rendering) {
 				    long now = System.nanoTime();
 				    long updateLength = now - lastLoopTime;
@@ -171,17 +173,37 @@ public class Display extends JComponent {
 				    lastFpsTime += updateLength;
 				    fps++;
 				    if (lastFpsTime >= 1000000000) {
-				        System.out.println("FPS: " + fps);
+				    	if (fpsLogging) {
+				    		System.out.println("FPS: " + fps);
+				    	}
 				        lastFpsTime = 0;
 				        fps = 0;
 				    }
 				    renderFrame();
-				    try{Thread.sleep( (lastLoopTime-System.nanoTime() + OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
+				    if (fpsLimit) {
+				    	try {Thread.sleep((lastLoopTime-System.nanoTime()+JSE3DConst.OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
+				    }
 				}
 			}
 		}
 		private void renderFrame() {
 			repaint();
 		}
+	}
+	public void setTargetFPS(int fps) {
+		JSE3DConst.TARGET_FPS = fps;
+		JSE3DConst.OPTIMAL_TIME = 1000000000 / JSE3DConst.TARGET_FPS;
+	}
+	public void enableFPSLimit() {
+		fpsLimit = true;
+	}
+	public void disableFPSLimit() {
+		fpsLimit = false;
+	}
+	public void enableFPSLogging() {
+		fpsLogging = true;
+	}
+	public void disableFPSLogging() {
+		fpsLogging = false;
 	}
 }

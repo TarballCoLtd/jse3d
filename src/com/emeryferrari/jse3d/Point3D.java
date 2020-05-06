@@ -8,14 +8,20 @@ public class Point3D {
 		this.y = y;
 		this.z = z;
 	}
-	public void movePos(double x, double y, double z) {
+	public void movePosAbs(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
-	public void transitionPos(double x, double y, double z, int millis) {
+	public void transitionPosAbs(double x, double y, double z, int millis) {
 		Thread transition = new Transition(x, y, z, millis);
 		transition.start();
+	}
+	public void movePosRel(double xDiff, double yDiff, double zDiff) {
+		movePosAbs(x+xDiff, y+yDiff, z+zDiff);
+	}
+	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis) {
+		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis);
 	}
 	private class Transition extends Thread {
 		private double xt;
@@ -47,10 +53,10 @@ public class Point3D {
 			    if (lastFpsTime >= 1000000000) {
 			        lastFpsTime = 0;
 			    }
-			    movePos(x+xIteration, y+yIteration, z+zIteration);
+			    movePosAbs(x+xIteration, y+yIteration, z+zIteration);
 			    try {Thread.sleep((lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 			}
-			movePos(xt, yt, zt);
+			movePosAbs(xt, yt, zt);
 		}
 	}
 }
