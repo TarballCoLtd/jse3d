@@ -32,6 +32,7 @@ public class Display extends JComponent {
 	private double yTransform = 0;
 	private double viewAngleX = 0;
 	private double viewAngleY = 0;
+	private int fps = 0;
 	public Display(Scene scene, String frameTitle, boolean visible, boolean renderPoints) {
 		this(scene, frameTitle, visible, renderPoints, 5, 5);
 	}
@@ -206,13 +207,13 @@ public class Display extends JComponent {
 				}
 			}
 		}
+		fps++;
 		this.revalidate();
 	}
 	private class Renderer extends Thread {
 		@Override
 		public void run() {
 			while (true) {
-				int fps = 0;
 				long lastFpsTime = 0L;
 				long lastLoopTime = System.nanoTime();
 				while (rendering) {
@@ -223,7 +224,7 @@ public class Display extends JComponent {
 				    fps++;
 				    if (lastFpsTime >= 1000000000) {
 				    	if (fpsLogging) {
-				    		System.out.println("FPS: " + fps);
+				    		System.out.println("FPS: " + fps/2);
 				    	}
 				        lastFpsTime = 0;
 				        fps = 0;
