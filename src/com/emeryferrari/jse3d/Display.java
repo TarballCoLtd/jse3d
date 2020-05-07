@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.*;
 public class Display extends JComponent {
 	private static final long serialVersionUID = 1L;
-	public Scene scene;
+	private Scene scene;
 	private JFrame frame;
 	private boolean renderPoints;
 	private boolean rendering;
@@ -221,10 +221,9 @@ public class Display extends JComponent {
 				    long updateLength = now - lastLoopTime;
 				    lastLoopTime = now;
 				    lastFpsTime += updateLength;
-				    fps++;
 				    if (lastFpsTime >= 1000000000) {
 				    	if (fpsLogging) {
-				    		System.out.println("FPS: " + fps/2);
+				    		System.out.println("FPS: " + fps);
 				    	}
 				        lastFpsTime = 0;
 				        fps = 0;
@@ -279,5 +278,11 @@ public class Display extends JComponent {
 	}
 	public void setBackgroundColor(Color color) {
 		backgroundColor = color;
+	}
+	public Scene getScene() {
+		return scene;
+	}
+	public void setScene(Scene scene) {
+		this.scene = scene;
 	}
 }
