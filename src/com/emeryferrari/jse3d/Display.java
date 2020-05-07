@@ -23,6 +23,7 @@ public class Display extends JComponent {
 	private Color backgroundColor;
 	private Point lastMousePos;	
 	private boolean mouseClicked;
+	private Point mouseDiff;
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
 	private double camPosY = 0;
@@ -76,10 +77,12 @@ public class Display extends JComponent {
 		lineColor = Color.BLACK;
 		backgroundColor = Color.WHITE;
 		this.addMouseListener(new ClickListener());
+		this.addMouseWheelListener(new ScrollListener());
 		mouseClicked = false;
 	}
 	public void startRender() {
 		if (!rendererStarted) {
+			mouseDiff = new Point(0, 0);
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
 			Thread renderer = new Renderer();
@@ -112,8 +115,8 @@ public class Display extends JComponent {
 		graphics.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 		Point mouse;
 		if (mouseClicked) {
-			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
-			mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+			Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+			mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
 		} else {
 			mouse = lastMousePos;
 		}
@@ -243,6 +246,9 @@ public class Display extends JComponent {
 				    if (fpsLimit) {
 				    	try {Thread.sleep((lastLoopTime-System.nanoTime()+optimalTime)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 				    }
+				    if (!mouseClicked) {
+				    	
+				    }
 				}
 			}
 		}
@@ -256,15 +262,28 @@ public class Display extends JComponent {
 		}
 		public void mousePressed(MouseEvent ev) {
 			mouseClicked = true;
+			Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+			mouseDiff = new Point(temp.x-lastMousePos.x, temp.y-lastMousePos.y);
 		}
 		public void mouseClicked(MouseEvent ev) {
 			
 		}
 		public void mouseReleased(MouseEvent ev) {
 			mouseClicked = false;
+			Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+			lastMousePos = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
 		}
 		public void mouseExited(MouseEvent ev) {
 			
+		}
+	}
+	private class ScrollListener implements MouseWheelListener {
+		public void mouseWheelMoved(MouseWheelEvent ev) {
+			if (ev.getPreciseWheelRotation() > 0) {
+				scene.camDist *= 1.2;
+			} else {
+				scene.camDist /= 1.2;
+			}
 		}
 	}
 	public void setTargetFPS(int fps) {
