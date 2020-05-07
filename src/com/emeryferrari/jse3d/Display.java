@@ -2,6 +2,7 @@ package com.emeryferrari.jse3d;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import java.awt.event.*;
 public class Display extends JComponent {
 	private static final long serialVersionUID = 1L;
 	private Scene scene;
@@ -20,7 +21,8 @@ public class Display extends JComponent {
 	private long optimalTime;
 	private boolean invertColors;
 	private Color backgroundColor;
-	
+	private Point lastMousePos;	
+	private boolean mouseClicked;
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
 	private double camPosY = 0;
@@ -73,9 +75,12 @@ public class Display extends JComponent {
 		invertColors = false;
 		lineColor = Color.BLACK;
 		backgroundColor = Color.WHITE;
+		this.addMouseListener(new ClickListener());
+		mouseClicked = false;
 	}
 	public void startRender() {
 		if (!rendererStarted) {
+			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
 			Thread renderer = new Renderer();
 			renderer.start();
@@ -105,7 +110,13 @@ public class Display extends JComponent {
 			graphics.setColor(backgroundColor);
 		}
 		graphics.fillRect(0, 0, frame.getWidth(), frame.getHeight());
-		Point mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+		Point mouse;
+		if (mouseClicked) {
+			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+			mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+		} else {
+			mouse = lastMousePos;
+		}
 		for (int a = 0; a < scene.object.length; a++) {
 			Point[] points = new Point[scene.object[a].points.length];
 			for (int i = 0; i < scene.object[a].points.length; i++) {
@@ -237,6 +248,23 @@ public class Display extends JComponent {
 		}
 		private void renderFrame() {
 			repaint();
+		}
+	}
+	private class ClickListener implements MouseListener {
+		public void mouseEntered(MouseEvent ev) {
+			
+		}
+		public void mousePressed(MouseEvent ev) {
+			mouseClicked = true;
+		}
+		public void mouseClicked(MouseEvent ev) {
+			
+		}
+		public void mouseReleased(MouseEvent ev) {
+			mouseClicked = false;
+		}
+		public void mouseExited(MouseEvent ev) {
+			
 		}
 	}
 	public void setTargetFPS(int fps) {
