@@ -121,6 +121,7 @@ public class Display extends JComponent {
 		} else {
 			mouse = lastMousePos;
 		}
+		// WRITTEN BY SAM START
 		for (int a = 0; a < scene.object.length; a++) {
 			Point[] points = new Point[scene.object[a].points.length];
 			for (int i = 0; i < scene.object[a].points.length; i++) {
@@ -152,6 +153,7 @@ public class Display extends JComponent {
 				double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
 				camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
 				points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
+				// WRITTEN BY SAM END
 				if (renderPoints) {
 					if (invertColors) {
 						graphics.setColor(Color.WHITE);

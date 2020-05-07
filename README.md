@@ -4,8 +4,8 @@ by Sam Krug and Emery Ferrari
 
 ## Credit
 
-All lines that use the Math class were written by Sam Krug.<br/>
-Almost all other code was written by Emery Ferrari.
+Lines between the start and end comments were written by Sam Krug.<br/>
+All other code was written by Emery Ferrari.
 
 ## Documentation
 
