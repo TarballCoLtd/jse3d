@@ -31,4 +31,12 @@ public class Object3D {
 			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis);
 		}
 	}
+	public int getPointID(Point3D point) {
+		for (int i = 0; i < points.length; i++) {
+			if (points[i].x == point.x && points[i].y == point.y && points[i].z == point.z) {
+				return i;
+			}
+		}
+		return -1;
+	}
 }
