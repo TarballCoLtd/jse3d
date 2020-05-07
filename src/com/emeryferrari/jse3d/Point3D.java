@@ -44,7 +44,7 @@ public class Point3D {
 			double zIteration = zDiff/(double)(60.0*((double)millis/1000.0));
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
-			final long OPTIMAL_TIME = 1000000000 / JSE3DConst.PHYSICS_TIMESTEP;
+			final long OPTIMAL_TIME = 1000000000 / Display.physicsTimestep;
 			for (int i = 0; i < (int)(60.0*((double)millis/1000.0)); i++) {
 				long now = System.nanoTime();
 			    long updateLength = now - lastLoopTime;

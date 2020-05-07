@@ -24,6 +24,7 @@ public class Display extends JComponent {
 	private Point lastMousePos;	
 	private boolean mouseClicked;
 	private Point mouseDiff;
+	static int physicsTimestep = 60;
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
 	private double camPosY = 0;
@@ -257,25 +258,19 @@ public class Display extends JComponent {
 		}
 	}
 	private class ClickListener implements MouseListener {
-		public void mouseEntered(MouseEvent ev) {
-			
-		}
+		public void mouseEntered(MouseEvent ev) {}
 		public void mousePressed(MouseEvent ev) {
 			mouseClicked = true;
 			Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			mouseDiff = new Point(temp.x-lastMousePos.x, temp.y-lastMousePos.y);
 		}
-		public void mouseClicked(MouseEvent ev) {
-			
-		}
+		public void mouseClicked(MouseEvent ev) {}
 		public void mouseReleased(MouseEvent ev) {
 			mouseClicked = false;
 			Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			lastMousePos = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
 		}
-		public void mouseExited(MouseEvent ev) {
-			
-		}
+		public void mouseExited(MouseEvent ev) {}
 	}
 	private class ScrollListener implements MouseWheelListener {
 		public void mouseWheelMoved(MouseWheelEvent ev) {
@@ -331,5 +326,11 @@ public class Display extends JComponent {
 	}
 	public void setScene(Scene scene) {
 		this.scene = scene;
+	}
+	public void setPhysicsTimestep(int timestep) {
+		Display.physicsTimestep = timestep;
+	}
+	public int getPhysicsTimestep() {
+		return Display.physicsTimestep;
 	}
 }
