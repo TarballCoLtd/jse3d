@@ -36,6 +36,7 @@ public class Object3DSerializer {
 				done = true;
 			}
 		}
+		ois.close();
 		Object3D[] ret = new Object3D[temp.size()];
 		for (int i = 0; i < temp.size(); i++) {
 			ret[i] = temp.get(i);
