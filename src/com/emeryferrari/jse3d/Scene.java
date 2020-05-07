@@ -1,9 +1,9 @@
 package com.emeryferrari.jse3d;
 import java.awt.*;
 public class Scene {
-	public Object3D[] object;
-	public double camDist;
-	public double viewAngle;
+	Object3D[] object;
+	double camDist;
+	double viewAngle;
 	private Scene(Object3D[] object, double camDist) {
 		this.object = object;
 		this.camDist = camDist;
@@ -20,5 +20,17 @@ public class Scene {
 	}
 	public static Scene getInstance(Object3D[] object, double camDist) {
 		return new Scene(object, camDist);
+	}
+	public Object3D[] getObjects() {
+		return object;
+	}
+	public double getCameraDistance() {
+		return camDist;
+	}
+	public void setObjects(Object3D[] object) {
+		this.object = object;
+	}
+	public void setCameraDistance(double camDist) {
+		this.camDist = camDist;
 	}
 }
