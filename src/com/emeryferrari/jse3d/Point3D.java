@@ -8,31 +8,33 @@ public class Point3D {
 		this.y = y;
 		this.z = z;
 	}
-	public void movePosAbs(double x, double y, double z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
+	public void movePosAbs(double x, double y, double z, Display display) {
+		this.x = x-display.camPos.x;
+		this.y = y-display.camPos.y;
+		this.z = z-display.camPos.z;
 	}
-	public void transitionPosAbs(double x, double y, double z, int millis) {
-		Thread transition = new Transition(x, y, z, millis);
+	public void transitionPosAbs(double x, double y, double z, int millis, Display display) {
+		Thread transition = new Transition(x, y, z, millis, display);
 		transition.start();
 	}
-	public void movePosRel(double xDiff, double yDiff, double zDiff) {
-		movePosAbs(x+xDiff, y+yDiff, z+zDiff);
+	public void movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
+		movePosAbs(x+xDiff, y+yDiff, z+zDiff, display);
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis) {
-		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis);
+	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
+		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis, display);
 	}
 	private class Transition extends Thread {
 		private double xt;
 		private double yt;
 		private double zt;
 		private int millis;
-		private Transition(double x, double y, double z, int millis) {
+		private Display display;
+		private Transition(double x, double y, double z, int millis, Display display) {
 			this.xt = x;
 			this.yt = y;
 			this.zt = z;
 			this.millis = millis;
+			this.display = display;
 		}
 		@Override
 		public void run() {
@@ -53,10 +55,10 @@ public class Point3D {
 			    if (lastFpsTime >= 1000000000) {
 			        lastFpsTime = 0;
 			    }
-			    movePosAbs(x+xIteration, y+yIteration, z+zIteration);
+			    movePosAbs(x+xIteration, y+yIteration, z+zIteration, display);
 			    try {Thread.sleep((lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 			}
-			movePosAbs(xt, yt, zt);
+			movePosAbs(xt, yt, zt, display);
 		}
 	}
 }

@@ -21,14 +21,14 @@ public class Object3D {
 	public Object3D(Point3D[] points) {
 		this.points = points;
 	}
-	public void movePosRel(double xDiff, double yDiff, double zDiff) {
+	public void movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
 		for (int i = 0; i < points.length; i++) {
-			points[i].movePosRel(xDiff, yDiff, zDiff);
+			points[i].movePosRel(xDiff, yDiff, zDiff, display);
 		}
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis) {
+	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
 		for (int i = 0; i < points.length; i++) {
-			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis);
+			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis, display);
 		}
 	}
 	public int getPointID(Point3D point) {

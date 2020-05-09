@@ -26,7 +26,7 @@ public class Display extends JComponent {
 	private Point mouseDiff;
 	private boolean scrollWheel;
 	static int physicsTimestep = 60;
-	private Point3D camPos;
+	Point3D camPos;
 	private CameraMode mode;
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
@@ -83,9 +83,9 @@ public class Display extends JComponent {
 		this.addMouseListener(new ClickListener());
 		this.addMouseWheelListener(new ScrollListener());
 		mouseClicked = false;
-		camPos = new Point3D(0, 0, 0);
 		scrollWheel = true;
 		mode = CameraMode.DRAG;
+		camPos = new Point3D(0, 0, 0);
 	}
 	public void startRender() {
 		if (!rendererStarted) {
@@ -134,11 +134,11 @@ public class Display extends JComponent {
 		for (int a = 0; a < scene.object.length; a++) {
 			Point[] points = new Point[scene.object[a].points.length];
 			for (int i = 0; i < scene.object[a].points.length; i++) {
-				double zAngle = Math.atan((scene.object[a].points[i].z-camPos.z)/(scene.object[a].points[i].x-camPos.x));
-				if (scene.object[a].points[i].x-camPos.x == 0 && scene.object[a].points[i].z-camPos.z == 0) {
+				double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
+				if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
 					zAngle = 0;
 				}
-				double mag = Math.sqrt(Math.pow(scene.object[a].points[i].x-camPos.x, 2) + Math.pow(scene.object[a].points[i].z-camPos.z, 2));
+				double mag = Math.sqrt(Math.pow(scene.object[a].points[i].x, 2) + Math.pow(scene.object[a].points[i].z, 2));
 				viewAngleY = -(mouse.y-frame.getHeight()/2)/sensitivity;
 				if (Math.abs(mouse.y-frame.getHeight()/2)>Math.PI/2*sensitivity) {
 					if (viewAngleY < 0) {
@@ -148,18 +148,18 @@ public class Display extends JComponent {
 					}
 				}
 				viewAngleX = -(mouse.x-frame.getWidth()/2)/sensitivity;
-				if (scene.object[a].points[i].x-camPos.x < 0) {
+				if (scene.object[a].points[i].x < 0) {
 					xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-					yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y-camPos.y)*scale*Math.cos(viewAngleY);
+					yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
 				} else {
 					xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-					yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y-camPos.y)*scale*Math.cos(viewAngleY);
+					yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
 				}
 				camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
 				camPosY = -scene.camDist*Math.sin(viewAngleY);
 				camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
 				if (!(scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) > scene.camDist)) {
-					distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x-camPos.x), 2)+Math.pow(camPosY-scene.object[a].points[i].y-camPos.y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z-camPos.z, 2)), i));
+					distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x), 2)+Math.pow(camPosY-scene.object[a].points[i].y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z, 2)), i));
 					double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
 					camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
 					points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
@@ -347,39 +347,60 @@ public class Display extends JComponent {
 	public int getPhysicsTimestep() {
 		return Display.physicsTimestep;
 	}
-	public void setCameraPosition(Point3D point) {
-		camPos = point;
+	public void setCameraPositionRel(Point3D point) {
+		Thread cameraPos = new CameraPos(point, this);
+		cameraPos.start();
+	}
+	public void transitionCameraPositionRel(Point3D point, int millis) {
+		Thread transition = new Transition(point, millis, this);
+		transition.start();
 	}
 	public Point3D getCameraPosition() {
 		return camPos;
 	}
-	public void transitionCameraPosition(Point3D point, int millis) {
-		Thread transition = new Transition(point, millis);
-		transition.start();
+	private class CameraPos extends Thread {
+		private double xt;
+		private double yt;
+		private double zt;
+		private Display display;
+		private CameraPos(Point3D point, Display display) {
+			this.xt = point.x;
+			this.yt = point.y;
+			this.zt = point.z;
+			this.display = display;
+		}
+		@Override
+		public void run() {
+			for (int i = 0; i < scene.object.length; i++) {
+				scene.object[i].movePosRel(xt, yt, zt, display);
+			}
+			camPos.x += xt;
+			camPos.y += yt;
+			camPos.z += zt;
+		}
 	}
 	private class Transition extends Thread {
 		private double xt;
 		private double yt;
 		private double zt;
 		private int millis;
-		private Transition(Point3D point, int millis) {
+		private Display display;
+		private Transition(Point3D point, int millis, Display display) {
 			this.xt = point.x;
 			this.yt = point.y;
 			this.zt = point.z;
 			this.millis = millis;
+			this.display = display;
 		}
 		@Override
 		public void run() {
-			double xDiff = xt-camPos.x;
-			double yDiff = yt-camPos.y;
-			double zDiff = zt-camPos.z;
-			double xIteration = xDiff/(double)(60.0*((double)millis/1000.0));
-			double yIteration = yDiff/(double)(60.0*((double)millis/1000.0));
-			double zIteration = zDiff/(double)(60.0*((double)millis/1000.0));
+			double xIteration = xt/(double)(60.0*((double)millis/1000.0));
+			double yIteration = yt/(double)(60.0*((double)millis/1000.0));
+			double zIteration = zt/(double)(60.0*((double)millis/1000.0));
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
 			final long OPTIMAL_TIME = 1000000000 / Display.physicsTimestep;
-			for (int i = 0; i < (int)(60.0*((double)millis/1000.0)); i++) {
+			for (int x = 0; x < (int)(60.0*((double)millis/1000.0)); x++) {
 				long now = System.nanoTime();
 			    long updateLength = now - lastLoopTime;
 			    lastLoopTime = now;
@@ -387,10 +408,14 @@ public class Display extends JComponent {
 			    if (lastFpsTime >= 1000000000) {
 			        lastFpsTime = 0;
 			    }
-			    setCameraPosition(new Point3D(camPos.x+xIteration, camPos.y+yIteration, camPos.z+zIteration));
+			    for (int y = 0; y < scene.object.length; y++) {
+			    	scene.object[y].movePosRel(xIteration, yIteration, zIteration, display);
+			    }
 			    try {Thread.sleep((lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 			}
-			setCameraPosition(new Point3D(xt, yt, zt));
+			camPos.x += xt;
+			camPos.y += yt;
+			camPos.z += zt;
 		}
 	}
 	public void enableScrollWheel() {
