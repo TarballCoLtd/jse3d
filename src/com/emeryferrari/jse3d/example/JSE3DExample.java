@@ -6,5 +6,6 @@ public class JSE3DExample {
 		Display display = new Display(scene, "jse3d demo", true, false);
 		display.enableFPSLogging();
 		display.startRender();
+		display.getScene().getObjects()[0].transitionPosRel(0, -2, 0, 20000);
 	}
 }

@@ -131,7 +131,6 @@ public class Display extends JComponent {
 		} else {
 			mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 		}
-		// WRITTEN BY SAM START
 		for (int a = 0; a < scene.object.length; a++) {
 			Point[] points = new Point[scene.object[a].points.length];
 			for (int i = 0; i < scene.object[a].points.length; i++) {
@@ -159,11 +158,12 @@ public class Display extends JComponent {
 				camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
 				camPosY = -scene.camDist*Math.sin(viewAngleY);
 				camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
-				distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x-camPos.x), 2)+Math.pow(camPosY-scene.object[a].points[i].y-camPos.y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z-camPos.z, 2)), i));
-				double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
-				camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
-				points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
-				// WRITTEN BY SAM END
+				if (!(scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) > scene.camDist)) {
+					distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x-camPos.x), 2)+Math.pow(camPosY-scene.object[a].points[i].y-camPos.y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z-camPos.z, 2)), i));
+					double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
+					camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
+					points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
+				}
 				if (renderPoints) {
 					if (invertColors) {
 						graphics.setColor(Color.WHITE);
