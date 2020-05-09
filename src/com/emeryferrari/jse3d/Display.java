@@ -28,6 +28,7 @@ public class Display extends JComponent {
 	static int physicsTimestep = 60;
 	Point3D camPos;
 	private CameraMode mode;
+	private ThreadMode threadMode;
 	private ArrayList<ArrayList<Distance>> distance;
 	private double camPosX = 0;
 	private double camPosY = 0;
@@ -86,6 +87,7 @@ public class Display extends JComponent {
 		scrollWheel = true;
 		mode = CameraMode.DRAG;
 		camPos = new Point3D(0, 0, 0);
+		threadMode = ThreadMode.SINGLETHREADED;
 	}
 	public void startRender() {
 		if (!rendererStarted) {
@@ -135,35 +137,76 @@ public class Display extends JComponent {
 			Point[] points = new Point[scene.object[a].points.length];
 			// WRITTEN BY SAM START
 			for (int i = 0; i < scene.object[a].points.length; i++) {
-				double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
-				if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
-					zAngle = 0;
-				}
-				double mag = Math.sqrt(Math.pow(scene.object[a].points[i].x, 2) + Math.pow(scene.object[a].points[i].z, 2));
-				viewAngleY = -(mouse.y-frame.getHeight()/2)/sensitivity;
-				if (Math.abs(mouse.y-frame.getHeight()/2)>Math.PI/2*sensitivity) {
-					if (viewAngleY < 0) {
-						viewAngleY = -Math.PI/2*sensitivity;
-					} else {
-						viewAngleY = Math.PI/2*sensitivity;
+				if (threadMode == ThreadMode.SINGLETHREADED) {
+					double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
+					if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+						zAngle = 0;
 					}
-				}
-				viewAngleX = -(mouse.x-frame.getWidth()/2)/sensitivity;
-				if (scene.object[a].points[i].x < 0) {
-					xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-					yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+					double mag = Math.sqrt(Math.pow(scene.object[a].points[i].x, 2) + Math.pow(scene.object[a].points[i].z, 2));
+					viewAngleY = -(mouse.y-frame.getHeight()/2)/sensitivity;
+					if (Math.abs(mouse.y-frame.getHeight()/2)>Math.PI/2*sensitivity) {
+						if (viewAngleY < 0) {
+							viewAngleY = -Math.PI/2*sensitivity;
+						} else {
+							viewAngleY = Math.PI/2*sensitivity;
+						}
+					}
+					viewAngleX = -(mouse.x-frame.getWidth()/2)/sensitivity;
+					if (scene.object[a].points[i].x < 0) {
+						xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+						yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+					} else {
+						xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+						yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+					}
+					camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
+					camPosY = -scene.camDist*Math.sin(viewAngleY);
+					camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
+					if (!(scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) > scene.camDist)) {
+						distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x), 2)+Math.pow(camPosY-scene.object[a].points[i].y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z, 2)), i));
+						double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
+						camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
+						points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
+					}
 				} else {
-					xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-					yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-				}
-				camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
-				camPosY = -scene.camDist*Math.sin(viewAngleY);
-				camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
-				if (!(scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) > scene.camDist)) {
-					distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x), 2)+Math.pow(camPosY-scene.object[a].points[i].y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z, 2)), i));
-					double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
-					camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
-					points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
+					final int a1 = a;
+					final int i1 = i;
+					Thread thread = new Thread() {
+						@Override
+						public void run() {
+							double zAngle = Math.atan((scene.object[a1].points[i1].z)/(scene.object[a1].points[i1].x));
+							if (scene.object[a1].points[i1].x == 0 && scene.object[a1].points[i1].z == 0) {
+								zAngle = 0;
+							}
+							double mag = Math.sqrt(Math.pow(scene.object[a1].points[i1].x, 2) + Math.pow(scene.object[a1].points[i1].z, 2));
+							viewAngleY = -(mouse.y-frame.getHeight()/2)/sensitivity;
+							if (Math.abs(mouse.y-frame.getHeight()/2)>Math.PI/2*sensitivity) {
+								if (viewAngleY < 0) {
+									viewAngleY = -Math.PI/2*sensitivity;
+								} else {
+									viewAngleY = Math.PI/2*sensitivity;
+								}
+							}
+							viewAngleX = -(mouse.x-frame.getWidth()/2)/sensitivity;
+							if (scene.object[a1].points[i1].x < 0) {
+								xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+								yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a1].points[i1].y)*scale*Math.cos(viewAngleY);
+							} else {
+								xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+								yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a1].points[i1].y)*scale*Math.cos(viewAngleY);
+							}
+							camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
+							camPosY = -scene.camDist*Math.sin(viewAngleY);
+							camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
+							if (!(scene.object[a1].points[i1].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a1].points[i1].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a1].points[i1].y*Math.sin(viewAngleY) > scene.camDist)) {
+								distance.get(a1).set(i1, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a1].points[i1].x), 2)+Math.pow(camPosY-scene.object[a1].points[i1].y, 2)+Math.pow(camPosZ-scene.object[a1].points[i1].z, 2)), i1));
+								double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a1).get(i1).distance);
+								camScale.get(a1).set(i1, distance.get(a1).get(i1).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
+								points[i1] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a1).get(i1)), (int)(frame.getHeight()/2-yTransform/camScale.get(a1).get(i1)));
+							}
+						}
+					};
+					thread.start();
 				}
 				// WRITTEN BY SAM END
 				if (renderPoints) {
@@ -430,6 +473,15 @@ public class Display extends JComponent {
 		scene.camDist = distance;
 	}
 	public void setCameraMode(CameraMode mode) {
-		
+		this.mode = mode;
+	}
+	public void setThreadMode(ThreadMode mode) {
+		threadMode = mode;
+	}
+	public CameraMode getCameraMode() {
+		return mode;
+	}
+	public ThreadMode getThreadMode() {
+		return threadMode;
 	}
 }
