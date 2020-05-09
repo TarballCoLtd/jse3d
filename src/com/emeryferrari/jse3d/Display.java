@@ -133,6 +133,7 @@ public class Display extends JComponent {
 		}
 		for (int a = 0; a < scene.object.length; a++) {
 			Point[] points = new Point[scene.object[a].points.length];
+			// WRITTEN BY SAM START
 			for (int i = 0; i < scene.object[a].points.length; i++) {
 				double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
 				if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
@@ -164,6 +165,7 @@ public class Display extends JComponent {
 					camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
 					points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
 				}
+				// WRITTEN BY SAM END
 				if (renderPoints) {
 					if (invertColors) {
 						graphics.setColor(Color.WHITE);
