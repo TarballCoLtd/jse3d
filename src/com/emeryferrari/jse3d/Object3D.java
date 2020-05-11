@@ -22,13 +22,19 @@ public class Object3D {
 		this.points = points;
 	}
 	public void movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
-		for (int i = 0; i < points.length; i++) {
-			points[i].movePosRel(xDiff, yDiff, zDiff, display);
-		}
+		movePosRel(xDiff, yDiff, zDiff, display.getCameraPosition());
 	}
 	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
+		transitionPosRel(xDiff, yDiff, zDiff, millis, display.getCameraPosition());
+	}
+	public void movePosRel(double xDiff, double yDiff, double zDiff, Point3D camPos) {
 		for (int i = 0; i < points.length; i++) {
-			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis, display);
+			points[i].movePosRel(xDiff, yDiff, zDiff, camPos);
+		}
+	}
+	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos) {
+		for (int i = 0; i < points.length; i++) {
+			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis, camPos);
 		}
 	}
 	public int getPointID(Point3D point) {

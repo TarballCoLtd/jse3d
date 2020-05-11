@@ -111,11 +111,7 @@ public class Display extends JComponent {
 	@Override
 	public void paintComponent(Graphics graphics) {
 		if (invertColors) {
-			int red = 255-backgroundColor.getRed();
-			int green = 255-backgroundColor.getGreen();
-			int blue = 255-backgroundColor.getBlue();
-			int alpha = backgroundColor.getAlpha();
-			graphics.setColor(new Color(red, green, blue, alpha));
+			graphics.setColor(Display.invertColor(backgroundColor));
 		} else {
 			graphics.setColor(backgroundColor);
 		}
@@ -207,11 +203,7 @@ public class Display extends JComponent {
 						int[] xs = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
 						int[] ys = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
 						if (invertColors) {
-							int red = 255-scene.object[a].faces[x].triangles[y].color.getRed();
-							int green = 255-scene.object[a].faces[x].triangles[y].color.getGreen();
-							int blue = 255-scene.object[a].faces[x].triangles[y].color.getBlue();
-							int alpha = scene.object[a].faces[x].triangles[y].color.getAlpha();
-							graphics.setColor(new Color(red, green, blue, alpha));
+							graphics.setColor(Display.invertColor(scene.object[a].faces[x].triangles[y].color));
 						} else {
 							graphics.setColor(scene.object[a].faces[x].triangles[y].color);
 						}
@@ -221,11 +213,7 @@ public class Display extends JComponent {
 			}
 			if (lineRender) {
 				if (invertColors) {
-					int red = 255-lineColor.getRed();
-					int green = 255-lineColor.getGreen();
-					int blue = 255-lineColor.getBlue();
-					int alpha = lineColor.getAlpha();
-					graphics.setColor(new Color(red, green, blue, alpha));
+					graphics.setColor(Display.invertColor(lineColor));
 				} else {
 					graphics.setColor(lineColor);
 				}
@@ -434,5 +422,8 @@ public class Display extends JComponent {
 	}
 	public CameraMode getCameraMode() {
 		return mode;
+	}
+	private static Color invertColor(Color color) {
+		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
 	}
 }
