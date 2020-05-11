@@ -4,7 +4,6 @@ public class JSE3DExample {
 	public static void main(String[] args) throws InterruptedException {
 		Scene scene = Scene.getInstance(ObjectTemplate.TRIANGLE, 5.0);
 		Display display = new Display(scene, "jse3d demo", true, false);
-		display.setThreadMode(ThreadMode.MULTITHREADED);
 		display.enableFPSLogging();
 		display.startRender();
 	}
