@@ -115,7 +115,7 @@ public class Display extends JComponent {
 		} else {
 			graphics.setColor(backgroundColor);
 		}
-		graphics.fillRect(0, 0, frame.getWidth(), frame.getHeight());
+		graphics.fillRect(0, 0, this.getSize().width, this.getSize().height);
 		Point mouse;
 		if (mode == CameraMode.DRAG) {
 			if (mouseClicked) {
@@ -136,15 +136,15 @@ public class Display extends JComponent {
 					zAngle = 0;
 				}
 				double mag = Math.sqrt(Math.pow(scene.object[a].points[i].x, 2) + Math.pow(scene.object[a].points[i].z, 2));
-				viewAngleY = -(mouse.y-frame.getHeight()/2)/sensitivity;
-				if (Math.abs(mouse.y-frame.getHeight()/2)>Math.PI/2*sensitivity) {
+				viewAngleY = -(mouse.y-this.getSize().height/2)/sensitivity;
+				if (Math.abs(mouse.y-this.getSize().height/2)>Math.PI/2*sensitivity) {
 					if (viewAngleY < 0) {
 						viewAngleY = -Math.PI/2*sensitivity;
 					} else {
 						viewAngleY = Math.PI/2*sensitivity;
 					}
 				}
-				viewAngleX = -(mouse.x-frame.getWidth()/2)/sensitivity;
+				viewAngleX = -(mouse.x-this.getSize().width/2)/sensitivity;
 				if (scene.object[a].points[i].x < 0) {
 					xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
 					yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
@@ -159,7 +159,7 @@ public class Display extends JComponent {
 					distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x), 2)+Math.pow(camPosY-scene.object[a].points[i].y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z, 2)), i));
 					double theta = Math.asin((Math.sqrt(Math.pow(xTransform, 2)+Math.pow(yTransform, 2))/scale)/distance.get(a).get(i).distance);
 					camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(scene.viewAngle/2));
-					points[i] = new Point((int)(frame.getWidth()/2+xTransform/camScale.get(a).get(i)), (int)(frame.getHeight()/2-yTransform/camScale.get(a).get(i)));
+					points[i] = new Point((int)(this.getSize().width/2+xTransform/camScale.get(a).get(i)), (int)(this.getSize().height/2-yTransform/camScale.get(a).get(i)));
 				}
 				// WRITTEN BY SAM END
 				if (renderPoints) {
