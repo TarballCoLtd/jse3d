@@ -1,5 +1,7 @@
 package com.emeryferrari.jse3d;
-public class Object3D {
+import java.io.*;
+public class Object3D implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public Point3D[] points;
 	public Line[] edges = {};
 	public Face[] faces = {};
