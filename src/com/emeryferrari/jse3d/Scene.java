@@ -1,5 +1,7 @@
 package com.emeryferrari.jse3d;
-public class Scene {
+import java.io.*;
+public class Scene implements Serializable {
+	private static final long serialVersionUID = 1L;
 	Object3D[] object;
 	double camDist;
 	double viewAngle;
