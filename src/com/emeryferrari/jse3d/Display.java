@@ -86,10 +86,10 @@ public class Display extends JComponent {
 		scrollWheel = true;
 		mode = CameraMode.DRAG;
 		camPos = new Point3D(0, 0, 0);
+		mouseDiff = new Point(0, 0);
 	}
 	public void startRender() {
 		if (!rendererStarted) {
-			mouseDiff = new Point(0, 0);
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
 			Thread renderer = new Renderer();
