@@ -1,7 +1,7 @@
 package com.emeryferrari.jse3d;
 import java.io.*;
-public class Serializer {
-	private Serializer() {}
+public class JSE3DSerializer {
+	private JSE3DSerializer() {}
 	public static void saveObject3D(Object3D object, File file) throws IOException {
 		FileOutputStream fos = new FileOutputStream(file);
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
