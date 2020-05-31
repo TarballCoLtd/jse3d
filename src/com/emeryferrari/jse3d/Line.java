@@ -1,5 +1,7 @@
 package com.emeryferrari.jse3d;
-public class Line {
+import java.io.*;
+public class Line implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public int pointID1;
 	public int pointID2;
 	public Line(int pointID1, int pointID2) {

@@ -1,6 +1,8 @@
 package com.emeryferrari.jse3d;
 import java.awt.*;
-public class Triangle {
+import java.io.*;
+public class Triangle implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public int pointID1;
 	public int pointID2;
 	public int pointID3;

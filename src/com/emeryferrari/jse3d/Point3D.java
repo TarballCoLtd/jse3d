@@ -1,5 +1,7 @@
 package com.emeryferrari.jse3d;
-public class Point3D {
+import java.io.*;
+public class Point3D implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public double x;
 	public double y;
 	public double z;
@@ -35,7 +37,8 @@ public class Point3D {
 	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos) {
 		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis, camPos);
 	}
-	private class Transition extends Thread {
+	private class Transition extends Thread implements Serializable {
+		private static final long serialVersionUID = 1L;
 		private double xt;
 		private double yt;
 		private double zt;

@@ -1,6 +1,8 @@
 package com.emeryferrari.jse3d;
 import java.util.*;
-public class Face {
+import java.io.*;
+public class Face implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public Triangle[] triangles;
 	public double camDist;
 	public Face(Triangle[] triangles) {
