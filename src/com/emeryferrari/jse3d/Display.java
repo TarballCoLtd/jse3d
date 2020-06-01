@@ -426,4 +426,10 @@ public class Display extends JComponent {
 	private static Color invertColor(Color color) {
 		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
 	}
+	public Point3D getCameraPositionActual() {
+		double x = Math.sin(viewAngleX)*Math.cos(viewAngleY)*scene.camDist;
+		double y = Math.sin(viewAngleY)*scene.camDist;
+		double z = Math.cos(viewAngleX)*Math.cos(viewAngleY)*scene.camDist;
+		return new Point3D(x, y, z);
+	}
 }
