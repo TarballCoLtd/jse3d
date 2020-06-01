@@ -252,9 +252,6 @@ public class Display extends JComponent {
 				    		try {Thread.sleep(tmp);} catch (InterruptedException ex) {ex.printStackTrace();}
 				    	}
 				    }
-				    if (!mouseClicked) {
-				    	
-				    }
 				}
 			}
 		}
