@@ -247,7 +247,10 @@ public class Display extends JComponent {
 				    }
 				    renderFrame();
 				    if (fpsLimit) {
-				    	try {Thread.sleep((lastLoopTime-System.nanoTime()+optimalTime)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
+				    	long tmp = (lastLoopTime-System.nanoTime()+optimalTime)/1000000;
+				    	if (tmp > 0) {
+				    		try {Thread.sleep(tmp);} catch (InterruptedException ex) {ex.printStackTrace();}
+				    	}
 				    }
 				    if (!mouseClicked) {
 				    	
