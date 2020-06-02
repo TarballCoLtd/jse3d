@@ -39,6 +39,7 @@ public class Display extends JComponent {
 	private double yTransform = 0;
 	private double viewAngleX = 0;
 	private double viewAngleY = 0;
+	private boolean camPosPrint = false;
 	private int fps = 0;
 	public Display(Scene scene, String frameTitle, boolean visible, boolean renderPoints) {
 		this(scene, frameTitle, visible, renderPoints, 5, 5);
@@ -200,8 +201,14 @@ public class Display extends JComponent {
 				}
 				for (int x = 0; x < scene.object[a].faces.length; x++) {
 					for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
-						int[] xs = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
-						int[] ys = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
+						int[] xs = {0, 0, 0};
+						int[] ys = {0, 0, 0};
+						try {
+							int[] xs2 = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
+							int[] ys2 = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
+							xs = xs2;
+							ys = ys2;
+						} catch (NullPointerException ex) {}
 						if (invertColors) {
 							graphics.setColor(Display.invertColor(scene.object[a].faces[x].triangles[y].color));
 						} else {
@@ -223,6 +230,11 @@ public class Display extends JComponent {
 					graphics.drawLine(points[point1].x, points[point1].y, points[point2].x, points[point2].y);
 				}
 			}
+		}
+		if (camPosPrint) {
+			Point3D cameraPos = getCameraPositionActual();
+			graphics.setColor(invertColor(backgroundColor));
+			graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
 		}
 		fps++;
 		this.revalidate();
@@ -428,8 +440,14 @@ public class Display extends JComponent {
 	}
 	public Point3D getCameraPositionActual() {
 		double x = (Math.sin(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.x;
-		double y = (Math.sin(viewAngleY)*scene.camDist) + camPos.y;
+		double y = -((Math.sin(viewAngleY)*scene.camDist) + camPos.y);
 		double z = (Math.cos(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.z;
 		return new Point3D(x, y, z);
+	}
+	public void enableCameraPositionPrinting() {
+		camPosPrint = true;
+	}
+	public void disableCameraPositionPrinting() {
+		camPosPrint = false;
 	}
 }

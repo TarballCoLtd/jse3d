@@ -6,6 +6,8 @@ public class JSE3DExample {
 		Scene scene = new Scene(objects, 5.0);
 		Display display = new Display(scene, "jse3d demo", true, false);
 		display.enableFPSLogging();
+		display.enableCameraPositionPrinting();
+		display.disableLineRendering();
 		display.startRender();
 	}
 }
