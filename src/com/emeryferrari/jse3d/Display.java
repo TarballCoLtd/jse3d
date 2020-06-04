@@ -75,7 +75,7 @@ public class Display extends JComponent {
 		fpsLimit = true;
 		fpsLogging = false;
 		lineRender = true;
-		faceRender = true;
+		faceRender = false;
 		targetFps = 60;
 		optimalTime = 1000000000/targetFps;
 		invertColors = false;
@@ -111,6 +111,7 @@ public class Display extends JComponent {
 	}
 	@Override
 	public void paintComponent(Graphics graphics) {
+		ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
 		if (invertColors) {
 			graphics.setColor(Display.invertColor(backgroundColor));
 		} else {
@@ -173,6 +174,12 @@ public class Display extends JComponent {
 				}
 			}
 			if (faceRender) {
+				double objDist = 0.0;
+				for (int x = 0; x < distance.get(a).size(); x++) {
+					objDist += distance.get(a).get(x).distance;
+				}
+				objDist /= distance.get(a).size();
+				scene.object[a].camDist = objDist;
 				for (int x = 0; x < scene.object[a].faces.length; x++) {
 					int[] pointIDs = scene.object[a].faces[x].getPointIDs();
 					double[] distances = new double[pointIDs.length];
@@ -199,13 +206,31 @@ public class Display extends JComponent {
 						}
 					}
 				}
+				pointArrays.add(points);
+			}
+		}
+		if (camPosPrint) {
+			Point3D cameraPos = getCameraPositionActual();
+			graphics.setColor(invertColor(backgroundColor));
+			graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
+		}
+		if (faceRender) {
+			for (int a = 0; a < scene.object.length; a++) {
+				for (int x = a+1; x < scene.object.length; x++) {
+					if (scene.object[a].camDist < scene.object[x].camDist) {
+						Point[] temp = pointArrays.get(a);
+						pointArrays.set(a, pointArrays.get(x));
+						pointArrays.set(x, temp);
+					}
+				}
 				for (int x = 0; x < scene.object[a].faces.length; x++) {
 					for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
 						int[] xs = {0, 0, 0};
 						int[] ys = {0, 0, 0};
 						try {
-							int[] xs2 = {points[scene.object[a].faces[x].triangles[y].pointID1].x, points[scene.object[a].faces[x].triangles[y].pointID2].x, points[scene.object[a].faces[x].triangles[y].pointID3].x};
-							int[] ys2 = {points[scene.object[a].faces[x].triangles[y].pointID1].y, points[scene.object[a].faces[x].triangles[y].pointID2].y, points[scene.object[a].faces[x].triangles[y].pointID3].y};
+							// SORT POINTARRAYS BY ENTIRE OBJECT3D'S CAMDIST
+							int[] xs2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].x};
+							int[] ys2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].y};
 							xs = xs2;
 							ys = ys2;
 						} catch (NullPointerException ex) {}
@@ -218,23 +243,22 @@ public class Display extends JComponent {
 					}
 				}
 			}
-			if (lineRender) {
-				if (invertColors) {
-					graphics.setColor(Display.invertColor(lineColor));
-				} else {
-					graphics.setColor(lineColor);
-				}
-				for (int i = 0; i < scene.object[a].edges.length; i++) {
-					int point1 = scene.object[a].edges[i].pointID1;
-					int point2 = scene.object[a].edges[i].pointID2;
-					graphics.drawLine(points[point1].x, points[point1].y, points[point2].x, points[point2].y);
+		}
+		if (lineRender) {
+			for (int a = 0; a < scene.object.length; a++) {
+				if (lineRender) {
+					if (invertColors) {
+						graphics.setColor(Display.invertColor(lineColor));
+					} else {
+						graphics.setColor(lineColor);
+					}
+					for (int i = 0; i < scene.object[a].edges.length; i++) {
+						int point1 = scene.object[a].edges[i].pointID1;
+						int point2 = scene.object[a].edges[i].pointID2;
+						graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);
+					}
 				}
 			}
-		}
-		if (camPosPrint) {
-			Point3D cameraPos = getCameraPositionActual();
-			graphics.setColor(invertColor(backgroundColor));
-			graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
 		}
 		fps++;
 		this.revalidate();

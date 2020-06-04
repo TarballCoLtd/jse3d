@@ -5,6 +5,7 @@ public class Object3D implements Serializable {
 	public Point3D[] points;
 	public Line[] edges = {};
 	public Face[] faces = {};
+	double camDist = 0;
 	public Object3D(Point3D[] points, Face[] faces, Line[] edges) {
 		this(points, faces);
 		this.edges = edges;
