@@ -228,7 +228,6 @@ public class Display extends JComponent {
 						int[] xs = {0, 0, 0};
 						int[] ys = {0, 0, 0};
 						try {
-							// SORT POINTARRAYS BY ENTIRE OBJECT3D'S CAMDIST
 							int[] xs2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].x};
 							int[] ys2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].y};
 							xs = xs2;
