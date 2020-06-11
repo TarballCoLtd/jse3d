@@ -24,6 +24,12 @@ public class Object3D implements Serializable {
 	public Object3D(Point3D[] points) {
 		this.points = points;
 	}
+	public void movePosRel(Point3D diff, Display display) {
+		movePosRel(diff.x, diff.y, diff.z, display);
+	}
+	public void movePosRel(Point3D diff, Point3D camPos) {
+		movePosRel(diff.x, diff.y, diff.z, camPos);
+	}
 	public void movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
 		movePosRel(xDiff, yDiff, zDiff, display.getCameraPosition());
 	}
@@ -34,6 +40,18 @@ public class Object3D implements Serializable {
 		for (int i = 0; i < points.length; i++) {
 			points[i].movePosRel(xDiff, yDiff, zDiff, camPos);
 		}
+	}
+	public void transitionPosRel(Point3D diff, int millis, Point3D camPos) {
+		transitionPosRel(diff.x, diff.y, diff.z, millis, camPos);
+	}
+	public void transitionPosRel(Point3D diff, Point3D camPos, int millis) {
+		transitionPosRel(diff, millis, camPos);
+	}
+	public void transitionPosRel(Point3D diff, int millis, Display display) {
+		transitionPosRel(diff, millis, display.getCameraPosition());
+	}
+	public void transitionPosRel(Point3D diff, Display display, int millis) {
+		transitionPosRel(diff, millis, display);
 	}
 	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos) {
 		for (int i = 0; i < points.length; i++) {
