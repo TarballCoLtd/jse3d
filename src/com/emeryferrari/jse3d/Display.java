@@ -25,7 +25,7 @@ public class Display {
 	private boolean mouseClicked;
 	private Point mouseDiff;
 	private boolean scrollWheel;
-	static int physicsTimestep = 60;
+	private int physicsTimestep = 60;
 	Point3D camPos;
 	private CameraMode mode;
 	private ArrayList<ArrayList<Distance>> distance;
@@ -50,10 +50,13 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints) {
 		this(scene, frameTitle, frameVisible, renderPoints, 5, 5);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, 500, 500);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight) {
+		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight) {
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight) {
+		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60);
+	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps) {
 		renderer = new DisplayRenderer();
 		this.scene = scene;
 		if (frameTitle.equals("")) {
@@ -86,7 +89,7 @@ public class Display {
 		fpsLogging = false;
 		lineRender = true;
 		faceRender = false;
-		targetFps = 60;
+		targetFps = fps;
 		optimalTime = 1000000000/targetFps;
 		invertColors = false;
 		lineColor = Color.BLACK;
@@ -378,11 +381,11 @@ public class Display {
 	public void setScene(Scene scene) {
 		this.scene = scene;
 	}
-	public void setPhysicsTimestep(int timestep) {
-		Display.physicsTimestep = timestep;
+	public void setPhysicsTimestep(int timestep) { // not an actual timestep, the precision of physics movements is proportional to the timestep
+		physicsTimestep = timestep;
 	}
 	public int getPhysicsTimestep() {
-		return Display.physicsTimestep;
+		return physicsTimestep;
 	}
 	public void setCameraPositionRel(Point3D point) {
 		Thread cameraPos = new CameraPos(point, this);
@@ -431,13 +434,13 @@ public class Display {
 		}
 		@Override
 		public void run() {
-			double xIteration = xt/(double)(60.0*((double)millis/1000.0));
-			double yIteration = yt/(double)(60.0*((double)millis/1000.0));
-			double zIteration = zt/(double)(60.0*((double)millis/1000.0));
+			double xIteration = xt/(double)(physicsTimestep*((double)millis/1000.0));
+			double yIteration = yt/(double)(physicsTimestep*((double)millis/1000.0));
+			double zIteration = zt/(double)(physicsTimestep*((double)millis/1000.0));
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
-			final long OPTIMAL_TIME = 1000000000 / Display.physicsTimestep;
-			for (int x = 0; x < (int)(60.0*((double)millis/1000.0)); x++) {
+			final long OPTIMAL_TIME = 1000000000 / physicsTimestep;
+			for (int x = 0; x < (int)(physicsTimestep*((double)millis/1000.0)); x++) {
 				long now = System.nanoTime();
 			    long updateLength = now - lastLoopTime;
 			    lastLoopTime = now;

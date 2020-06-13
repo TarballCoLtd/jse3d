@@ -34,28 +34,28 @@ public class Object3D implements Serializable {
 		movePosRel(xDiff, yDiff, zDiff, display.getCameraPosition());
 	}
 	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
-		transitionPosRel(xDiff, yDiff, zDiff, millis, display.getCameraPosition());
+		transitionPosRel(xDiff, yDiff, zDiff, millis, display.getCameraPosition(), display.getPhysicsTimestep());
 	}
 	public void movePosRel(double xDiff, double yDiff, double zDiff, Point3D camPos) {
 		for (int i = 0; i < points.length; i++) {
 			points[i].movePosRel(xDiff, yDiff, zDiff, camPos);
 		}
 	}
-	public void transitionPosRel(Point3D diff, int millis, Point3D camPos) {
-		transitionPosRel(diff.x, diff.y, diff.z, millis, camPos);
+	public void transitionPosRel(Point3D diff, int millis, Point3D camPos, int physicsTimestep) {
+		transitionPosRel(diff.x, diff.y, diff.z, millis, camPos, physicsTimestep);
 	}
-	public void transitionPosRel(Point3D diff, Point3D camPos, int millis) {
-		transitionPosRel(diff, millis, camPos);
+	public void transitionPosRel(Point3D diff, Point3D camPos, int millis, int physicsTimestep) {
+		transitionPosRel(diff, millis, camPos, physicsTimestep);
 	}
 	public void transitionPosRel(Point3D diff, int millis, Display display) {
-		transitionPosRel(diff, millis, display.getCameraPosition());
+		transitionPosRel(diff, millis, display.getCameraPosition(), display.getPhysicsTimestep());
 	}
 	public void transitionPosRel(Point3D diff, Display display, int millis) {
 		transitionPosRel(diff, millis, display);
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos) {
+	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos, int physicsTimestep) {
 		for (int i = 0; i < points.length; i++) {
-			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis, camPos);
+			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis, camPos, physicsTimestep);
 		}
 	}
 	public int getPointID(Point3D point) {

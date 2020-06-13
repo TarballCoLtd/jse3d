@@ -19,10 +19,10 @@ public class Point3D implements Serializable {
 		this.z = z-camPos.z;
 	}
 	public void transitionPosAbs(double x, double y, double z, int millis, Display display) {
-		transitionPosAbs(x, y, z, millis, display.getCameraPosition());
+		transitionPosAbs(x, y, z, millis, display.getCameraPosition(), display.getPhysicsTimestep());
 	}
-	public void transitionPosAbs(double x, double y, double z, int millis, Point3D camPos) {
-		Thread transition = new Transition(x, y, z, millis, camPos);
+	public void transitionPosAbs(double x, double y, double z, int millis, Point3D camPos, int physicsTimestep) {
+		Thread transition = new Transition(x, y, z, millis, camPos, physicsTimestep);
 		transition.start();
 	}
 	public void movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
@@ -34,8 +34,8 @@ public class Point3D implements Serializable {
 	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
 		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis, display);
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos) {
-		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis, camPos);
+	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos, int physicsTimestep) {
+		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis, camPos, physicsTimestep);
 	}
 	private class Transition extends Thread implements Serializable {
 		private static final long serialVersionUID = 1L;
@@ -44,25 +44,27 @@ public class Point3D implements Serializable {
 		private double zt;
 		private int millis;
 		private Point3D camPos;
-		private Transition(double x, double y, double z, int millis, Point3D camPos) {
+		private int physicsTimestep;
+		private Transition(double x, double y, double z, int millis, Point3D camPos, int physicsTimestep) {
 			this.xt = x;
 			this.yt = y;
 			this.zt = z;
 			this.millis = millis;
 			this.camPos = camPos;
+			this.physicsTimestep = physicsTimestep;
 		}
 		@Override
 		public void run() {
 			double xDiff = xt-x;
 			double yDiff = yt-y;
 			double zDiff = zt-z;
-			double xIteration = xDiff/(double)(60.0*((double)millis/1000.0));
-			double yIteration = yDiff/(double)(60.0*((double)millis/1000.0));
-			double zIteration = zDiff/(double)(60.0*((double)millis/1000.0));
+			double xIteration = xDiff/(double)(physicsTimestep*((double)millis/1000.0));
+			double yIteration = yDiff/(double)(physicsTimestep*((double)millis/1000.0));
+			double zIteration = zDiff/(double)(physicsTimestep*((double)millis/1000.0));
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
-			final long OPTIMAL_TIME = 1000000000 / Display.physicsTimestep;
-			for (int i = 0; i < (int)(60.0*((double)millis/1000.0)); i++) {
+			final long OPTIMAL_TIME = 1000000000 / physicsTimestep;
+			for (int i = 0; i < (int)(physicsTimestep*((double)millis/1000.0)); i++) {
 				long now = System.nanoTime();
 			    long updateLength = now - lastLoopTime;
 			    lastLoopTime = now;
