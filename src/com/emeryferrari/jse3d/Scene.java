@@ -4,11 +4,9 @@ public class Scene implements Serializable {
 	private static final long serialVersionUID = 1L;
 	Object3D[] object;
 	double camDist;
-	double viewAngle;
 	public Scene(Object3D[] object, double camDist) {
 		this.object = object;
 		this.camDist = camDist;
-		viewAngle = 0.56;
 	}
 	public Object3D[] getObjects() {
 		return object;
