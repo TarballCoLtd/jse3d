@@ -29,9 +29,6 @@ public class Display {
 	Point3D camPos;
 	protected CameraMode mode;
 	protected ArrayList<ArrayList<Distance>> distance;
-	protected double camPosX = 0;
-	protected double camPosY = 0;
-	protected double camPosZ = 0;
 	protected ArrayList<ArrayList<Double>> camScale;
 	protected double scale = 125;
 	protected double sensitivity = 125;
@@ -41,15 +38,28 @@ public class Display {
 	protected double viewAngleY = 0;
 	protected boolean camPosPrint = false;
 	protected int fps = 0;
-	double viewAngle;
+	protected boolean yAxisClamp;
+	protected double viewAngle;
+	public Display(Scene scene) {
+		this(scene, "");
+	}
 	public Display(Scene scene, String frameTitle) {
 		this(scene, frameTitle, true);
+	}
+	public Display(Scene scene, String frameTitle, double fovRadians) {
+		this(scene, frameTitle, true, fovRadians);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible) {
 		this (scene, frameTitle, frameVisible, false);
 	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians) {
+		this (scene, frameTitle, frameVisible, false, fovRadians);
+	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500);
+	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians) {
+		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight);
@@ -108,24 +118,29 @@ public class Display {
 		mode = CameraMode.DRAG;
 		camPos = new Point3D(0, 0, 0);
 		mouseDiff = new Point(0, 0);
-		this.viewAngle = fovRadians;
+		viewAngle = fovRadians;
+		yAxisClamp = true;
 	}
-	public void startRender() {
+	public Display startRender() {
 		if (!rendererStarted) {
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
 			Thread renderer = new Thread(new Renderer());
 			renderer.start();
 		}
+		return this;
 	}
-	public void pauseRender() {
+	public Display pauseRender() {
 		rendering = false;
+		return this;
 	}
-	public void resumeRender() {
+	public Display resumeRender() {
 		rendering = true;
+		return this;
 	}
-	public void setVisible(boolean visible) {
+	public Display setVisible(boolean visible) {
 		frame.setVisible(visible);
+		return this;
 	}
 	public JFrame getFrame() {
 		return frame;
@@ -162,26 +177,26 @@ public class Display {
 					}
 					double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
 					viewAngleY = -(mouse.y-this.getSize().height/2)/sensitivity;
-					if (Math.abs(mouse.y-this.getSize().height/2)>Math.PI/2*sensitivity) {
-						if (viewAngleY < 0) {
-							viewAngleY = -Math.PI/2*sensitivity;
-						} else {
-							viewAngleY = Math.PI/2*sensitivity;
+					if (yAxisClamp) {
+						if (Math.abs(mouse.y-this.getSize().height/2)>Math.PI/2*sensitivity) {
+							if (viewAngleY < 0) {
+								viewAngleY = -Math.PI/2*sensitivity;
+							} else {
+								viewAngleY = Math.PI/2*sensitivity;
+							}
 						}
 					}
 					viewAngleX = -(mouse.x-this.getSize().width/2)/sensitivity;
-					if (scene.object[a].points[i].x < 0) {
-						xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-						yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-					} else {
-						xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-						yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-					}
-					camPosX = scene.camDist*Math.sin(viewAngleX)*Math.cos(viewAngleY);
-					camPosY = -scene.camDist*Math.sin(viewAngleY);
-					camPosZ = scene.camDist*Math.cos(viewAngleX)*Math.cos(viewAngleY);
-					if (!(scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) > scene.camDist)) {
-						distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(camPosX-(scene.object[a].points[i].x), 2)+Math.pow(camPosY-scene.object[a].points[i].y, 2)+Math.pow(camPosZ-scene.object[a].points[i].z, 2)), i));
+					Point3D localCamPos = getCameraPositionActual();
+					if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
+						if (scene.object[a].points[i].x < 0) {
+							xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+							yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+						} else {
+							xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+							yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+						}
+						distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i));
 						double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
 						camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
 						points[i] = new Point((int)(this.getSize().width/2+xTransform/camScale.get(a).get(i)), (int)(this.getSize().height/2-yTransform/camScale.get(a).get(i)));
@@ -277,7 +292,7 @@ public class Display {
 						for (int i = 0; i < scene.object[a].edges.length; i++) {
 							int point1 = scene.object[a].edges[i].pointID1;
 							int point2 = scene.object[a].edges[i].pointID2;
-							try {graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);} catch (NullPointerException ex) {}
+							try {graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
 						}
 					}
 				}
@@ -335,7 +350,7 @@ public class Display {
 	protected class ScrollListener implements MouseWheelListener {
 		public void mouseWheelMoved(MouseWheelEvent ev) {
 			if (scrollWheel) {
-				if (ev.getPreciseWheelRotation() > 0) {
+				if (ev.getWheelRotation() > 0) {
 					scene.camDist *= 1.2;
 				} else {
 					scene.camDist /= 1.2;
@@ -343,65 +358,82 @@ public class Display {
 			}
 		}
 	}
-	public void setTargetFPS(int fps) {
+	public Display setTargetFPS(int fps) {
 		targetFps = fps;
 		optimalTime = 1000000000 / targetFps;
+		return this;
 	}
-	public void enableFPSLimit() {
+	public Display enableFPSLimit() {
 		fpsLimit = true;
+		return this;
 	}
-	public void disableFPSLimit() {
+	public Display disableFPSLimit() {
 		fpsLimit = false;
+		return this;
 	}
-	public void enableFPSLogging() {
+	public Display enableFPSLogging() {
 		fpsLogging = true;
+		return this;
 	}
-	public void disableFPSLogging() {
+	public Display disableFPSLogging() {
 		fpsLogging = false;
+		return this;
 	}
-	public void enableLineRendering() {
+	public Display enableLineRendering() {
 		lineRender = true;
+		return this;
 	}
-	public void disableLineRendering() {
+	public Display disableLineRendering() {
 		lineRender = false;
+		return this;
 	}
-	public void enableFaceRendering() {
+	public Display enableFaceRendering() {
 		faceRender = true;
+		return this;
 	}
-	public void disableFaceRendering() {
+	public Display disableFaceRendering() {
 		faceRender = false;
+		return this;
 	}
-	public void setLineColor(Color color) {
+	public Display setLineColor(Color color) {
 		lineColor = color;
+		return this;
 	}
-	public void enableInvertColors() {
+	public Display enableInvertColors() {
 		invertColors = true;
+		return this;
 	}
-	public void disableInvertColors() {
+	public Display disableInvertColors() {
 		invertColors = false;
+		return this;
 	}
-	public void setBackgroundColor(Color color) {
+	public Display setBackgroundColor(Color color) {
 		backgroundColor = color;
+		return this;
 	}
 	public Scene getScene() {
 		return scene;
 	}
-	public void setScene(Scene scene) {
+	public Display setScene(Scene scene) {
 		this.scene = scene;
+		return this;
 	}
-	public void setPhysicsTimestep(int timestep) { // not an actual timestep, the precision of physics movements is proportional to the timestep
+	public Display setPhysicsTimestep(int timestep) { // not an actual timestep, the precision of physics movements is proportional to the timestep, rather than inversely proportional
 		physicsTimestep = timestep;
+		return this;
 	}
 	public int getPhysicsTimestep() {
 		return physicsTimestep;
 	}
-	public void setCameraPositionRel(Point3D point) {
+	public Display setCameraPositionRel(Point3D point) {
 		Thread cameraPos = new CameraPos(point, this);
 		cameraPos.start();
+		return this;
 	}
-	public void transitionCameraPositionRel(Point3D point, int millis) {
+	public Display transitionCameraPositionRel(Point3D point, int millis) {
 		Thread transition = new Transition(point, millis, this);
 		transition.start();
+		return this;
 	}
 	public Point3D getCameraPosition() {
 		return camPos;
@@ -442,9 +474,9 @@ public class Display {
 		}
 		@Override
 		public void run() {
-			double xIteration = xt/(double)(physicsTimestep*((double)millis/1000.0));
-			double yIteration = yt/(double)(physicsTimestep*((double)millis/1000.0));
-			double zIteration = zt/(double)(physicsTimestep*((double)millis/1000.0));
+			double xIteration = xt/(double)physicsTimestep*((double)millis/1000.0);
+			double yIteration = yt/(double)physicsTimestep*((double)millis/1000.0);
+			double zIteration = zt/(double)physicsTimestep*((double)millis/1000.0);
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
 			final long OPTIMAL_TIME = 1000000000 / physicsTimestep;
@@ -466,17 +498,21 @@ public class Display {
 			camPos.z += zt;
 		}
 	}
-	public void enableScrollWheel() {
+	public Display enableScrollWheel() {
 		scrollWheel = true;
+		return this;
 	}
-	public void disableScrollWheel() {
+	public Display disableScrollWheel() {
 		scrollWheel = false;
+		return this;
 	}
-	public void setCameraDistance(double distance) {
+	public Display setCameraDistance(double distance) {
 		scene.camDist = distance;
+		return this;
 	}
-	public void setCameraMode(CameraMode mode) {
+	public Display setCameraMode(CameraMode mode) {
 		this.mode = mode;
+		return this;
 	}
 	public CameraMode getCameraMode() {
 		return mode;
@@ -490,22 +526,36 @@ public class Display {
 		double z = (Math.cos(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.z;
 		return new Point3D(x, y, z);
 	}
-	public void enableCameraPositionPrinting() {
+	public Display enableCameraPositionPrinting() {
 		camPosPrint = true;
+		return this;
 	}
-	public void disableCameraPositionPrinting() {
+	public Display disableCameraPositionPrinting() {
 		camPosPrint = false;
+		return this;
 	}
 	public double getFOVRadians() {
 		return viewAngle;
 	}
-	public void setFOVRadians(double viewAngle) {
-		this.viewAngle = viewAngle;
+	public Display setFOVRadians(double viewAngle) {
+		if (Math.abs(viewAngle) < Math.PI) {
+			this.viewAngle = viewAngle;
+		}
+		return this;
 	}
 	public double getFOVDegrees() {
 		return Math.toDegrees(viewAngle);
 	}
-	public void setFOVDegrees(double degrees) {
-		viewAngle = Math.toRadians(degrees);
+	public Display setFOVDegrees(double degrees) {
+		setFOVRadians(Math.toRadians(degrees));
+		return this;
+	}
+	public Display enableYAxisClamping() {
+		yAxisClamp = true;
+		return this;
+	}
+	public Display disableYAxisClamping() {
+		yAxisClamp = false;
+		return this;
 	}
 }

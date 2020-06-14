@@ -1,7 +1,5 @@
 package com.emeryferrari.jse3d;
-
 import java.awt.Color;
-
 public class ObjectTemplate {
 	private ObjectTemplate() {}
 	public static Object3D getCube() {

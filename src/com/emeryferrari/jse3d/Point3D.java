@@ -10,32 +10,40 @@ public class Point3D implements Serializable {
 		this.y = y;
 		this.z = z;
 	}
-	public void movePosAbs(double x, double y, double z, Display display) {
+	public Point3D movePosAbs(double x, double y, double z, Display display) {
 		movePosAbs(x, y, z, display.getCameraPosition());
+		return this;
 	}
-	public void movePosAbs(double x, double y, double z, Point3D camPos) {
+	public Point3D movePosAbs(double x, double y, double z, Point3D camPos) {
 		this.x = x-camPos.x;
 		this.y = y-camPos.y;
 		this.z = z-camPos.z;
+		return this;
 	}
-	public void transitionPosAbs(double x, double y, double z, int millis, Display display) {
+	public Point3D transitionPosAbs(double x, double y, double z, int millis, Display display) {
 		transitionPosAbs(x, y, z, millis, display.getCameraPosition(), display.getPhysicsTimestep());
+		return this;
 	}
-	public void transitionPosAbs(double x, double y, double z, int millis, Point3D camPos, int physicsTimestep) {
+	public Point3D transitionPosAbs(double x, double y, double z, int millis, Point3D camPos, int physicsTimestep) {
 		Thread transition = new Transition(x, y, z, millis, camPos, physicsTimestep);
 		transition.start();
+		return this;
 	}
-	public void movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
+	public Point3D movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
 		movePosAbs(x+xDiff, y+yDiff, z+zDiff, display);
+		return this;
 	}
-	public void movePosRel(double xDiff, double yDiff, double zDiff, Point3D camPos) {
+	public Point3D movePosRel(double xDiff, double yDiff, double zDiff, Point3D camPos) {
 		movePosAbs(x+xDiff, y+yDiff, z+zDiff, camPos);
+		return this;
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
+	public Point3D transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
 		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis, display);
+		return this;
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos, int physicsTimestep) {
+	public Point3D transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos, int physicsTimestep) {
 		transitionPosAbs(x+xDiff, y+yDiff, z+zDiff, millis, camPos, physicsTimestep);
+		return this;
 	}
 	private class Transition extends Thread implements Serializable {
 		private static final long serialVersionUID = 1L;

@@ -14,13 +14,16 @@ public class Scene implements Serializable {
 	public double getCameraDistance() {
 		return camDist;
 	}
-	public void setObjects(Object3D[] object) {
+	public Scene setObjects(Object3D[] object) {
 		this.object = object;
+		return this;
 	}
-	public void setObject(Object3D object, int index) {
+	public Scene setObject(Object3D object, int index) {
 		this.object[index] = object;
+		return this;
 	}
-	public void setCameraDistance(double camDist) {
+	public Scene setCameraDistance(double camDist) {
 		this.camDist = camDist;
+		return this;
 	}
 }

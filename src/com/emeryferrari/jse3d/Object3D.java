@@ -24,39 +24,49 @@ public class Object3D implements Serializable {
 	public Object3D(Point3D[] points) {
 		this.points = points;
 	}
-	public void movePosRel(Point3D diff, Display display) {
+	public Object3D movePosRel(Point3D diff, Display display) {
 		movePosRel(diff.x, diff.y, diff.z, display);
+		return this;
 	}
-	public void movePosRel(Point3D diff, Point3D camPos) {
+	public Object3D movePosRel(Point3D diff, Point3D camPos) {
 		movePosRel(diff.x, diff.y, diff.z, camPos);
+		return this;
 	}
-	public void movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
+	public Object3D movePosRel(double xDiff, double yDiff, double zDiff, Display display) {
 		movePosRel(xDiff, yDiff, zDiff, display.getCameraPosition());
+		return this;
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
+	public Object3D transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Display display) {
 		transitionPosRel(xDiff, yDiff, zDiff, millis, display.getCameraPosition(), display.getPhysicsTimestep());
+		return this;
 	}
-	public void movePosRel(double xDiff, double yDiff, double zDiff, Point3D camPos) {
+	public Object3D movePosRel(double xDiff, double yDiff, double zDiff, Point3D camPos) {
 		for (int i = 0; i < points.length; i++) {
 			points[i].movePosRel(xDiff, yDiff, zDiff, camPos);
 		}
+		return this;
 	}
-	public void transitionPosRel(Point3D diff, int millis, Point3D camPos, int physicsTimestep) {
+	public Object3D transitionPosRel(Point3D diff, int millis, Point3D camPos, int physicsTimestep) {
 		transitionPosRel(diff.x, diff.y, diff.z, millis, camPos, physicsTimestep);
+		return this;
 	}
-	public void transitionPosRel(Point3D diff, Point3D camPos, int millis, int physicsTimestep) {
+	public Object3D transitionPosRel(Point3D diff, Point3D camPos, int millis, int physicsTimestep) {
 		transitionPosRel(diff, millis, camPos, physicsTimestep);
+		return this;
 	}
-	public void transitionPosRel(Point3D diff, int millis, Display display) {
+	public Object3D transitionPosRel(Point3D diff, int millis, Display display) {
 		transitionPosRel(diff, millis, display.getCameraPosition(), display.getPhysicsTimestep());
+		return this;
 	}
-	public void transitionPosRel(Point3D diff, Display display, int millis) {
+	public Object3D transitionPosRel(Point3D diff, Display display, int millis) {
 		transitionPosRel(diff, millis, display);
+		return this;
 	}
-	public void transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos, int physicsTimestep) {
+	public Object3D transitionPosRel(double xDiff, double yDiff, double zDiff, int millis, Point3D camPos, int physicsTimestep) {
 		for (int i = 0; i < points.length; i++) {
 			points[i].transitionPosRel(xDiff, yDiff, zDiff, millis, camPos, physicsTimestep);
 		}
+		return this;
 	}
 	public int getPointID(Point3D point) {
 		for (int i = 0; i < points.length; i++) {
