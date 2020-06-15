@@ -314,28 +314,26 @@ public class Display {
 				for (int x = 0; x < scene.object.length; x++) {
 					zAngleLength += scene.object[x].points.length;
 				}
-				final float[] zAngleInput1 = new float[zAngleLength];
-				final float[] zAngleInput2 = new float[zAngleLength];
+				final float[] zAngleInputZ = new float[zAngleLength];
+				final float[] zAngleInputX = new float[zAngleLength];
 				final float[] zAngles = new float[zAngleLength];
+				final float[] mags = new float[zAngleLength];
 				for (int x = 0; x < scene.object.length; x++) {
 					for (int y = 0; y < scene.object[x].points.length; y++) {
 						int index = (scene.object[x].points.length*x)+y;
-						zAngleInput1[index] = (float) scene.object[x].points[y].z;
-						zAngleInput2[index] = (float) scene.object[x].points[y].x;
+						zAngleInputZ[index] = (float) scene.object[x].points[y].z;
+						zAngleInputX[index] = (float) scene.object[x].points[y].x;
 					}
 				}
-				Kernel zAngleKern = new Kernel() {
+				Kernel compKern = new Kernel() {
 					public void run() {
 						int id = getGlobalId();
-						zAngles[id] = atan(zAngleInput1[id]/zAngleInput2[id]);
+						zAngles[id] = atan(zAngleInputZ[id]/zAngleInputX[id]);
+						mags[id] = hypot(zAngleInputX[id], zAngleInputZ[id]);
 					}
 				};
-				zAngleKern.setExplicit(true);
-				zAngleKern.put(zAngleInput1);
-				zAngleKern.put(zAngleInput2);
-				zAngleKern.execute(Range.create(zAngleLength));
-				zAngleKern.get(zAngles);
-				zAngleKern.dispose();
+				compKern.execute(Range.create(zAngleLength));
+				compKern.dispose();
 				ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
 				if (invertColors) {
 					graphics.setColor(Display.invertColor(backgroundColor));
@@ -360,6 +358,7 @@ public class Display {
 					Point[] points = new Point[scene.object[a].points.length];
 					// WRITTEN BY SAM KRUG START
 					for (int i = 0; i < scene.object[a].points.length; i++) {
+						int id = (scene.object[a].points.length*a)+i;
 						viewAngleX = 0;
 						viewAngleY = 0;
 						try {
@@ -377,11 +376,11 @@ public class Display {
 						} catch (NullPointerException ex) {}
 						Point3D localCamPos = getCameraPositionActual();
 						if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
-							double zAngle = zAngles[(scene.object[a].points.length*a)+i];
+							double zAngle = zAngles[id];
 							if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
 								zAngle = 0;
 							}
-							double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
+							double mag = mags[id];
 							if (scene.object[a].points[i].x < 0) {
 								xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
 								yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
