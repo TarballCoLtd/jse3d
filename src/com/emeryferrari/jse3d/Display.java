@@ -42,8 +42,6 @@ public class Display {
 	protected boolean yAxisClamp;
 	protected double viewAngle;
 	protected RenderMode renderMode;
-	// GPU VARIABLES
-	Kernel zAngleKernel;
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -128,11 +126,6 @@ public class Display {
 	}
 	public Display startRender() {
 		if (!rendererStarted) {
-			zAngleKernel = new Kernel() {
-				public void run() {
-				}
-			};
-			zAngleKernel.execute(1);
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
 			Thread renderer = new Thread(new Renderer());
