@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.awt.event.*;
+import com.aparapi.*;
 public class Display {
 	protected DisplayRenderer renderer;
 	protected Scene scene;
@@ -31,7 +32,7 @@ public class Display {
 	protected ArrayList<ArrayList<Distance>> distance;
 	protected ArrayList<ArrayList<Double>> camScale;
 	protected double scale = 125;
-	protected double sensitivity = 125;
+	protected final double sensitivity = 125;
 	protected double xTransform = 0;
 	protected double yTransform = 0;
 	protected double viewAngleX = 0;
@@ -40,6 +41,9 @@ public class Display {
 	protected int fps = 0;
 	protected boolean yAxisClamp;
 	protected double viewAngle;
+	protected RenderMode renderMode;
+	// GPU VARIABLES
+	Kernel zAngleKernel;
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -74,6 +78,7 @@ public class Display {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians) {
+		renderMode = RenderMode.CPU_SINGLETHREADED;
 		renderer = new DisplayRenderer();
 		this.scene = scene;
 		if (frameTitle.equals("")) {
@@ -123,6 +128,11 @@ public class Display {
 	}
 	public Display startRender() {
 		if (!rendererStarted) {
+			zAngleKernel = new Kernel() {
+				public void run() {
+				}
+			};
+			zAngleKernel.execute(1);
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
 			Thread renderer = new Thread(new Renderer());
@@ -149,156 +159,347 @@ public class Display {
 		protected static final long serialVersionUID = 1L;
 		@Override
 		public void paintComponent(Graphics graphics) {
-			ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
-			if (invertColors) {
-				graphics.setColor(Display.invertColor(backgroundColor));
-			} else {
-				graphics.setColor(backgroundColor);
-			}
-			graphics.fillRect(0, 0, this.getSize().width, this.getSize().height);
-			Point mouse;
-			if (mode == CameraMode.DRAG) {
-				if (mouseClicked) {
-					Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
-					mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
+			if (renderMode == RenderMode.CPU_SINGLETHREADED) {
+				ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
+				if (invertColors) {
+					graphics.setColor(Display.invertColor(backgroundColor));
 				} else {
-					mouse = lastMousePos;
+					graphics.setColor(backgroundColor);
 				}
-			} else {
-				mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
-			}
-			for (int a = 0; a < scene.object.length; a++) {
-				Point[] points = new Point[scene.object[a].points.length];
-				// WRITTEN BY SAM KRUG START
-				for (int i = 0; i < scene.object[a].points.length; i++) {
-					double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
-					if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
-						zAngle = 0;
+				Dimension size = this.getSize();
+				Point location = this.getLocation();
+				graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
+				Point mouse;
+				if (mode == CameraMode.DRAG) {
+					if (mouseClicked) {
+						Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+						mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
+					} else {
+						mouse = lastMousePos;
 					}
-					double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
-					viewAngleY = -(mouse.y-this.getSize().height/2)/sensitivity;
-					if (yAxisClamp) {
-						if (Math.abs(mouse.y-this.getSize().height/2)>Math.PI/2*sensitivity) {
-							if (viewAngleY < 0) {
-								viewAngleY = -Math.PI/2*sensitivity;
-							} else {
-								viewAngleY = Math.PI/2*sensitivity;
+				} else {
+					mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+				}
+				for (int a = 0; a < scene.object.length; a++) {
+					Point[] points = new Point[scene.object[a].points.length];
+					// WRITTEN BY SAM KRUG START
+					for (int i = 0; i < scene.object[a].points.length; i++) {
+						viewAngleX = 0;
+						viewAngleY = 0;
+						try {
+							viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
+							if (yAxisClamp) {
+								if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+									if (viewAngleY < 0) {
+										viewAngleY = -Math.PI/2*sensitivity;
+									} else {
+										viewAngleY = Math.PI/2*sensitivity;
+									}
+								}
 							}
+							viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+						} catch (NullPointerException ex) {}
+						Point3D localCamPos = getCameraPositionActual();
+						if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
+							double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
+							if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+								zAngle = 0;
+							}
+							double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
+							if (scene.object[a].points[i].x < 0) {
+								xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+								yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+							} else {
+								xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+								yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+							}
+							distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i));
+							double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
+							camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
+							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale.get(a).get(i)), (int)((size.height+location.y)/2-yTransform/camScale.get(a).get(i)));
+						}
+						// WRITTEN BY SAM KRUG END
+						if (renderPoints) {
+							if (invertColors) {
+								graphics.setColor(Color.WHITE);
+							} else {
+								graphics.setColor(Color.BLACK);
+							}
+							graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 						}
 					}
-					viewAngleX = -(mouse.x-this.getSize().width/2)/sensitivity;
-					Point3D localCamPos = getCameraPositionActual();
-					if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
-						if (scene.object[a].points[i].x < 0) {
-							xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-							yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-						} else {
-							xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-							yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+					if (faceRender) {
+						double objDist = 0.0;
+						for (int x = 0; x < distance.get(a).size(); x++) {
+							objDist += distance.get(a).get(x).distance;
 						}
-						distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i));
-						double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
-						camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
-						points[i] = new Point((int)(this.getSize().width/2+xTransform/camScale.get(a).get(i)), (int)(this.getSize().height/2-yTransform/camScale.get(a).get(i)));
-					}
-					// WRITTEN BY SAM KRUG END
-					if (renderPoints) {
-						if (invertColors) {
-							graphics.setColor(Color.WHITE);
-						} else {
-							graphics.setColor(Color.BLACK);
+						objDist /= (double) distance.get(a).size();
+						scene.object[a].camDist = objDist;
+						for (int x = 0; x < scene.object[a].faces.length; x++) {
+							int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+							double[] distances = new double[pointIDs.length];
+							for (int y = 0; y < pointIDs.length; y++) {
+								for (int z = 0; z < distance.get(a).size(); z++) {
+									if (distance.get(a).get(z).pointID == pointIDs[y]) {
+										distances[y] = distance.get(a).get(z).distance;
+									}
+								}
+							}
+							double average = 0.0;
+							for (int i = 0; i < distances.length; i++) {
+								average += distances[i];
+							}
+							average /= (double) distances.length;
+							scene.object[a].faces[x].camDist = average;
 						}
-						graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
-					}
-				}
-				if (faceRender) {
-					double objDist = 0.0;
-					for (int x = 0; x < distance.get(a).size(); x++) {
-						objDist += distance.get(a).get(x).distance;
-					}
-					objDist /= (double) distance.get(a).size();
-					scene.object[a].camDist = objDist;
-					for (int x = 0; x < scene.object[a].faces.length; x++) {
-						int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-						double[] distances = new double[pointIDs.length];
-						for (int y = 0; y < pointIDs.length; y++) {
-							for (int z = 0; z < distance.get(a).size(); z++) {
-								if (distance.get(a).get(z).pointID == pointIDs[y]) {
-									distances[y] = distance.get(a).get(z).distance;
+						for (int x = 0; x < scene.object[a].faces.length; x++) {
+							for (int y = x+1; y < scene.object[a].faces.length; y++) {
+								if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
+									Face temp = scene.object[a].faces[x];
+									scene.object[a].faces[x] = scene.object[a].faces[y];
+									scene.object[a].faces[y] = temp;
 								}
 							}
 						}
-						double average = 0.0;
-						for (int i = 0; i < distances.length; i++) {
-							average += distances[i];
-						}
-						average /= (double) distances.length;
-						scene.object[a].faces[x].camDist = average;
+						pointArrays.add(points);
 					}
-					for (int x = 0; x < scene.object[a].faces.length; x++) {
-						for (int y = x+1; y < scene.object[a].faces.length; y++) {
-							if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
-								Face temp = scene.object[a].faces[x];
-								scene.object[a].faces[x] = scene.object[a].faces[y];
-								scene.object[a].faces[y] = temp;
+				}
+				if (camPosPrint) {
+					Point3D cameraPos = getCameraPositionActual();
+					graphics.setColor(invertColor(backgroundColor));
+					graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
+				}
+				if (faceRender) {
+					for (int a = 0; a < scene.object.length; a++) {
+						for (int x = a+1; x < scene.object.length; x++) {
+							if (scene.object[a].camDist < scene.object[x].camDist) {
+								Point[] temp = pointArrays.get(a);
+								pointArrays.set(a, pointArrays.get(x));
+								pointArrays.set(x, temp);
+							}
+						}
+						for (int x = 0; x < scene.object[a].faces.length; x++) {
+							for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
+								int[] xs = {0, 0, 0};
+								int[] ys = {0, 0, 0};
+								try {
+									int[] xs2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].x};
+									int[] ys2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].y};
+									xs = xs2;
+									ys = ys2;
+								} catch (NullPointerException ex) {}
+								if (invertColors) {
+									graphics.setColor(Display.invertColor(scene.object[a].faces[x].triangles[y].color));
+								} else {
+									graphics.setColor(scene.object[a].faces[x].triangles[y].color);
+								}
+								graphics.fillPolygon(xs, ys, 3);
 							}
 						}
 					}
-					pointArrays.add(points);
 				}
-			}
-			if (camPosPrint) {
-				Point3D cameraPos = getCameraPositionActual();
-				graphics.setColor(invertColor(backgroundColor));
-				graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
-			}
-			if (faceRender) {
-				for (int a = 0; a < scene.object.length; a++) {
-					for (int x = a+1; x < scene.object.length; x++) {
-						if (scene.object[a].camDist < scene.object[x].camDist) {
-							Point[] temp = pointArrays.get(a);
-							pointArrays.set(a, pointArrays.get(x));
-							pointArrays.set(x, temp);
-						}
-					}
-					for (int x = 0; x < scene.object[a].faces.length; x++) {
-						for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
-							int[] xs = {0, 0, 0};
-							int[] ys = {0, 0, 0};
-							try {
-								int[] xs2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].x};
-								int[] ys2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].y};
-								xs = xs2;
-								ys = ys2;
-							} catch (NullPointerException ex) {}
+				if (lineRender) {
+					for (int a = 0; a < scene.object.length; a++) {
+						if (lineRender) {
 							if (invertColors) {
-								graphics.setColor(Display.invertColor(scene.object[a].faces[x].triangles[y].color));
+								graphics.setColor(Display.invertColor(lineColor));
 							} else {
-								graphics.setColor(scene.object[a].faces[x].triangles[y].color);
+								graphics.setColor(lineColor);
 							}
-							graphics.fillPolygon(xs, ys, 3);
+							for (int i = 0; i < scene.object[a].edges.length; i++) {
+								int point1 = scene.object[a].edges[i].pointID1;
+								int point2 = scene.object[a].edges[i].pointID2;
+								try {graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
+							}
 						}
 					}
 				}
-			}
-			if (lineRender) {
+				fps++;
+				this.revalidate();
+			} else {
+				int zAngleLength = 0;
+				for (int x = 0; x < scene.object.length; x++) {
+					zAngleLength += scene.object[x].points.length;
+				}
+				final float[] zAngleInput1 = new float[zAngleLength];
+				final float[] zAngleInput2 = new float[zAngleLength];
+				final float[] zAngles = new float[zAngleLength];
+				for (int x = 0; x < scene.object.length; x++) {
+					for (int y = 0; y < scene.object[x].points.length; y++) {
+						int index = (scene.object[x].points.length*x)+y;
+						zAngleInput1[index] = (float) scene.object[x].points[y].z;
+						zAngleInput2[index] = (float) scene.object[x].points[y].x;
+					}
+				}
+				Kernel zAngleKern = new Kernel() {
+					public void run() {
+						int id = getGlobalId();
+						zAngles[id] = atan(zAngleInput1[id]/zAngleInput2[id]);
+					}
+				};
+				zAngleKern.setExplicit(true);
+				zAngleKern.put(zAngleInput1);
+				zAngleKern.put(zAngleInput2);
+				zAngleKern.execute(Range.create(zAngleLength));
+				zAngleKern.get(zAngles);
+				zAngleKern.dispose();
+				ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
+				if (invertColors) {
+					graphics.setColor(Display.invertColor(backgroundColor));
+				} else {
+					graphics.setColor(backgroundColor);
+				}
+				Dimension size = this.getSize();
+				Point location = this.getLocation();
+				graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
+				Point mouse;
+				if (mode == CameraMode.DRAG) {
+					if (mouseClicked) {
+						Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+						mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
+					} else {
+						mouse = lastMousePos;
+					}
+				} else {
+					mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+				}
 				for (int a = 0; a < scene.object.length; a++) {
-					if (lineRender) {
-						if (invertColors) {
-							graphics.setColor(Display.invertColor(lineColor));
-						} else {
-							graphics.setColor(lineColor);
+					Point[] points = new Point[scene.object[a].points.length];
+					// WRITTEN BY SAM KRUG START
+					for (int i = 0; i < scene.object[a].points.length; i++) {
+						viewAngleX = 0;
+						viewAngleY = 0;
+						try {
+							viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
+							if (yAxisClamp) {
+								if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+									if (viewAngleY < 0) {
+										viewAngleY = -Math.PI/2*sensitivity;
+									} else {
+										viewAngleY = Math.PI/2*sensitivity;
+									}
+								}
+							}
+							viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+						} catch (NullPointerException ex) {}
+						Point3D localCamPos = getCameraPositionActual();
+						if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
+							double zAngle = zAngles[(scene.object[a].points.length*a)+i];
+							if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+								zAngle = 0;
+							}
+							double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
+							if (scene.object[a].points[i].x < 0) {
+								xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+								yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+							} else {
+								xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+								yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+							}
+							distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i));
+							double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
+							camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
+							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale.get(a).get(i)), (int)((size.height+location.y)/2-yTransform/camScale.get(a).get(i)));
 						}
-						for (int i = 0; i < scene.object[a].edges.length; i++) {
-							int point1 = scene.object[a].edges[i].pointID1;
-							int point2 = scene.object[a].edges[i].pointID2;
-							try {graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
+						// WRITTEN BY SAM KRUG END
+						if (renderPoints) {
+							if (invertColors) {
+								graphics.setColor(Color.WHITE);
+							} else {
+								graphics.setColor(Color.BLACK);
+							}
+							graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
+						}
+					}
+					if (faceRender) {
+						double objDist = 0.0;
+						for (int x = 0; x < distance.get(a).size(); x++) {
+							objDist += distance.get(a).get(x).distance;
+						}
+						objDist /= (double) distance.get(a).size();
+						scene.object[a].camDist = objDist;
+						for (int x = 0; x < scene.object[a].faces.length; x++) {
+							int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+							double[] distances = new double[pointIDs.length];
+							for (int y = 0; y < pointIDs.length; y++) {
+								for (int z = 0; z < distance.get(a).size(); z++) {
+									if (distance.get(a).get(z).pointID == pointIDs[y]) {
+										distances[y] = distance.get(a).get(z).distance;
+									}
+								}
+							}
+							double average = 0.0;
+							for (int i = 0; i < distances.length; i++) {
+								average += distances[i];
+							}
+							average /= (double) distances.length;
+							scene.object[a].faces[x].camDist = average;
+						}
+						for (int x = 0; x < scene.object[a].faces.length; x++) {
+							for (int y = x+1; y < scene.object[a].faces.length; y++) {
+								if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
+									Face temp = scene.object[a].faces[x];
+									scene.object[a].faces[x] = scene.object[a].faces[y];
+									scene.object[a].faces[y] = temp;
+								}
+							}
+						}
+						pointArrays.add(points);
+					}
+				}
+				if (camPosPrint) {
+					Point3D cameraPos = getCameraPositionActual();
+					graphics.setColor(invertColor(backgroundColor));
+					graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
+				}
+				if (faceRender) {
+					for (int a = 0; a < scene.object.length; a++) {
+						for (int x = a+1; x < scene.object.length; x++) {
+							if (scene.object[a].camDist < scene.object[x].camDist) {
+								Point[] temp = pointArrays.get(a);
+								pointArrays.set(a, pointArrays.get(x));
+								pointArrays.set(x, temp);
+							}
+						}
+						for (int x = 0; x < scene.object[a].faces.length; x++) {
+							for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
+								int[] xs = {0, 0, 0};
+								int[] ys = {0, 0, 0};
+								try {
+									int[] xs2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].x};
+									int[] ys2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].y};
+									xs = xs2;
+									ys = ys2;
+								} catch (NullPointerException ex) {}
+								if (invertColors) {
+									graphics.setColor(Display.invertColor(scene.object[a].faces[x].triangles[y].color));
+								} else {
+									graphics.setColor(scene.object[a].faces[x].triangles[y].color);
+								}
+								graphics.fillPolygon(xs, ys, 3);
+							}
 						}
 					}
 				}
+				if (lineRender) {
+					for (int a = 0; a < scene.object.length; a++) {
+						if (lineRender) {
+							if (invertColors) {
+								graphics.setColor(Display.invertColor(lineColor));
+							} else {
+								graphics.setColor(lineColor);
+							}
+							for (int i = 0; i < scene.object[a].edges.length; i++) {
+								int point1 = scene.object[a].edges[i].pointID1;
+								int point2 = scene.object[a].edges[i].pointID2;
+								try {graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
+							}
+						}
+					}
+				}
+				fps++;
+				this.revalidate();
 			}
-			fps++;
-			this.revalidate();
 		}
 	}
 	protected class Renderer implements Runnable {
@@ -557,5 +758,12 @@ public class Display {
 	public Display disableYAxisClamping() {
 		yAxisClamp = false;
 		return this;
+	}
+	public Display setRenderMode(RenderMode renderMode) {
+		this.renderMode = renderMode;
+		return this;
+	}
+	public RenderMode getRenderMode() {
+		return renderMode;
 	}
 }

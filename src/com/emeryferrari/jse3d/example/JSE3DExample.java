@@ -8,6 +8,7 @@ public class JSE3DExample {
 		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
 		display.enableFaceRendering();
+		display.setRenderMode(RenderMode.GPU);
 		display.startRender();
 		display.getScene().getObjects()[1].transitionPosRel(2.1, 2.1, 2.1, 2000, display);
 	}
