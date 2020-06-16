@@ -31,7 +31,7 @@ public class Display extends Kernel {
 	protected CameraMode mode;
 	protected ArrayList<ArrayList<Distance>> distance;
 	protected ArrayList<ArrayList<Double>> camScale;
-	protected double scale = 125;
+	protected final float scale = 125;
 	protected final double sensitivity = 125;
 	protected double xTransform = 0;
 	protected double yTransform = 0;
@@ -42,11 +42,20 @@ public class Display extends Kernel {
 	protected boolean yAxisClamp;
 	protected double viewAngle;
 	protected RenderMode renderMode;
-	// GPU VARIABLES
+	// OPENCL VARIABLES
 	final float[] zAngleX = new float[10000];
+	final float[] zAngleY = new float[10000];
 	final float[] zAngleZ = new float[10000];
-	final float[] zAngles = new float[10000];
-	final float[] mags = new float[10000];
+	final float[] viewAngleXInput = new float[1];
+	final float[] viewAngleYInput = new float[1];
+	final float[] sinViewAngleX = new float[1];
+	final float[] sinViewAngleY = new float[1];
+	final float[] cosViewAngleX = new float[1];
+	final float[] cosViewAngleY = new float[1];
+	final float[] sinViewAngleXzAngle = new float[10000];
+	final float[] cosViewAngleXzAngle = new float[10000];
+	final float[] xTransforms = new float[10000];
+	final float[] yTransforms = new float[10000];
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -75,12 +84,12 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, Math.toRadians(80));
+		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, Math.toRadians(80));
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians);
+		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, 10000, 100);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians) {
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxObjects) {
 		renderMode = RenderMode.CPU_SINGLETHREADED;
 		renderer = new DisplayRenderer();
 		this.scene = scene;
@@ -96,10 +105,10 @@ public class Display extends Kernel {
 		frame.getContentPane().add(BorderLayout.CENTER, renderer);
 		distance = new ArrayList<ArrayList<Distance>>(scene.object.length);
 		camScale = new ArrayList<ArrayList<Double>>(scene.object.length);
-		for (int x = 0; x < scene.object.length; x++) {
-			ArrayList<Distance> distTemp = new ArrayList<Distance>(scene.object[x].points.length);
-			ArrayList<Double> camScaleTemp = new ArrayList<Double>(scene.object[x].points.length);
-			for (int y = 0; y < scene.object[x].points.length; y++) {
+		for (int x = 0; x < maxObjects; x++) {
+			ArrayList<Distance> distTemp = new ArrayList<Distance>();
+			ArrayList<Double> camScaleTemp = new ArrayList<Double>();
+			for (int y = 0; y < maxPointsTotal; y++) {
 				distTemp.add(new Distance(0, -1));
 				camScaleTemp.add(0.0);
 			}
@@ -184,6 +193,7 @@ public class Display extends Kernel {
 					for (int i = 0; i < scene.object[a].points.length; i++) {
 						viewAngleX = 0;
 						viewAngleY = 0;
+						Point3D localCamPos = new Point3D(0, 0, 0);
 						try {
 							viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
 							if (yAxisClamp) {
@@ -196,8 +206,8 @@ public class Display extends Kernel {
 								}
 							}
 							viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+							localCamPos = getCameraPositionActual();
 						} catch (NullPointerException ex) {}
-						Point3D localCamPos = getCameraPositionActual();
 						if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
 							double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
 							if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
@@ -315,27 +325,7 @@ public class Display extends Kernel {
 				fps++;
 				this.revalidate();
 			} else {
-				int zAngleLength = 0;
-				for (int x = 0; x < scene.object.length; x++) {
-					zAngleLength += scene.object[x].points.length;
-				}
-				for (int x = 0; x < scene.object.length; x++) {
-					for (int y = 0; y < scene.object[x].points.length; y++) {
-						int index = (scene.object[x].points.length*x)+y;
-						zAngleZ[index] = (float) scene.object[x].points[y].z;
-						zAngleX[index] = (float) scene.object[x].points[y].x;
-					}
-				}
-				execute(Range.create(zAngleLength));
-				ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
-				if (invertColors) {
-					graphics.setColor(Display.invertColor(backgroundColor));
-				} else {
-					graphics.setColor(backgroundColor);
-				}
-				Dimension size = this.getSize();
-				Point location = this.getLocation();
-				graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
+				Point3D localCamPos = new Point3D(0, 0, 0);
 				Point mouse;
 				if (mode == CameraMode.DRAG) {
 					if (mouseClicked) {
@@ -347,41 +337,58 @@ public class Display extends Kernel {
 				} else {
 					mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 				}
+				Dimension size = this.getSize();
+				Point location = this.getLocation();
+				viewAngleX = 0;
+				viewAngleY = 0;
+				// WRITTEN BY SAM KRUG START
+				try {
+					viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
+					if (yAxisClamp) {
+						if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+							if (viewAngleY < 0) {
+								viewAngleY = -Math.PI/2*sensitivity;
+							} else {
+								viewAngleY = Math.PI/2*sensitivity;
+							}
+						}
+					}
+					viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+					localCamPos = getCameraPositionActual();
+				} catch (NullPointerException ex) {}
+				viewAngleXInput[0] = (float) viewAngleX;
+				viewAngleYInput[0] = (float) viewAngleY;
+				// WRITTEN BY SAM KRUG END
+				int zAngleLength = 0;
+				for (int x = 0; x < scene.object.length; x++) {
+					zAngleLength += scene.object[x].points.length;
+				}
+				for (int x = 0; x < scene.object.length; x++) {
+					for (int y = 0; y < scene.object[x].points.length; y++) {
+						int index = (scene.object[x].points.length*x)+y;
+						zAngleX[index] = (float) scene.object[x].points[y].x;
+						zAngleY[index] = (float) scene.object[x].points[y].y;
+						zAngleZ[index] = (float) scene.object[x].points[y].z;
+					}
+				}
+				execute(Range.create(zAngleLength));
+				ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
+				if (invertColors) {
+					graphics.setColor(Display.invertColor(backgroundColor));
+				} else {
+					graphics.setColor(backgroundColor);
+				}
+				graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
 				for (int a = 0; a < scene.object.length; a++) {
 					Point[] points = new Point[scene.object[a].points.length];
 					// WRITTEN BY SAM KRUG START
 					for (int i = 0; i < scene.object[a].points.length; i++) {
 						int id = (scene.object[a].points.length*a)+i;
-						viewAngleX = 0;
-						viewAngleY = 0;
-						try {
-							viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
-							if (yAxisClamp) {
-								if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
-									if (viewAngleY < 0) {
-										viewAngleY = -Math.PI/2*sensitivity;
-									} else {
-										viewAngleY = Math.PI/2*sensitivity;
-									}
-								}
-							}
-							viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
-						} catch (NullPointerException ex) {}
-						Point3D localCamPos = getCameraPositionActual();
-						if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
-							double zAngle = zAngles[id];
-							if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
-								zAngle = 0;
-							}
-							double mag = mags[id];
-							if (scene.object[a].points[i].x < 0) {
-								xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-								yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-							} else {
-								xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-								yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-							}
-							distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i));
+						if (scene.object[a].points[i].z*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].x*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].y*sinViewAngleY[0] < scene.camDist) {
+							xTransform = xTransforms[id];
+							yTransform = yTransforms[id];
+							double math = Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2));
+							distance.get(a).set(i, new Distance(math, i));
 							double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
 							camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
 							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale.get(a).get(i)), (int)((size.height+location.y)/2-yTransform/camScale.get(a).get(i)));
@@ -518,10 +525,30 @@ public class Display extends Kernel {
 			getFrame().repaint();
 		}
 	}
+	// ORIGINAL CPU CODE BY SAM KRUG, GPU ADAPTATION BY EMERY FERRARI
 	public void run() {
 		int id = getGlobalId();
-		zAngles[id] = atan(zAngleZ[id]/zAngleX[id]);
-		mags[id] = hypot(zAngleX[id], zAngleZ[id]);
+		if (id == 0) {
+			sinViewAngleX[0] = sin(viewAngleXInput[0]);
+			sinViewAngleY[0] = sin(viewAngleYInput[0]);
+			cosViewAngleX[0] = cos(viewAngleXInput[0]);
+			cosViewAngleY[0] = cos(viewAngleYInput[0]);
+		}
+		float zAngles = 0f;
+		float mags = 0f;
+		if (!(zAngleX[id] == 0f && zAngleZ[id] == 0f)) {
+			zAngles = atan(zAngleZ[id]/zAngleX[id]);
+		}
+		sinViewAngleXzAngle[id] = sin(viewAngleXInput[0]+zAngles);
+		cosViewAngleXzAngle[id] = cos(viewAngleXInput[0]+zAngles);
+		mags = hypot(zAngleX[id], zAngleZ[id]);
+		if (zAngleX[id] < 0) {
+			xTransforms[id] = -mags*scale*cosViewAngleXzAngle[id];
+			yTransforms[id] = -mags*scale*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*scale*cosViewAngleY[0];
+		} else {
+			xTransforms[id] = mags*scale*cosViewAngleXzAngle[id];
+			yTransforms[id] = mags*scale*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*scale*cosViewAngleY[0];
+		}
 	}
 	protected class ClickListener implements MouseListener {
 		public void mouseEntered(MouseEvent ev) {}
