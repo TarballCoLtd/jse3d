@@ -4,7 +4,7 @@ public class JSE3DExample {
 	public static void main(String[] args) {
 		Object3D[] objects = {ObjectTemplate.getCube(), ObjectTemplate.getCube()};
 		Scene scene = new Scene(objects, 5.0);
-		Display display = new Display(scene, "jse3d demo", Math.toRadians(60));
+		Display display = new Display(scene, "jse3d demo", Math.toRadians(60), 16, 2);
 		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
 		display.enableFaceRendering();

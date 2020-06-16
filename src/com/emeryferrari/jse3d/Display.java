@@ -69,14 +69,26 @@ public class Display extends Kernel {
 	public Display(Scene scene, String frameTitle) {
 		this(scene, frameTitle, true);
 	}
+	public Display(Scene scene, String frameTitle, int maxPointsTotal, int maxObjects) {
+		this(scene, frameTitle, true, maxPointsTotal, maxObjects);
+	}
 	public Display(Scene scene, String frameTitle, double fovRadians) {
 		this(scene, frameTitle, true, fovRadians);
+	}
+	public Display(Scene scene, String frameTitle, double fovRadians, int maxPointsTotal, int maxObjects) {
+		this(scene, frameTitle, true, fovRadians, maxPointsTotal, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible) {
 		this (scene, frameTitle, frameVisible, false);
 	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, int maxPointsTotal, int maxObjects) {
+		this (scene, frameTitle, frameVisible, false, maxPointsTotal, maxObjects);
+	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians) {
 		this (scene, frameTitle, frameVisible, false, fovRadians);
+	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians, int maxPointsTotal, int maxObjects) {
+		this (scene, frameTitle, frameVisible, false, fovRadians, maxPointsTotal, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500);
@@ -84,17 +96,26 @@ public class Display extends Kernel {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians);
 	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians, int maxPointsTotal, int maxObjects) {
+		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians, maxPointsTotal, maxObjects);
+	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians);
 	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxObjects) {
+		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians, maxPointsTotal, maxObjects);
+	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, Math.toRadians(80));
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, 10000, 100);
+	}
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxObjects) {
+		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxObjects) {
 		renderMode = RenderMode.CPU_SINGLETHREADED;
