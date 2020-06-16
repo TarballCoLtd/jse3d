@@ -4,6 +4,7 @@ import java.awt.*;
 import java.util.*;
 import java.awt.event.*;
 import com.aparapi.*;
+import com.aparapi.device.*;
 public class Display extends Kernel {
 	protected DisplayRenderer renderer;
 	protected Scene scene;
@@ -128,7 +129,7 @@ public class Display extends Kernel {
 		maths = new float[maxPointsTotal];
 		cosThetas = new float[maxPointsTotal];
 		sinViewAngles = new float[maxPointsTotal];
-		renderMode = RenderMode.CPU_SINGLETHREADED;
+		renderMode = RenderMode.GPU;
 		renderer = new DisplayRenderer();
 		this.scene = scene;
 		if (frameTitle.equals("")) {
@@ -202,6 +203,7 @@ public class Display extends Kernel {
 	}
 	protected class DisplayRenderer extends JComponent {
 		protected static final long serialVersionUID = 1L;
+		@SuppressWarnings("deprecation")
 		@Override
 		public void paintComponent(Graphics graphics) {
 			if (renderMode == RenderMode.CPU_SINGLETHREADED) {
@@ -413,7 +415,21 @@ public class Display extends Kernel {
 						zAngleZ[index] = (float) scene.object[x].points[y].z;
 					}
 				}
-				execute(Range.create(zAngleLength));
+				Device chosen = null;
+				if (renderMode == RenderMode.CPU_MULTITHREADED) {
+					chosen = Device.firstCPU();
+					if (chosen == null) {
+						System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature.");
+						throw new CPU_OpenCLDriverNotFoundError();
+					}
+				} else {
+					chosen = Device.bestGPU();
+					if (chosen == null) {
+						System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature.");
+						throw new GPU_OpenCLDriverNotFoundError();
+					}
+				}
+				execute(chosen.createRange(zAngleLength));
 				ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
 				if (invertColors) {
 					graphics.setColor(Display.invertColor(backgroundColor));
