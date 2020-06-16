@@ -56,6 +56,10 @@ public class Display extends Kernel {
 	final float[] cosViewAngleXzAngle = new float[10000];
 	final float[] xTransforms = new float[10000];
 	final float[] yTransforms = new float[10000];
+	final float[] localCamPosX = new float[1];
+	final float[] localCamPosY = new float[1];
+	final float[] localCamPosZ = new float[1];
+	final float[] maths = new float[10000];
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -356,6 +360,9 @@ public class Display extends Kernel {
 					viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
 					localCamPos = getCameraPositionActual();
 				} catch (NullPointerException ex) {}
+				localCamPosX[0] = (float) localCamPos.x;
+				localCamPosY[0] = (float) localCamPos.y;
+				localCamPosZ[0] = (float) localCamPos.z;
 				viewAngleXInput[0] = (float) viewAngleX;
 				viewAngleYInput[0] = (float) viewAngleY;
 				// WRITTEN BY SAM KRUG END
@@ -387,8 +394,7 @@ public class Display extends Kernel {
 						if (scene.object[a].points[i].z*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].x*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].y*sinViewAngleY[0] < scene.camDist) {
 							xTransform = xTransforms[id];
 							yTransform = yTransforms[id];
-							double math = Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2));
-							distance.get(a).set(i, new Distance(math, i));
+							distance.get(a).set(i, new Distance(maths[id], i));
 							double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
 							camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
 							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale.get(a).get(i)), (int)((size.height+location.y)/2-yTransform/camScale.get(a).get(i)));
@@ -549,6 +555,7 @@ public class Display extends Kernel {
 			xTransforms[id] = mags*scale*cosViewAngleXzAngle[id];
 			yTransforms[id] = mags*scale*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*scale*cosViewAngleY[0];
 		}
+		maths[id] = sqrt(pow(localCamPosX[0]-zAngleX[id], 2)+pow(localCamPosY[0]-zAngleY[id], 2)+pow(localCamPosZ[0]-zAngleZ[id], 2));
 	}
 	protected class ClickListener implements MouseListener {
 		public void mouseEntered(MouseEvent ev) {}
