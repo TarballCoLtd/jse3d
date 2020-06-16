@@ -419,13 +419,13 @@ public class Display extends Kernel {
 				if (renderMode == RenderMode.CPU_MULTITHREADED) {
 					chosen = Device.firstCPU();
 					if (chosen == null) {
-						System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature.");
+						System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
 						throw new CPU_OpenCLDriverNotFoundError();
 					}
 				} else {
 					chosen = Device.bestGPU();
 					if (chosen == null) {
-						System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature.");
+						System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
 						throw new GPU_OpenCLDriverNotFoundError();
 					}
 				}
