@@ -43,26 +43,26 @@ public class Display extends Kernel {
 	protected double viewAngle;
 	protected RenderMode renderMode;
 	// OPENCL VARIABLES
-	final float[] zAngleX = new float[10000];
-	final float[] zAngleY = new float[10000];
-	final float[] zAngleZ = new float[10000];
+	final float[] zAngleX;
+	final float[] zAngleY;
+	final float[] zAngleZ;
 	final float[] viewAngleXInput = new float[1];
 	final float[] viewAngleYInput = new float[1];
 	final float[] sinViewAngleX = new float[1];
 	final float[] sinViewAngleY = new float[1];
 	final float[] cosViewAngleX = new float[1];
 	final float[] cosViewAngleY = new float[1];
-	final float[] sinViewAngleXzAngle = new float[10000];
-	final float[] cosViewAngleXzAngle = new float[10000];
-	final float[] xTransforms = new float[10000];
-	final float[] yTransforms = new float[10000];
+	final float[] sinViewAngleXzAngle;
+	final float[] cosViewAngleXzAngle;
+	final float[] xTransforms;
+	final float[] yTransforms;
 	final float[] localCamPosX = new float[1];
 	final float[] localCamPosY = new float[1];
 	final float[] localCamPosZ = new float[1];
-	final float[] maths = new float[10000];
-	final float[] cosThetas = new float[10000];
+	final float[] maths;
+	final float[] cosThetas;
 	final float[] gpuViewAngle = new float[1];
-	final float[] sinViewAngles = new float[10000];
+	final float[] sinViewAngles;
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -118,6 +118,16 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxObjects) {
+		zAngleX = new float[maxPointsTotal];
+		zAngleY = new float[maxPointsTotal];
+		zAngleZ = new float[maxPointsTotal];
+		sinViewAngleXzAngle = new float[maxPointsTotal];
+		cosViewAngleXzAngle = new float[maxPointsTotal];
+		xTransforms = new float[maxPointsTotal];
+		yTransforms = new float[maxPointsTotal];
+		maths = new float[maxPointsTotal];
+		cosThetas = new float[maxPointsTotal];
+		sinViewAngles = new float[maxPointsTotal];
 		renderMode = RenderMode.CPU_SINGLETHREADED;
 		renderer = new DisplayRenderer();
 		this.scene = scene;
