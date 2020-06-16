@@ -60,6 +60,7 @@ public class Display extends Kernel {
 	final float[] localCamPosY = new float[1];
 	final float[] localCamPosZ = new float[1];
 	final float[] maths = new float[10000];
+	final float[] thetas = new float[10000];
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -395,7 +396,7 @@ public class Display extends Kernel {
 							xTransform = xTransforms[id];
 							yTransform = yTransforms[id];
 							distance.get(a).set(i, new Distance(maths[id], i));
-							double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
+							double theta = thetas[id];
 							camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
 							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale.get(a).get(i)), (int)((size.height+location.y)/2-yTransform/camScale.get(a).get(i)));
 						}
@@ -556,6 +557,7 @@ public class Display extends Kernel {
 			yTransforms[id] = mags*scale*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*scale*cosViewAngleY[0];
 		}
 		maths[id] = sqrt(pow(localCamPosX[0]-zAngleX[id], 2)+pow(localCamPosY[0]-zAngleY[id], 2)+pow(localCamPosZ[0]-zAngleZ[id], 2));
+		thetas[id] = asin((hypot(xTransforms[id], yTransforms[id])/scale)/maths[id]);
 	}
 	protected class ClickListener implements MouseListener {
 		public void mouseEntered(MouseEvent ev) {}
