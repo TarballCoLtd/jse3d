@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.*;
 import java.awt.event.*;
 import com.aparapi.*;
-public class Display {
+public class Display extends Kernel {
 	protected DisplayRenderer renderer;
 	protected Scene scene;
 	protected JFrame frame;
@@ -42,6 +42,11 @@ public class Display {
 	protected boolean yAxisClamp;
 	protected double viewAngle;
 	protected RenderMode renderMode;
+	// GPU VARIABLES
+	final float[] zAngleX = new float[10000];
+	final float[] zAngleZ = new float[10000];
+	final float[] zAngles = new float[10000];
+	final float[] mags = new float[10000];
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -314,26 +319,14 @@ public class Display {
 				for (int x = 0; x < scene.object.length; x++) {
 					zAngleLength += scene.object[x].points.length;
 				}
-				final float[] zAngleInputZ = new float[zAngleLength];
-				final float[] zAngleInputX = new float[zAngleLength];
-				final float[] zAngles = new float[zAngleLength];
-				final float[] mags = new float[zAngleLength];
 				for (int x = 0; x < scene.object.length; x++) {
 					for (int y = 0; y < scene.object[x].points.length; y++) {
 						int index = (scene.object[x].points.length*x)+y;
-						zAngleInputZ[index] = (float) scene.object[x].points[y].z;
-						zAngleInputX[index] = (float) scene.object[x].points[y].x;
+						zAngleZ[index] = (float) scene.object[x].points[y].z;
+						zAngleX[index] = (float) scene.object[x].points[y].x;
 					}
 				}
-				Kernel compKern = new Kernel() {
-					public void run() {
-						int id = getGlobalId();
-						zAngles[id] = atan(zAngleInputZ[id]/zAngleInputX[id]);
-						mags[id] = hypot(zAngleInputX[id], zAngleInputZ[id]);
-					}
-				};
-				compKern.execute(Range.create(zAngleLength));
-				compKern.dispose();
+				execute(Range.create(zAngleLength));
 				ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
 				if (invertColors) {
 					graphics.setColor(Display.invertColor(backgroundColor));
@@ -524,6 +517,11 @@ public class Display {
 		protected void renderFrame() {
 			getFrame().repaint();
 		}
+	}
+	public void run() {
+		int id = getGlobalId();
+		zAngles[id] = atan(zAngleZ[id]/zAngleX[id]);
+		mags[id] = hypot(zAngleX[id], zAngleZ[id]);
 	}
 	protected class ClickListener implements MouseListener {
 		public void mouseEntered(MouseEvent ev) {}
