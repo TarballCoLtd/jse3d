@@ -30,8 +30,8 @@ public class Display extends Kernel {
 	protected int physicsTimestep = 60;
 	Point3D camPos;
 	protected CameraMode mode;
-	protected ArrayList<ArrayList<Distance>> distance;
-	protected ArrayList<ArrayList<Double>> camScale;
+	protected Distance[][] distance;
+	protected double[][] camScale;
 	protected final float scale = 125;
 	protected final double sensitivity = 125;
 	protected double xTransform = 0;
@@ -70,26 +70,26 @@ public class Display extends Kernel {
 	public Display(Scene scene, String frameTitle) {
 		this(scene, frameTitle, true);
 	}
-	public Display(Scene scene, String frameTitle, int maxPointsTotal, int maxObjects) {
-		this(scene, frameTitle, true, maxPointsTotal, maxObjects);
+	public Display(Scene scene, String frameTitle, int maxPointsTotal,int maxPointsObject,  int maxObjects) {
+		this(scene, frameTitle, true, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, double fovRadians) {
 		this(scene, frameTitle, true, fovRadians);
 	}
-	public Display(Scene scene, String frameTitle, double fovRadians, int maxPointsTotal, int maxObjects) {
-		this(scene, frameTitle, true, fovRadians, maxPointsTotal, maxObjects);
+	public Display(Scene scene, String frameTitle, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		this(scene, frameTitle, true, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible) {
 		this (scene, frameTitle, frameVisible, false);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, int maxPointsTotal, int maxObjects) {
-		this (scene, frameTitle, frameVisible, false, maxPointsTotal, maxObjects);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		this (scene, frameTitle, frameVisible, false, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians) {
 		this (scene, frameTitle, frameVisible, false, fovRadians);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians, int maxPointsTotal, int maxObjects) {
-		this (scene, frameTitle, frameVisible, false, fovRadians, maxPointsTotal, maxObjects);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		this (scene, frameTitle, frameVisible, false, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500);
@@ -97,8 +97,8 @@ public class Display extends Kernel {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians, int maxPointsTotal, int maxObjects) {
-		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians, maxPointsTotal, maxObjects);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight);
@@ -106,19 +106,19 @@ public class Display extends Kernel {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxObjects) {
-		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians, maxPointsTotal, maxObjects);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, Math.toRadians(80));
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, 10000, 100);
+		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, 3200, 64, 100);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxObjects) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxObjects);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxObjects) {
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		zAngleX = new float[maxPointsTotal];
 		zAngleY = new float[maxPointsTotal];
 		zAngleZ = new float[maxPointsTotal];
@@ -142,18 +142,8 @@ public class Display extends Kernel {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		rendering = false;
 		frame.getContentPane().add(BorderLayout.CENTER, renderer);
-		distance = new ArrayList<ArrayList<Distance>>(scene.object.length);
-		camScale = new ArrayList<ArrayList<Double>>(scene.object.length);
-		for (int x = 0; x < maxObjects; x++) {
-			ArrayList<Distance> distTemp = new ArrayList<Distance>();
-			ArrayList<Double> camScaleTemp = new ArrayList<Double>();
-			for (int y = 0; y < maxPointsTotal; y++) {
-				distTemp.add(new Distance(0, -1));
-				camScaleTemp.add(0.0);
-			}
-			distance.add(distTemp);
-			camScale.add(camScaleTemp);
-		}
+		distance = new Distance[maxObjects][maxPointsObject];
+		camScale = new double[maxObjects][maxPointsObject];
 		this.renderPoints = renderPoints;
 		this.pointWidth = pointWidth;
 		this.pointHeight = pointHeight;
@@ -261,10 +251,10 @@ public class Display extends Kernel {
 								xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
 								yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
 							}
-							distance.get(a).set(i, new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i));
-							double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance.get(a).get(i).distance);
-							camScale.get(a).set(i, distance.get(a).get(i).distance*Math.cos(theta)*Math.sin(viewAngle/2));
-							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale.get(a).get(i)), (int)((size.height+location.y)/2-yTransform/camScale.get(a).get(i)));
+							distance[a][i] = new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i);
+							double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
+							camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
+							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
 						}
 						// WRITTEN BY SAM KRUG END
 						if (renderPoints) {
@@ -278,18 +268,18 @@ public class Display extends Kernel {
 					}
 					if (faceRender) {
 						double objDist = 0.0;
-						for (int x = 0; x < distance.get(a).size(); x++) {
-							objDist += distance.get(a).get(x).distance;
+						for (int x = 0; x < distance[a].length; x++) {
+							objDist += distance[a][x].distance;
 						}
-						objDist /= (double) distance.get(a).size();
+						objDist /= (double) distance[a].length;
 						scene.object[a].camDist = objDist;
 						for (int x = 0; x < scene.object[a].faces.length; x++) {
 							int[] pointIDs = scene.object[a].faces[x].getPointIDs();
 							double[] distances = new double[pointIDs.length];
 							for (int y = 0; y < pointIDs.length; y++) {
-								for (int z = 0; z < distance.get(a).size(); z++) {
-									if (distance.get(a).get(z).pointID == pointIDs[y]) {
-										distances[y] = distance.get(a).get(z).distance;
+								for (int z = 0; z < distance[a].length; z++) {
+									if (distance[a][z].pointID == pointIDs[y]) {
+										distances[y] = distance[a][z].distance;
 									}
 								}
 							}
@@ -445,9 +435,9 @@ public class Display extends Kernel {
 						if (scene.object[a].points[i].z*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].x*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].y*sinViewAngleY[0] < scene.camDist) {
 							xTransform = xTransforms[id];
 							yTransform = yTransforms[id];
-							distance.get(a).set(i, new Distance(maths[id], i));
-							camScale.get(a).set(i, distance.get(a).get(i).distance*cosThetas[id]*sinViewAngles[id]);
-							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale.get(a).get(i)), (int)((size.height+location.y)/2-yTransform/camScale.get(a).get(i)));
+							distance[a][i] = new Distance(maths[id], i);
+							camScale[a][i] = distance[a][i].distance*cosThetas[id]*sinViewAngles[id];
+							points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
 						}
 						// WRITTEN BY SAM KRUG END
 						if (renderPoints) {
@@ -461,18 +451,18 @@ public class Display extends Kernel {
 					}
 					if (faceRender) {
 						double objDist = 0.0;
-						for (int x = 0; x < distance.get(a).size(); x++) {
-							objDist += distance.get(a).get(x).distance;
+						for (int x = 0; x < distance[a].length; x++) {
+							objDist += distance[a][x].distance;
 						}
-						objDist /= (double) distance.get(a).size();
+						objDist /= (double) distance[a].length;
 						scene.object[a].camDist = objDist;
 						for (int x = 0; x < scene.object[a].faces.length; x++) {
 							int[] pointIDs = scene.object[a].faces[x].getPointIDs();
 							double[] distances = new double[pointIDs.length];
 							for (int y = 0; y < pointIDs.length; y++) {
-								for (int z = 0; z < distance.get(a).size(); z++) {
-									if (distance.get(a).get(z).pointID == pointIDs[y]) {
-										distances[y] = distance.get(a).get(z).distance;
+								for (int z = 0; z < distance[a].length; z++) {
+									if (distance[a][z].pointID == pointIDs[y]) {
+										distances[y] = distance[a][z].distance;
 									}
 								}
 							}
