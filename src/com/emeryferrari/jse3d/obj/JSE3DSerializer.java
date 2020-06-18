@@ -1,4 +1,4 @@
-package com.emeryferrari.jse3d;
+package com.emeryferrari.jse3d.obj;
 import java.io.*;
 public class JSE3DSerializer {
 	private JSE3DSerializer() {}

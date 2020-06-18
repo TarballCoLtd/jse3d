@@ -1,4 +1,4 @@
-package com.emeryferrari.jse3d;
+package com.emeryferrari.jse3d.obj;
 import java.util.*;
 import java.io.*;
 public class Face implements Serializable {

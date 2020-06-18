@@ -1,5 +1,6 @@
-package com.emeryferrari.jse3d;
+package com.emeryferrari.jse3d.obj;
 import java.io.*;
+import com.emeryferrari.jse3d.*;
 public class Point3D implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public double x;

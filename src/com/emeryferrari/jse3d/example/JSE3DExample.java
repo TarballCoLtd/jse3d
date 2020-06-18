@@ -1,5 +1,7 @@
 package com.emeryferrari.jse3d.example;
 import com.emeryferrari.jse3d.*;
+import com.emeryferrari.jse3d.enums.*;
+import com.emeryferrari.jse3d.obj.*;
 public class JSE3DExample {
 	public static void main(String[] args) {
 		Object3D[] objects = {ObjectTemplate.getCube(), ObjectTemplate.getCube()};
@@ -8,7 +10,8 @@ public class JSE3DExample {
 		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
 		display.enableFaceRendering();
-		display.setRenderMode(RenderMode.GPU);
+		display.setRenderTarget(RenderTarget.GPU);
+		display.setRenderQuality(RenderMode.PERFORMANCE);
 		display.startRender();
 		display.getScene().getObjects()[1].transitionPosRel(2.1, 2.1, 2.1, 2000, display);
 	}

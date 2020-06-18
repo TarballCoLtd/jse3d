@@ -1,4 +1,4 @@
-package com.emeryferrari.jse3d;
+package com.emeryferrari.jse3d.exc;
 public class CPU_OpenCLDriverNotFoundError extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 	public CPU_OpenCLDriverNotFoundError() {

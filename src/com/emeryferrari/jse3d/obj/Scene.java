@@ -1,9 +1,9 @@
-package com.emeryferrari.jse3d;
+package com.emeryferrari.jse3d.obj;
 import java.io.*;
 public class Scene implements Serializable {
 	private static final long serialVersionUID = 1L;
-	Object3D[] object;
-	double camDist;
+	public Object3D[] object;
+	public double camDist;
 	public Scene(Object3D[] object, double camDist) {
 		this.object = object;
 		this.camDist = camDist;
