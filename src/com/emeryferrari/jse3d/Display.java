@@ -55,6 +55,7 @@ public class Display extends Kernel {
 	protected boolean textAntialiasingHint;
 	protected InterpolationMode interpolationHint;
 	protected RenderMode alphaInterpolationHint;
+	protected boolean assertion;
 	// OPENCL VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
@@ -131,6 +132,7 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		assertion = false;
 		antialiasingHint = true;
 		renderingHint = RenderMode.PERFORMANCE;
 		ditheringHint = false;
@@ -139,6 +141,7 @@ public class Display extends Kernel {
 		textAntialiasingHint = false;
 		interpolationHint = InterpolationMode.BILINEAR;
 		alphaInterpolationHint = RenderMode.QUALITY;
+		calculateRenderingHints();
 		zAngleX = new float[maxPointsTotal];
 		zAngleY = new float[maxPointsTotal];
 		zAngleZ = new float[maxPointsTotal];
@@ -218,9 +221,11 @@ public class Display extends Kernel {
 		public void paintComponent(Graphics gfx) {
 			if (rendering) {
 				Graphics2D graphics = (Graphics2D) gfx;
-				graphics.setRenderingHints(hints);
+				try {
+					graphics.setRenderingHints(hints);
+				} catch (ConcurrentModificationException ex) {}
 				if (renderTarget == RenderTarget.CPU_SINGLETHREADED) {
-					ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
+					Point[][] pointArrays = new Point[scene.object.length][];
 					if (invertColors) {
 						graphics.setColor(Display.invertColor(backgroundColor));
 					} else {
@@ -289,41 +294,35 @@ public class Display extends Kernel {
 								graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 							}
 						}
-						if (faceRender) {
-							double objDist = 0.0;
-							for (int x = 0; x < distance[a].length; x++) {
-								objDist += distance[a][x].distance;
-							}
-							objDist /= (double) distance[a].length;
-							scene.object[a].camDist = objDist;
-							for (int x = 0; x < scene.object[a].faces.length; x++) {
-								int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-								double[] distances = new double[pointIDs.length];
-								for (int y = 0; y < pointIDs.length; y++) {
-									for (int z = 0; z < distance[a].length; z++) {
-										if (distance[a][z].pointID == pointIDs[y]) {
-											distances[y] = distance[a][z].distance;
+						try {
+							if (faceRender) {
+								double objDist = 0.0;
+								for (int x = 0; x < distance[a].length; x++) {
+									objDist += distance[a][x].distance;
+								}
+								objDist /= (double) distance[a].length;
+								scene.object[a].camDist = objDist;
+								for (int x = 0; x < scene.object[a].faces.length; x++) {
+									int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+									double[] distances = new double[pointIDs.length];
+									for (int y = 0; y < pointIDs.length; y++) {
+										for (int z = 0; z < distance[a].length; z++) {
+											if (distance[a][z].pointID == pointIDs[y]) {
+												distances[y] = distance[a][z].distance;
+											}
 										}
 									}
-								}
-								double average = 0.0;
-								for (int i = 0; i < distances.length; i++) {
-									average += distances[i];
-								}
-								average /= (double) distances.length;
-								scene.object[a].faces[x].camDist = average;
-							}
-							for (int x = 0; x < scene.object[a].faces.length; x++) {
-								for (int y = x+1; y < scene.object[a].faces.length; y++) {
-									if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
-										Face temp = scene.object[a].faces[x];
-										scene.object[a].faces[x] = scene.object[a].faces[y];
-										scene.object[a].faces[y] = temp;
+									double average = 0.0;
+									for (int i = 0; i < distances.length; i++) {
+										average += distances[i];
 									}
+									average /= (double) distances.length;
+									scene.object[a].faces[x].camDist = average;
 								}
+								Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
+								pointArrays[a] = points;
 							}
-							pointArrays.add(points);
-						}
+						} catch (NullPointerException ex) {}
 					}
 					if (camPosPrint) {
 						Point3D cameraPos = getCameraPositionActual();
@@ -334,9 +333,9 @@ public class Display extends Kernel {
 						for (int a = 0; a < scene.object.length; a++) {
 							for (int x = a+1; x < scene.object.length; x++) {
 								if (scene.object[a].camDist < scene.object[x].camDist) {
-									Point[] temp = pointArrays.get(a);
-									pointArrays.set(a, pointArrays.get(x));
-									pointArrays.set(x, temp);
+									Point[] temp = pointArrays[a];
+									pointArrays[a] = pointArrays[x];
+									pointArrays[x] = temp;
 								}
 							}
 							for (int x = 0; x < scene.object[a].faces.length; x++) {
@@ -344,8 +343,8 @@ public class Display extends Kernel {
 									int[] xs = {0, 0, 0};
 									int[] ys = {0, 0, 0};
 									try {
-										int[] xs2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].x};
-										int[] ys2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].y};
+										int[] xs2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].x};
+										int[] ys2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].y};
 										xs = xs2;
 										ys = ys2;
 									} catch (NullPointerException ex) {}
@@ -370,7 +369,7 @@ public class Display extends Kernel {
 								for (int i = 0; i < scene.object[a].edges.length; i++) {
 									int point1 = scene.object[a].edges[i].pointID1;
 									int point2 = scene.object[a].edges[i].pointID2;
-									try {graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
+									try {graphics.drawLine(pointArrays[a][point1].x, pointArrays[a][point1].y, pointArrays[a][point2].x, pointArrays[a][point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
 								}
 							}
 						}
@@ -438,12 +437,21 @@ public class Display extends Kernel {
 					} else {
 						chosen = Device.bestGPU();
 						if (chosen == null) {
-							System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
+							System.err.println("FATAL ERROR: The OpenCL driver for your GPU is not installed, but it is required for the GPU rendering feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
 							throw new GPU_OpenCLDriverNotFoundError();
 						}
 					}
-					execute(chosen.createRange(zAngleLength));
-					ArrayList<Point[]> pointArrays = new ArrayList<Point[]>();
+					try {
+						Range range = chosen.createRange(zAngleLength);
+						range.setLocalSize_0(zAngleLength);
+						execute(range);
+					} catch (AssertionError err) {
+						if (!assertion) {
+							System.err.println("java.lang.AssertionError: Selected OpenCL device not available. This is a bug with jse3d. In the meantime, try setting the number of objects in the scene to a multiple of how many cores the selected device has as a temporary workaround. Normally this is a power of 2, however that is not always true.");
+							assertion = true;
+						}
+					}
+					Point[][] pointArrays = new Point[scene.object.length][];
 					if (invertColors) {
 						graphics.setColor(Display.invertColor(backgroundColor));
 					} else {
@@ -455,6 +463,7 @@ public class Display extends Kernel {
 						// WRITTEN BY SAM KRUG START: HEAVILY MODIFIED
 						for (int i = 0; i < scene.object[a].points.length; i++) {
 							int id = (scene.object[a].points.length*a)+i;
+							distance[a][i] = new Distance(0.0, -1);
 							if (scene.object[a].points[i].z*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].x*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].y*sinViewAngleY[0] < scene.camDist) {
 								xTransform = xTransforms[id];
 								yTransform = yTransforms[id];
@@ -496,16 +505,8 @@ public class Display extends Kernel {
 								average /= (double) distances.length;
 								scene.object[a].faces[x].camDist = average;
 							}
-							for (int x = 0; x < scene.object[a].faces.length; x++) {
-								for (int y = x+1; y < scene.object[a].faces.length; y++) {
-									if (scene.object[a].faces[x].camDist < scene.object[a].faces[y].camDist) {
-										Face temp = scene.object[a].faces[x];
-										scene.object[a].faces[x] = scene.object[a].faces[y];
-										scene.object[a].faces[y] = temp;
-									}
-								}
-							}
-							pointArrays.add(points);
+							Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
+							pointArrays[a] = points;
 						}
 					}
 					if (camPosPrint) {
@@ -517,9 +518,9 @@ public class Display extends Kernel {
 						for (int a = 0; a < scene.object.length; a++) {
 							for (int x = a+1; x < scene.object.length; x++) {
 								if (scene.object[a].camDist < scene.object[x].camDist) {
-									Point[] temp = pointArrays.get(a);
-									pointArrays.set(a, pointArrays.get(x));
-									pointArrays.set(x, temp);
+									Point[] temp = pointArrays[a];
+									pointArrays[a] = pointArrays[x];
+									pointArrays[x] = temp;
 								}
 							}
 							for (int x = 0; x < scene.object[a].faces.length; x++) {
@@ -527,8 +528,8 @@ public class Display extends Kernel {
 									int[] xs = {0, 0, 0};
 									int[] ys = {0, 0, 0};
 									try {
-										int[] xs2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].x};
-										int[] ys2 = {pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays.get(a)[scene.object[a].faces[x].triangles[y].pointID3].y};
+										int[] xs2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].x};
+										int[] ys2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].y};
 										xs = xs2;
 										ys = ys2;
 									} catch (NullPointerException ex) {}
@@ -553,7 +554,7 @@ public class Display extends Kernel {
 								for (int i = 0; i < scene.object[a].edges.length; i++) {
 									int point1 = scene.object[a].edges[i].pointID1;
 									int point2 = scene.object[a].edges[i].pointID2;
-									try {graphics.drawLine(pointArrays.get(a)[point1].x, pointArrays.get(a)[point1].y, pointArrays.get(a)[point2].x, pointArrays.get(a)[point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
+									try {graphics.drawLine(pointArrays[a][point1].x, pointArrays[a][point1].y, pointArrays[a][point2].x, pointArrays[a][point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
 								}
 							}
 						}
@@ -591,52 +592,52 @@ public class Display extends Kernel {
 			    }
 			}
 		}
-		protected void calculateRenderingHints() {
-			if (antialiasingHint) {
-				hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			} else {
-				hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-			}
-			if (renderingHint == RenderMode.PERFORMANCE) {
-				hints.add(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED));
-			} else {
-				hints.add(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
-			}
-			if (ditheringHint) {
-				hints.add(new RenderingHints(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE));
-			} else {
-				hints.add(new RenderingHints(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE));
-			}
-			if (colorRenderingHint == RenderMode.PERFORMANCE) {
-				hints.add(new RenderingHints(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED));
-			} else {
-				hints.add(new RenderingHints(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY));
-			}
-			if (fractionalMetricsHint) {
-				hints.add(new RenderingHints(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON));
-			} else {
-				hints.add(new RenderingHints(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF));
-			}
-			if (textAntialiasingHint) {
-				hints.add(new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON));
-			} else {
-				hints.add(new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
-			}
-			if (interpolationHint == InterpolationMode.BICUBIC) {
-				hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
-			} else if (interpolationHint == InterpolationMode.BILINEAR) {
-				hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR));
-			} else {
-				hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR));
-			}
-			if (alphaInterpolationHint == RenderMode.PERFORMANCE) {
-				hints.add(new RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED));
-			} else {
-				hints.add(new RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY));
-			}
-		}
 		protected void renderFrame() {
 			getFrame().repaint();
+		}
+	}
+	protected void calculateRenderingHints() {
+		if (antialiasingHint) {
+			hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		} else {
+			hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		}
+		if (renderingHint == RenderMode.PERFORMANCE) {
+			hints.add(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED));
+		} else {
+			hints.add(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+		}
+		if (ditheringHint) {
+			hints.add(new RenderingHints(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE));
+		} else {
+			hints.add(new RenderingHints(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE));
+		}
+		if (colorRenderingHint == RenderMode.PERFORMANCE) {
+			hints.add(new RenderingHints(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED));
+		} else {
+			hints.add(new RenderingHints(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY));
+		}
+		if (fractionalMetricsHint) {
+			hints.add(new RenderingHints(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON));
+		} else {
+			hints.add(new RenderingHints(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF));
+		}
+		if (textAntialiasingHint) {
+			hints.add(new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON));
+		} else {
+			hints.add(new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
+		}
+		if (interpolationHint == InterpolationMode.BICUBIC) {
+			hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
+		} else if (interpolationHint == InterpolationMode.BILINEAR) {
+			hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR));
+		} else {
+			hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR));
+		}
+		if (alphaInterpolationHint == RenderMode.PERFORMANCE) {
+			hints.add(new RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED));
+		} else {
+			hints.add(new RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY));
 		}
 	}
 	// ORIGINAL CPU CODE BY SAM KRUG, GPU ADAPTATION BY EMERY FERRARI

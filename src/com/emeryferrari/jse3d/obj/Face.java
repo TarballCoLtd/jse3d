@@ -1,7 +1,8 @@
 package com.emeryferrari.jse3d.obj;
 import java.util.*;
 import java.io.*;
-public class Face implements Serializable {
+public class Face implements Serializable, Comparable<Face> {
+	// Note: this class has a natural ordering that is inconsistent with equals.
 	private static final long serialVersionUID = 1L;
 	public Triangle[] triangles;
 	public double camDist;
@@ -35,5 +36,14 @@ public class Face implements Serializable {
 			ret[i] = array.get(i);
 		}
 		return ret;
+	}
+	@Override
+	public int compareTo(Face face) {
+		if (camDist > face.camDist) {
+			return 1;
+		} else if (camDist == face.camDist) {
+			return 0;
+		}
+		return -1;
 	}
 }
