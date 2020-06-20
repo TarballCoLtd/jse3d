@@ -950,7 +950,14 @@ public class Display extends Kernel {
 		if (Math.abs(viewAngle) < Math.PI) {
 			this.viewAngle = viewAngle;
 		} else {
-			throw new NotWithinPiRangeException();
+			double newAngle = viewAngle;
+			while (newAngle > Math.PI) {
+				newAngle -= Math.PI;
+			}
+			while (newAngle < -Math.PI) {
+				newAngle += Math.PI;
+			}
+			this.viewAngle = newAngle;
 		}
 		return this;
 	}
