@@ -249,26 +249,28 @@ public class Display extends Kernel {
 					} else {
 						mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 					}
+					viewAngleX = 0;
+					viewAngleY = 0;
+					try {
+						viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
+						if (yAxisClamp) {
+							if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+								if (viewAngleY < 0) {
+									viewAngleY = -Math.PI/2*sensitivity;
+								} else {
+									viewAngleY = Math.PI/2*sensitivity;
+								}
+							}
+						}
+						viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+					} catch (NullPointerException ex) {}
 					if (altTrig) {
 						for (int a = 0; a < scene.object.length; a++) {
 							Point[] points = new Point[scene.object[a].points.length];
 							// WRITTEN BY SAM KRUG START
 							for (int i = 0; i < scene.object[a].points.length; i++) {
-								viewAngleX = 0;
-								viewAngleY = 0;
 								Point3D localCamPos = new Point3D(0, 0, 0);
 								try {
-									viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
-									if (yAxisClamp) {
-										if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
-											if (viewAngleY < 0) {
-												viewAngleY = -Math.PI/2*sensitivity;
-											} else {
-												viewAngleY = Math.PI/2*sensitivity;
-											}
-										}
-									}
-									viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
 									localCamPos = getCameraPositionActual();
 								} catch (NullPointerException ex) {}
 								if (scene.object[a].points[i].z*Math3D.cos(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math3D.cos(viewAngleY, altTrigAcc) - scene.object[a].points[i].y*Math3D.sin(viewAngleY, altTrigAcc) < scene.camDist) {
@@ -334,23 +336,8 @@ public class Display extends Kernel {
 							Point[] points = new Point[scene.object[a].points.length];
 							// WRITTEN BY SAM KRUG START
 							for (int i = 0; i < scene.object[a].points.length; i++) {
-								viewAngleX = 0;
-								viewAngleY = 0;
 								Point3D localCamPos = new Point3D(0, 0, 0);
-								try {
-									viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
-									if (yAxisClamp) {
-										if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
-											if (viewAngleY < 0) {
-												viewAngleY = -Math.PI/2*sensitivity;
-											} else {
-												viewAngleY = Math.PI/2*sensitivity;
-											}
-										}
-									}
-									viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
-									localCamPos = getCameraPositionActual();
-								} catch (NullPointerException ex) {}
+								try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 								if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
 									double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
 									if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
@@ -962,6 +949,8 @@ public class Display extends Kernel {
 	public Display setFOVRadians(double viewAngle) {
 		if (Math.abs(viewAngle) < Math.PI) {
 			this.viewAngle = viewAngle;
+		} else {
+			throw new NotWithinPiRangeException();
 		}
 		return this;
 	}
