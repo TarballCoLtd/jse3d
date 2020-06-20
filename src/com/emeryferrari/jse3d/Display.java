@@ -364,7 +364,7 @@ public class Display extends Kernel {
 										xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
 										yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
 									}
-									distance[a][i] = new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i);
+									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.x-scene.object[a].points[i].x, localCamPos.y-scene.object[a].points[i].y, localCamPos.z-scene.object[a].points[i].z), i);
 									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
 									camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
 									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
