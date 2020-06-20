@@ -56,6 +56,8 @@ public class Display extends Kernel {
 	protected InterpolationMode interpolationHint;
 	protected RenderMode alphaInterpolationHint;
 	protected boolean assertion;
+	protected boolean altTrig;
+	protected int altTrigAcc;
 	// OPENCL VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
@@ -132,6 +134,8 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		altTrig = false;
+		altTrigAcc = 5;
 		assertion = false;
 		antialiasingHint = true;
 		renderingHint = RenderMode.PERFORMANCE;
@@ -245,84 +249,166 @@ public class Display extends Kernel {
 					} else {
 						mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 					}
-					for (int a = 0; a < scene.object.length; a++) {
-						Point[] points = new Point[scene.object[a].points.length];
-						// WRITTEN BY SAM KRUG START
-						for (int i = 0; i < scene.object[a].points.length; i++) {
-							viewAngleX = 0;
-							viewAngleY = 0;
-							Point3D localCamPos = new Point3D(0, 0, 0);
-							try {
-								viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
-								if (yAxisClamp) {
-									if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
-										if (viewAngleY < 0) {
-											viewAngleY = -Math.PI/2*sensitivity;
-										} else {
-											viewAngleY = Math.PI/2*sensitivity;
-										}
-									}
-								}
-								viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
-								localCamPos = getCameraPositionActual();
-							} catch (NullPointerException ex) {}
-							if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
-								double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
-								if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
-									zAngle = 0;
-								}
-								double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
-								if (scene.object[a].points[i].x < 0) {
-									xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-									yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-								} else {
-									xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-									yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
-								}
-								distance[a][i] = new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i);
-								double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
-								camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
-								points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
-							}
-							// WRITTEN BY SAM KRUG END
-							if (renderPoints) {
-								if (invertColors) {
-									graphics.setColor(Color.WHITE);
-								} else {
-									graphics.setColor(Color.BLACK);
-								}
-								graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
-							}
-						}
-						try {
-							if (faceRender) {
-								double objDist = 0.0;
-								for (int x = 0; x < distance[a].length; x++) {
-									objDist += distance[a][x].distance;
-								}
-								objDist /= (double) distance[a].length;
-								scene.object[a].camDist = objDist;
-								for (int x = 0; x < scene.object[a].faces.length; x++) {
-									int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-									double[] distances = new double[pointIDs.length];
-									for (int y = 0; y < pointIDs.length; y++) {
-										for (int z = 0; z < distance[a].length; z++) {
-											if (distance[a][z].pointID == pointIDs[y]) {
-												distances[y] = distance[a][z].distance;
+					if (altTrig) {
+						for (int a = 0; a < scene.object.length; a++) {
+							Point[] points = new Point[scene.object[a].points.length];
+							// WRITTEN BY SAM KRUG START
+							for (int i = 0; i < scene.object[a].points.length; i++) {
+								viewAngleX = 0;
+								viewAngleY = 0;
+								Point3D localCamPos = new Point3D(0, 0, 0);
+								try {
+									viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
+									if (yAxisClamp) {
+										if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+											if (viewAngleY < 0) {
+												viewAngleY = -Math.PI/2*sensitivity;
+											} else {
+												viewAngleY = Math.PI/2*sensitivity;
 											}
 										}
 									}
-									double average = 0.0;
-									for (int i = 0; i < distances.length; i++) {
-										average += distances[i];
+									viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+									localCamPos = getCameraPositionActual();
+								} catch (NullPointerException ex) {}
+								if (scene.object[a].points[i].z*Math3D.cos(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) + scene.object[a].points[i].x*Math3D.sin(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) - scene.object[a].points[i].y*Math3D.sin(viewAngleY, altTrigAcc) < scene.camDist) {
+									double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
+									if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+										zAngle = 0;
 									}
-									average /= (double) distances.length;
-									scene.object[a].faces[x].camDist = average;
+									double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
+									if (scene.object[a].points[i].x < 0) {
+										xTransform = -mag*scale*Math3D.cos(viewAngleX+zAngle, altTrigAcc);
+										yTransform = -mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].y)*scale*Math3D.cos(viewAngleY, altTrigAcc);
+									} else {
+										xTransform = mag*scale*Math3D.cos(viewAngleX+zAngle, altTrigAcc);
+										yTransform = mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].y)*scale*Math3D.cos(viewAngleY, altTrigAcc);
+									}
+									distance[a][i] = new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i);
+									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
+									camScale[a][i] = distance[a][i].distance*Math3D.cos(theta, altTrigAcc)*Math3D.sin(viewAngle/2, altTrigAcc);
+									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
 								}
-								Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
-								pointArrays[a] = points;
+								// WRITTEN BY SAM KRUG END
+								if (renderPoints) {
+									if (invertColors) {
+										graphics.setColor(Color.WHITE);
+									} else {
+										graphics.setColor(Color.BLACK);
+									}
+									graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
+								}
 							}
-						} catch (NullPointerException ex) {}
+							try {
+								if (faceRender) {
+									double objDist = 0.0;
+									for (int x = 0; x < distance[a].length; x++) {
+										objDist += distance[a][x].distance;
+									}
+									objDist /= (double) distance[a].length;
+									scene.object[a].camDist = objDist;
+									for (int x = 0; x < scene.object[a].faces.length; x++) {
+										int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+										double[] distances = new double[pointIDs.length];
+										for (int y = 0; y < pointIDs.length; y++) {
+											for (int z = 0; z < distance[a].length; z++) {
+												if (distance[a][z].pointID == pointIDs[y]) {
+													distances[y] = distance[a][z].distance;
+												}
+											}
+										}
+										double average = 0.0;
+										for (int i = 0; i < distances.length; i++) {
+											average += distances[i];
+										}
+										average /= (double) distances.length;
+										scene.object[a].faces[x].camDist = average;
+									}
+									Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
+									pointArrays[a] = points;
+								}
+							} catch (NullPointerException ex) {}
+						}
+					} else {
+						for (int a = 0; a < scene.object.length; a++) {
+							Point[] points = new Point[scene.object[a].points.length];
+							// WRITTEN BY SAM KRUG START
+							for (int i = 0; i < scene.object[a].points.length; i++) {
+								viewAngleX = 0;
+								viewAngleY = 0;
+								Point3D localCamPos = new Point3D(0, 0, 0);
+								try {
+									viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
+									if (yAxisClamp) {
+										if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+											if (viewAngleY < 0) {
+												viewAngleY = -Math.PI/2*sensitivity;
+											} else {
+												viewAngleY = Math.PI/2*sensitivity;
+											}
+										}
+									}
+									viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+									localCamPos = getCameraPositionActual();
+								} catch (NullPointerException ex) {}
+								if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
+									double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
+									if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+										zAngle = 0;
+									}
+									double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
+									if (scene.object[a].points[i].x < 0) {
+										xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+										yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+									} else {
+										xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+										yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+									}
+									distance[a][i] = new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i);
+									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
+									camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
+									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
+								}
+								// WRITTEN BY SAM KRUG END
+								if (renderPoints) {
+									if (invertColors) {
+										graphics.setColor(Color.WHITE);
+									} else {
+										graphics.setColor(Color.BLACK);
+									}
+									graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
+								}
+							}
+							try {
+								if (faceRender) {
+									double objDist = 0.0;
+									for (int x = 0; x < distance[a].length; x++) {
+										objDist += distance[a][x].distance;
+									}
+									objDist /= (double) distance[a].length;
+									scene.object[a].camDist = objDist;
+									for (int x = 0; x < scene.object[a].faces.length; x++) {
+										int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+										double[] distances = new double[pointIDs.length];
+										for (int y = 0; y < pointIDs.length; y++) {
+											for (int z = 0; z < distance[a].length; z++) {
+												if (distance[a][z].pointID == pointIDs[y]) {
+													distances[y] = distance[a][z].distance;
+												}
+											}
+										}
+										double average = 0.0;
+										for (int i = 0; i < distances.length; i++) {
+											average += distances[i];
+										}
+										average /= (double) distances.length;
+										scene.object[a].faces[x].camDist = average;
+									}
+									Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
+									pointArrays[a] = points;
+								}
+							} catch (NullPointerException ex) {}
+						}
 					}
 					if (camPosPrint) {
 						Point3D cameraPos = getCameraPositionActual();
@@ -981,6 +1067,18 @@ public class Display extends Kernel {
 			interpolationHint = InterpolationMode.BICUBIC;
 			alphaInterpolationHint = RenderMode.QUALITY;
 		}
+		return this;
+	}
+	public Display enableAlternateTrigonometry() {
+		altTrig = true;
+		return this;
+	}
+	public Display disableAlternateTrigonometry() {
+		altTrig = false;
+		return this;
+	}
+	public Display setAlternateTrigonometryAccuracy(int accuracy) {
+		altTrigAcc = accuracy;
 		return this;
 	}
 }
