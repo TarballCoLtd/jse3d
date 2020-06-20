@@ -271,7 +271,7 @@ public class Display extends Kernel {
 									viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
 									localCamPos = getCameraPositionActual();
 								} catch (NullPointerException ex) {}
-								if (scene.object[a].points[i].z*Math3D.cos(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) + scene.object[a].points[i].x*Math3D.sin(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) - scene.object[a].points[i].y*Math3D.sin(viewAngleY, altTrigAcc) < scene.camDist) {
+								if (scene.object[a].points[i].z*Math3D.cos(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math3D.cos(viewAngleY, altTrigAcc) - scene.object[a].points[i].y*Math3D.sin(viewAngleY, altTrigAcc) < scene.camDist) {
 									double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
 									if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
 										zAngle = 0;
@@ -284,7 +284,7 @@ public class Display extends Kernel {
 										xTransform = mag*scale*Math3D.cos(viewAngleX+zAngle, altTrigAcc);
 										yTransform = mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].y)*scale*Math3D.cos(viewAngleY, altTrigAcc);
 									}
-									distance[a][i] = new Distance(Math.sqrt(Math.pow(localCamPos.x-(scene.object[a].points[i].x), 2)+Math.pow(localCamPos.y-scene.object[a].points[i].y, 2)+Math.pow(localCamPos.z-scene.object[a].points[i].z, 2)), i);
+									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.x-scene.object[a].points[i].x, localCamPos.y-scene.object[a].points[i].y, localCamPos.z-scene.object[a].points[i].z), i);
 									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
 									camScale[a][i] = distance[a][i].distance*Math3D.cos(theta, altTrigAcc)*Math3D.sin(viewAngle/2, altTrigAcc);
 									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));

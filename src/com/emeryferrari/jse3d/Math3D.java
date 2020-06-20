@@ -4,7 +4,7 @@ public class Math3D {
 	public static final double sin(double x, int n) {
 		double a = x;
 		double ret = x;
-		for (int i = 0; i < n; i++) {
+		for (int i = 1; i < n; i++) {
 			a *= -x*x/((2*i+1)*(2*i));
 			ret += a;
 		}
@@ -15,5 +15,8 @@ public class Math3D {
 	}
 	public static final double tan(double x, int n) {
 		return sin(x, n)/cos(x, n);
+	}
+	public static final double hypot3(double x, double y, double z) {
+		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 	}
 }

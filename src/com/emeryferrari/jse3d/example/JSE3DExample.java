@@ -4,7 +4,7 @@ import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 public class JSE3DExample {
 	public static void main(String[] args) {
-		Object3D[] objects = new Object3D[32];
+		Object3D[] objects = new Object3D[1];
 		for (int i = 0; i < objects.length; i++) {
 			objects[i] = ObjectTemplate.getCube();
 			objects[i].movePosRel(new Point3D(i, i, i), new Point3D(0, 0, 0));
@@ -15,7 +15,8 @@ public class JSE3DExample {
 		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.enableFaceRendering();
-		display.enableAlternateTrigonometry();
+		//display.enableAlternateTrigonometry();
+		display.setAlternateTrigonometryAccuracy(100);
 		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		display.setRenderQuality(RenderMode.PERFORMANCE);
 		display.startRender();
