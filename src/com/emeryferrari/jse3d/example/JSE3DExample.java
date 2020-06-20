@@ -15,8 +15,6 @@ public class JSE3DExample {
 		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.enableFaceRendering();
-		//display.enableAlternateTrigonometry();
-		display.setAlternateTrigonometryAccuracy(100);
 		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		display.setRenderQuality(RenderMode.PERFORMANCE);
 		display.startRender();

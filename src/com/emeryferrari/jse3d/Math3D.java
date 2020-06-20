@@ -3,7 +3,19 @@ public class Math3D {
 	private Math3D() {}
 	public static final double sin(double x, int n) {
 		double a = x;
-		double ret = x;
+		double pi2 = Math.PI*2;
+		if (a > pi2) {
+			a -= pi2;
+			while (a > pi2) {
+				a -= pi2;
+			}
+		} else if (a < -pi2) {
+			a += pi2;
+			while (a < -pi2) {
+				a += pi2;
+			}
+		}
+		double ret = a;
 		for (int i = 1; i < n; i++) {
 			a *= -x*x/((2*i+1)*(2*i));
 			ret += a;
