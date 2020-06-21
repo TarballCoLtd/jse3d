@@ -10,12 +10,12 @@ public class JSE3DExample {
 			objects[i].movePosRel(new Vector3(i, i, i), new Vector3(0, 0, 0));
 		}
 		Scene scene = new Scene(objects, 5.0);
-		Display display = new Display(scene, "jse3d demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
+		Display display = new Display(scene, "jse3d demo", Math.toRadians(60));
 		display.enableFPSLogging();
 		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.enableFaceRendering();
-		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
+		display.setRenderTarget(RenderTarget.GPU);
 		display.setRenderQuality(RenderMode.QUALITY);
 		display.startRender();
 	}

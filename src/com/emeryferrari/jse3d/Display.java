@@ -304,10 +304,15 @@ public class Display extends Kernel {
 							try {
 								if (faceRender) {
 									double objDist = 0.0;
+									int length = distance[a].length;
 									for (int x = 0; x < distance[a].length; x++) {
-										objDist += distance[a][x].distance;
+										try {
+											objDist += distance[a][x].distance;
+										} catch (NullPointerException ex) {
+											length--;
+										}
 									}
-									objDist /= (double) distance[a].length;
+									objDist /= (double) length;
 									scene.object[a].camDist = objDist;
 									for (int x = 0; x < scene.object[a].faces.length; x++) {
 										int[] pointIDs = scene.object[a].faces[x].getPointIDs();
@@ -369,10 +374,15 @@ public class Display extends Kernel {
 							try {
 								if (faceRender) {
 									double objDist = 0.0;
+									int length = distance[a].length;
 									for (int x = 0; x < distance[a].length; x++) {
-										objDist += distance[a][x].distance;
+										try {
+											objDist += distance[a][x].distance;
+										} catch (NullPointerException ex) {
+											length--;
+										}
 									}
-									objDist /= (double) distance[a].length;
+									objDist /= (double) length;
 									scene.object[a].camDist = objDist;
 									for (int x = 0; x < scene.object[a].faces.length; x++) {
 										int[] pointIDs = scene.object[a].faces[x].getPointIDs();
@@ -556,19 +566,26 @@ public class Display extends Kernel {
 						}
 						if (faceRender) {
 							double objDist = 0.0;
+							int length = distance[a].length;
 							for (int x = 0; x < distance[a].length; x++) {
-								objDist += distance[a][x].distance;
+								try {
+									objDist += distance[a][x].distance;
+								} catch (NullPointerException ex) {
+									length--;
+								}
 							}
-							objDist /= (double) distance[a].length;
+							objDist /= (double) length;
 							scene.object[a].camDist = objDist;
 							for (int x = 0; x < scene.object[a].faces.length; x++) {
 								int[] pointIDs = scene.object[a].faces[x].getPointIDs();
 								double[] distances = new double[pointIDs.length];
 								for (int y = 0; y < pointIDs.length; y++) {
 									for (int z = 0; z < distance[a].length; z++) {
-										if (distance[a][z].pointID == pointIDs[y]) {
-											distances[y] = distance[a][z].distance;
-										}
+										try {
+											if (distance[a][z].pointID == pointIDs[y]) {
+												distances[y] = distance[a][z].distance;
+											}
+										} catch (NullPointerException ex) {}
 									}
 								}
 								double average = 0.0;
