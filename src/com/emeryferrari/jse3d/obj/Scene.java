@@ -26,4 +26,28 @@ public class Scene implements Serializable {
 		this.camDist = camDist;
 		return this;
 	}
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof Scene) {
+			Scene temp = (Scene) object;
+			if (this.object.length == temp.object.length && camDist == temp.camDist) {
+				for (int i = 0; i < this.object.length; i++) {
+					if (!(this.object[i].equals(temp.object[i]))) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	@Override
+	public String toString() {
+		String ret = "{";
+		for (int i = 0; i < object.length; i++) {
+			ret += object[i].toString() + ", ";
+		}
+		ret += "camDist=" + camDist + "}";
+		return ret;
+	}
 }

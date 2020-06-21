@@ -31,7 +31,7 @@ public class Display extends Kernel {
 	protected Point mouseDiff;
 	protected boolean scrollWheel;
 	protected int physicsTimestep = 60;
-	Point3D camPos;
+	protected Vector3 camPos;
 	protected CameraMode mode;
 	protected Distance[][] distance;
 	protected double[][] camScale;
@@ -189,7 +189,7 @@ public class Display extends Kernel {
 		mouseClicked = false;
 		scrollWheel = true;
 		mode = CameraMode.DRAG;
-		camPos = new Point3D(0, 0, 0);
+		camPos = new Vector3(0, 0, 0);
 		mouseDiff = new Point(0, 0);
 		viewAngle = fovRadians;
 		yAxisClamp = true;
@@ -269,24 +269,24 @@ public class Display extends Kernel {
 							Point[] points = new Point[scene.object[a].points.length];
 							// WRITTEN BY SAM KRUG START
 							for (int i = 0; i < scene.object[a].points.length; i++) {
-								Point3D localCamPos = new Point3D(0, 0, 0);
+								Vector3 localCamPos = new Vector3(0, 0, 0);
 								try {
 									localCamPos = getCameraPositionActual();
 								} catch (NullPointerException ex) {}
-								if (scene.object[a].points[i].z*Math3D.cos(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math3D.cos(viewAngleY, altTrigAcc) - scene.object[a].points[i].y*Math3D.sin(viewAngleY, altTrigAcc) < scene.camDist) {
-									double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
-									if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+								if (scene.object[a].points[i].getZ()*Math3D.cos(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math3D.cos(viewAngleY, altTrigAcc) - scene.object[a].points[i].getY()*Math3D.sin(viewAngleY, altTrigAcc) < scene.camDist) {
+									double zAngle = Math.atan((scene.object[a].points[i].getZ())/(scene.object[a].points[i].getX()));
+									if (scene.object[a].points[i].getX() == 0 && scene.object[a].points[i].getZ() == 0) {
 										zAngle = 0;
 									}
-									double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
-									if (scene.object[a].points[i].x < 0) {
+									double mag = Math.hypot(scene.object[a].points[i].getX(), scene.object[a].points[i].getZ());
+									if (scene.object[a].points[i].getX() < 0) {
 										xTransform = -mag*scale*Math3D.cos(viewAngleX+zAngle, altTrigAcc);
-										yTransform = -mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].y)*scale*Math3D.cos(viewAngleY, altTrigAcc);
+										yTransform = -mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].getY())*scale*Math3D.cos(viewAngleY, altTrigAcc);
 									} else {
 										xTransform = mag*scale*Math3D.cos(viewAngleX+zAngle, altTrigAcc);
-										yTransform = mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].y)*scale*Math3D.cos(viewAngleY, altTrigAcc);
+										yTransform = mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].getY())*scale*Math3D.cos(viewAngleY, altTrigAcc);
 									}
-									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.x-scene.object[a].points[i].x, localCamPos.y-scene.object[a].points[i].y, localCamPos.z-scene.object[a].points[i].z), i);
+									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.getX()-scene.object[a].points[i].getX(), localCamPos.getY()-scene.object[a].points[i].getY(), localCamPos.getZ()-scene.object[a].points[i].getZ()), i);
 									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
 									camScale[a][i] = distance[a][i].distance*Math3D.cos(theta, altTrigAcc)*Math3D.sin(viewAngle/2, altTrigAcc);
 									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
@@ -336,22 +336,22 @@ public class Display extends Kernel {
 							Point[] points = new Point[scene.object[a].points.length];
 							// WRITTEN BY SAM KRUG START
 							for (int i = 0; i < scene.object[a].points.length; i++) {
-								Point3D localCamPos = new Point3D(0, 0, 0);
+								Vector3 localCamPos = new Vector3(0, 0, 0);
 								try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
-								if (scene.object[a].points[i].z*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].x*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].y*Math.sin(viewAngleY) < scene.camDist) {
-									double zAngle = Math.atan((scene.object[a].points[i].z)/(scene.object[a].points[i].x));
-									if (scene.object[a].points[i].x == 0 && scene.object[a].points[i].z == 0) {
+								if (scene.object[a].points[i].getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].getY()*Math.sin(viewAngleY) < scene.camDist) {
+									double zAngle = Math.atan((scene.object[a].points[i].getZ())/(scene.object[a].points[i].getX()));
+									if (scene.object[a].points[i].getX() == 0 && scene.object[a].points[i].getZ() == 0) {
 										zAngle = 0;
 									}
-									double mag = Math.hypot(scene.object[a].points[i].x, scene.object[a].points[i].z);
-									if (scene.object[a].points[i].x < 0) {
+									double mag = Math.hypot(scene.object[a].points[i].getX(), scene.object[a].points[i].getZ());
+									if (scene.object[a].points[i].getX() < 0) {
 										xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-										yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+										yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
 									} else {
 										xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-										yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].y)*scale*Math.cos(viewAngleY);
+										yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
 									}
-									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.x-scene.object[a].points[i].x, localCamPos.y-scene.object[a].points[i].y, localCamPos.z-scene.object[a].points[i].z), i);
+									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.getX()-scene.object[a].points[i].getX(), localCamPos.getY()-scene.object[a].points[i].getY(), localCamPos.getZ()-scene.object[a].points[i].getZ()), i);
 									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
 									camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
 									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
@@ -398,9 +398,9 @@ public class Display extends Kernel {
 						}
 					}
 					if (camPosPrint) {
-						Point3D cameraPos = getCameraPositionActual();
+						Vector3 cameraPos = getCameraPositionActual();
 						graphics.setColor(invertColor(backgroundColor));
-						graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
+						graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 					}
 					if (faceRender) {
 						for (int a = 0; a < scene.object.length; a++) {
@@ -450,7 +450,7 @@ public class Display extends Kernel {
 					fps++;
 					this.revalidate();
 				} else {
-					Point3D localCamPos = new Point3D(0, 0, 0);
+					Vector3 localCamPos = new Vector3(0, 0, 0);
 					Point mouse;
 					if (mode == CameraMode.DRAG) {
 						if (mouseClicked) {
@@ -481,9 +481,9 @@ public class Display extends Kernel {
 						viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
 						localCamPos = getCameraPositionActual();
 					} catch (NullPointerException ex) {}
-					localCamPosX[0] = (float) localCamPos.x;
-					localCamPosY[0] = (float) localCamPos.y;
-					localCamPosZ[0] = (float) localCamPos.z;
+					localCamPosX[0] = (float) localCamPos.getX();
+					localCamPosY[0] = (float) localCamPos.getY();
+					localCamPosZ[0] = (float) localCamPos.getZ();
 					gpuViewAngle[0] = (float) viewAngle;
 					viewAngleXInput[0] = (float) viewAngleX;
 					viewAngleYInput[0] = (float) viewAngleY;
@@ -495,9 +495,9 @@ public class Display extends Kernel {
 					for (int x = 0; x < scene.object.length; x++) {
 						for (int y = 0; y < scene.object[x].points.length; y++) {
 							int index = (scene.object[x].points.length*x)+y;
-							zAngleX[index] = (float) scene.object[x].points[y].x;
-							zAngleY[index] = (float) scene.object[x].points[y].y;
-							zAngleZ[index] = (float) scene.object[x].points[y].z;
+							zAngleX[index] = (float) scene.object[x].points[y].getX();
+							zAngleY[index] = (float) scene.object[x].points[y].getY();
+							zAngleZ[index] = (float) scene.object[x].points[y].getZ();
 						}
 					}
 					Device chosen = null;
@@ -537,7 +537,7 @@ public class Display extends Kernel {
 						for (int i = 0; i < scene.object[a].points.length; i++) {
 							int id = (scene.object[a].points.length*a)+i;
 							distance[a][i] = new Distance(0.0, -1);
-							if (scene.object[a].points[i].z*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].x*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].y*sinViewAngleY[0] < scene.camDist) {
+							if (scene.object[a].points[i].getZ()*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].getX()*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].getY()*sinViewAngleY[0] < scene.camDist) {
 								xTransform = xTransforms[id];
 								yTransform = yTransforms[id];
 								distance[a][i] = new Distance(maths[id], i);
@@ -583,9 +583,9 @@ public class Display extends Kernel {
 						}
 					}
 					if (camPosPrint) {
-						Point3D cameraPos = getCameraPositionActual();
+						Vector3 cameraPos = getCameraPositionActual();
 						graphics.setColor(invertColor(backgroundColor));
-						graphics.drawString("x: " + cameraPos.x + " // y: " + cameraPos.y + " // z: " + cameraPos.z, 0, 11);
+						graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 					}
 					if (faceRender) {
 						for (int a = 0; a < scene.object.length; a++) {
@@ -834,17 +834,17 @@ public class Display extends Kernel {
 	public int getPhysicsTimestep() {
 		return physicsTimestep;
 	}
-	public Display setCameraPositionRel(Point3D point) {
+	public Display setCameraPositionRel(Vector3 point) {
 		Thread cameraPos = new CameraPos(point, this);
 		cameraPos.start();
 		return this;
 	}
-	public Display transitionCameraPositionRel(Point3D point, int millis) {
+	public Display transitionCameraPositionRel(Vector3 point, int millis) {
 		Thread transition = new Transition(point, millis, this);
 		transition.start();
 		return this;
 	}
-	public Point3D getCameraPosition() {
+	public Vector3 getCameraPosition() {
 		return camPos;
 	}
 	protected class CameraPos extends Thread {
@@ -852,10 +852,10 @@ public class Display extends Kernel {
 		protected double yt;
 		protected double zt;
 		protected Display display;
-		protected CameraPos(Point3D point, Display display) {
-			this.xt = point.x;
-			this.yt = point.y;
-			this.zt = point.z;
+		protected CameraPos(Vector3 point, Display display) {
+			this.xt = point.getX();
+			this.yt = point.getY();
+			this.zt = point.getZ();
 			this.display = display;
 		}
 		@Override
@@ -863,9 +863,7 @@ public class Display extends Kernel {
 			for (int i = 0; i < scene.object.length; i++) {
 				scene.object[i].movePosRel(xt, yt, zt, display);
 			}
-			camPos.x += xt;
-			camPos.y += yt;
-			camPos.z += zt;
+			camPos.set(camPos.getX()+xt, camPos.getY()+yt, camPos.getZ()+zt);
 		}
 	}
 	protected class Transition extends Thread {
@@ -874,10 +872,10 @@ public class Display extends Kernel {
 		protected double zt;
 		protected int millis;
 		protected Display display;
-		protected Transition(Point3D point, int millis, Display display) {
-			this.xt = point.x;
-			this.yt = point.y;
-			this.zt = point.z;
+		protected Transition(Vector3 point, int millis, Display display) {
+			this.xt = point.getX();
+			this.yt = point.getY();
+			this.zt = point.getZ();
 			this.millis = millis;
 			this.display = display;
 		}
@@ -902,9 +900,7 @@ public class Display extends Kernel {
 			    }
 			    try {Thread.sleep((lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 			}
-			camPos.x += xt;
-			camPos.y += yt;
-			camPos.z += zt;
+			camPos.set(camPos.getX()+xt, camPos.getY()+yt, camPos.getZ()+zt);
 		}
 	}
 	public Display enableScrollWheel() {
@@ -929,11 +925,11 @@ public class Display extends Kernel {
 	protected static Color invertColor(Color color) {
 		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
 	}
-	public Point3D getCameraPositionActual() {
-		double x = (Math.sin(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.x;
-		double y = -((Math.sin(viewAngleY)*scene.camDist) + camPos.y);
-		double z = (Math.cos(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.z;
-		return new Point3D(x, y, z);
+	public Vector3 getCameraPositionActual() {
+		double x = (Math.sin(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.getX();
+		double y = -((Math.sin(viewAngleY)*scene.camDist) + camPos.getY());
+		double z = (Math.cos(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.getZ();
+		return new Vector3(x, y, z);
 	}
 	public Display enableCameraPositionPrinting() {
 		camPosPrint = true;

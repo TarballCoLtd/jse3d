@@ -46,4 +46,19 @@ public class Face implements Serializable, Comparable<Face> {
 		}
 		return -1;
 	}
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof Face) {
+			Face temp = (Face) object;
+			if (triangles.length == temp.triangles.length) {
+				for (int i = 0; i < triangles.length; i++) {
+					if (!(triangles[i].equals(temp.triangles[i]))) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		return false;
+	}
 }

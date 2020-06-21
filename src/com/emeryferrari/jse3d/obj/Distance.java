@@ -6,4 +6,14 @@ public class Distance {
 		this.distance = distance;
 		this.pointID = pointID;
 	}
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof Distance) {
+			Distance temp = (Distance) object;
+			if (distance == temp.distance && pointID == temp.pointID) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -26,4 +26,14 @@ public class Triangle implements Serializable {
 		}
 		return false;
 	}
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof Triangle) {
+			Triangle temp = (Triangle) object;
+			if (pointID1 == temp.pointID1 && pointID2 == temp.pointID2 && pointID3 == temp.pointID3 && color.equals(temp.color)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

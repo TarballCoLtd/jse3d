@@ -8,4 +8,14 @@ public class Line implements Serializable {
 		this.pointID1 = pointID1;
 		this.pointID2 = pointID2;
 	}
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof Line) {
+			Line temp = (Line) object;
+			if (pointID1 == temp.pointID1 && pointID2 == temp.pointID2) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
