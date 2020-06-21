@@ -301,40 +301,40 @@ public class Display extends Kernel {
 									graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 								}
 							}
-							try {
-								if (faceRender) {
-									double objDist = 0.0;
-									int length = distance[a].length;
-									for (int x = 0; x < distance[a].length; x++) {
-										try {
-											objDist += distance[a][x].distance;
-										} catch (NullPointerException ex) {
-											length--;
-										}
+							if (faceRender) {
+								double objDist = 0.0;
+								int length = distance[a].length;
+								for (int x = 0; x < distance[a].length; x++) {
+									try {
+										objDist += distance[a][x].distance;
+									} catch (NullPointerException ex) {
+										length--;
 									}
-									objDist /= (double) length;
-									scene.object[a].camDist = objDist;
-									for (int x = 0; x < scene.object[a].faces.length; x++) {
-										int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-										double[] distances = new double[pointIDs.length];
-										for (int y = 0; y < pointIDs.length; y++) {
-											for (int z = 0; z < distance[a].length; z++) {
+								}
+								objDist /= (double) length;
+								scene.object[a].camDist = objDist;
+								for (int x = 0; x < scene.object[a].faces.length; x++) {
+									int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+									double[] distances = new double[pointIDs.length];
+									for (int y = 0; y < pointIDs.length; y++) {
+										for (int z = 0; z < distance[a].length; z++) {
+											try {
 												if (distance[a][z].pointID == pointIDs[y]) {
 													distances[y] = distance[a][z].distance;
 												}
-											}
+											} catch (NullPointerException ex) {}
 										}
-										double average = 0.0;
-										for (int i = 0; i < distances.length; i++) {
-											average += distances[i];
-										}
-										average /= (double) distances.length;
-										scene.object[a].faces[x].camDist = average;
 									}
-									Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
-									pointArrays[a] = points;
+									double average = 0.0;
+									for (int i = 0; i < distances.length; i++) {
+										average += distances[i];
+									}
+									average /= (double) distances.length;
+									scene.object[a].faces[x].camDist = average;
 								}
-							} catch (NullPointerException ex) {}
+								Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
+								pointArrays[a] = points;
+							}
 						}
 					} else {
 						for (int a = 0; a < scene.object.length; a++) {
@@ -371,40 +371,40 @@ public class Display extends Kernel {
 									graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 								}
 							}
-							try {
-								if (faceRender) {
-									double objDist = 0.0;
-									int length = distance[a].length;
-									for (int x = 0; x < distance[a].length; x++) {
-										try {
-											objDist += distance[a][x].distance;
-										} catch (NullPointerException ex) {
-											length--;
-										}
+							if (faceRender) {
+								double objDist = 0.0;
+								int length = distance[a].length;
+								for (int x = 0; x < distance[a].length; x++) {
+									try {
+										objDist += distance[a][x].distance;
+									} catch (NullPointerException ex) {
+										length--;
 									}
-									objDist /= (double) length;
-									scene.object[a].camDist = objDist;
-									for (int x = 0; x < scene.object[a].faces.length; x++) {
-										int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-										double[] distances = new double[pointIDs.length];
-										for (int y = 0; y < pointIDs.length; y++) {
-											for (int z = 0; z < distance[a].length; z++) {
+								}
+								objDist /= (double) length;
+								scene.object[a].camDist = objDist;
+								for (int x = 0; x < scene.object[a].faces.length; x++) {
+									int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+									double[] distances = new double[pointIDs.length];
+									for (int y = 0; y < pointIDs.length; y++) {
+										for (int z = 0; z < distance[a].length; z++) {
+											try {
 												if (distance[a][z].pointID == pointIDs[y]) {
 													distances[y] = distance[a][z].distance;
 												}
-											}
+											} catch (NullPointerException ex) {}
 										}
-										double average = 0.0;
-										for (int i = 0; i < distances.length; i++) {
-											average += distances[i];
-										}
-										average /= (double) distances.length;
-										scene.object[a].faces[x].camDist = average;
 									}
-									Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
-									pointArrays[a] = points;
+									double average = 0.0;
+									for (int i = 0; i < distances.length; i++) {
+										average += distances[i];
+									}
+									average /= (double) distances.length;
+									scene.object[a].faces[x].camDist = average;
 								}
-							} catch (NullPointerException ex) {}
+								Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
+								pointArrays[a] = points;
+							}
 						}
 					}
 					if (camPosPrint) {

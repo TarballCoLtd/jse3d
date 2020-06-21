@@ -15,7 +15,7 @@ public class JSE3DExample {
 		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.enableFaceRendering();
-		display.setRenderTarget(RenderTarget.GPU);
+		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		display.setRenderQuality(RenderMode.QUALITY);
 		display.startRender();
 	}
