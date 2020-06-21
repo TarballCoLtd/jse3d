@@ -58,6 +58,7 @@ public class Display extends Kernel {
 	protected boolean assertion;
 	protected boolean altTrig;
 	protected int altTrigAcc;
+	protected Point camPosPrintPoint;
 	// OPENCL VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
@@ -128,12 +129,13 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, Math.toRadians(80));
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, 3200, 64, 100);
+		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, 4096, 32, 128);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		camPosPrintPoint = new Point(0, 11);
 		altTrig = false;
 		altTrigAcc = 5;
 		assertion = false;
@@ -178,7 +180,7 @@ public class Display extends Kernel {
 		fpsLimit = true;
 		fpsLogging = false;
 		lineRender = true;
-		faceRender = false;
+		faceRender = true;
 		targetFps = fps;
 		optimalTime = 1000000000/targetFps;
 		invertColors = false;
@@ -952,8 +954,16 @@ public class Display extends Kernel {
 		camPosPrint = true;
 		return this;
 	}
+	public Display enableCameraPositionPrinting(Point pos) {
+		camPosPrintPoint = pos;
+		return enableCameraPositionPrinting();
+	}
 	public Display disableCameraPositionPrinting() {
 		camPosPrint = false;
+		return this;
+	}
+	public Display setCameraPositionPrintingPosition(Point pos) {
+		camPosPrintPoint = pos;
 		return this;
 	}
 	public double getFOVRadians() {
