@@ -176,7 +176,7 @@ public class Vector3 implements Serializable {
 	public Vector3 normalize() {
 		return normal;
 	}
-	// VECTOR MATH
+	// VECTOR ARITHMETIC
 	public static Vector3 add(Vector3 add1, Vector3 add2) {
 		return new Vector3(add1.x+add2.x, add1.y+add2.y, add1.z+add2.z);
 	}
@@ -212,5 +212,9 @@ public class Vector3 implements Serializable {
 		y /= divide.y;
 		z /= divide.z;
 		return this;
+	}
+	// OTHER VECTOR MATH
+	public static Vector3 cross(Vector3 cross1, Vector3 cross2) {
+		return new Vector3((cross1.y*cross2.z)-(cross1.z*cross2.y), (cross1.z*cross2.x)-(cross1.x*cross2.z), (cross1.x*cross2.y)-(cross1.y*cross2.x));
 	}
 }
