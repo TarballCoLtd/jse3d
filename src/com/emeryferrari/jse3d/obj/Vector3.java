@@ -250,4 +250,25 @@ public class Vector3 implements Serializable {
 		}
 		return new Vector3(tempX, tempY, tempZ);
 	}
+	public static Vector3 max(Vector3 max1, Vector3 max2) {
+		double tempX;
+		double tempY;
+		double tempZ;
+		if (max1.x > max2.x) {
+			tempX = max1.x;
+		} else {
+			tempX = max2.x;
+		}
+		if (max1.y > max2.y) {
+			tempY = max1.y;
+		} else {
+			tempY = max2.y;
+		}
+		if (max1.z > max2.z) {
+			tempZ = max1.z;
+		} else {
+			tempZ = max2.z;
+		}
+		return new Vector3(tempX, tempY, tempZ);
+	}
 }
