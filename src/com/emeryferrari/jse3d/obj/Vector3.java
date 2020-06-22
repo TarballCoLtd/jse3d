@@ -201,19 +201,37 @@ public class Vector3 implements Serializable {
 	public static Vector3 multiply(Vector3 multiply1, Vector3 multiply2) {
 		return new Vector3(multiply1.x*multiply2.x, multiply1.y*multiply2.y, multiply1.z*multiply2.z);
 	}
+	public static Vector3 multiply(Vector3 multiply, double multiplier) {
+		return new Vector3(multiply.x*multiplier, multiply.y*multiplier, multiply.z*multiplier);
+	}
 	public Vector3 multiply(Vector3 multiply) {
 		x *= multiply.x;
 		y *= multiply.y;
 		z *= multiply.z;
 		return this;
 	}
+	public Vector3 multiply(double multiplier) {
+		x *= multiplier;
+		y *= multiplier;
+		z *= multiplier;
+		return this;
+	}
 	public static Vector3 divide(Vector3 divide1, Vector3 divide2) {
 		return new Vector3(divide1.x/divide2.x, divide1.y/divide2.y, divide1.z/divide2.z);
+	}
+	public static Vector3 divide(Vector3 divide, double divisor) {
+		return new Vector3(divide.x/divisor, divide.y/divisor, divide.z/divisor);
 	}
 	public Vector3 divide(Vector3 divide) {
 		x /= divide.x;
 		y /= divide.y;
 		z /= divide.z;
+		return this;
+	}
+	public Vector3 divide(double divisor) {
+		x /= divisor;
+		y /= divisor;
+		z /= divisor;
 		return this;
 	}
 	// OTHER VECTOR MATH
