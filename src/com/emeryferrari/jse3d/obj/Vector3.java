@@ -10,6 +10,7 @@ public class Vector3 implements Serializable {
 	public static final Vector3 one = new Vector3(1, 1, 1);
 	public static final Vector3 positiveInfinity = new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
 	public static final Vector3 right = new Vector3(1, 0, 0);
+	public static final Vector3 left = new Vector3(-1, 0, 0);
 	public static final Vector3 up = new Vector3(0, 1, 0);
 	public static final Vector3 zero = new Vector3(0, 0, 0);
 	protected double x;
@@ -30,7 +31,7 @@ public class Vector3 implements Serializable {
 		this.z = z;
 		magnitude = Math3D.hypot3(x, y, z);
 		sqrMagnitude = Math.pow(magnitude, 2);
-		normal = null;
+		normal = this;
 	}
 	public Vector3 movePosAbs(double x, double y, double z, Display display) {
 		movePosAbs(x, y, z, display.getCameraPosition());
@@ -174,5 +175,23 @@ public class Vector3 implements Serializable {
 	}
 	public Vector3 normalize() {
 		return normal;
+	}
+	// VECTOR MATH
+	public static Vector3 add(Vector3 add1, Vector3 add2) {
+		return new Vector3(add1.x+add2.x, add1.y+add2.y, add1.z+add2.z);
+	}
+	public Vector3 add(Vector3 add) {
+		x += add.x;
+		y += add.y;
+		z += add.z;
+		return this;
+	}
+	public static Vector3 subtract(Vector3 subtract1, Vector3 subtract2) {
+		return new Vector3(subtract1.x-subtract2.x, subtract1.y-subtract2.y, subtract1.z-subtract2.z);
+	}
+	public Vector3 subtract(Vector3 subtract) {
+		x -= subtract.x;
+		y -= subtract.y;
+		z -= subtract.z;
 	}
 }
