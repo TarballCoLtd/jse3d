@@ -176,8 +176,14 @@ public class Vector3 implements Serializable {
 	public String toString() {
 		return "<" + x + ", " + y + ", " + z + ">";
 	}
-	public Vector3 normalize() {
+	public Vector3 getNormal() {
 		return normal;
+	}
+	public Vector3 normalize() {
+		x /= magnitude;
+		y /= magnitude;
+		z /= magnitude;
+		return this;
 	}
 	// VECTOR ARITHMETIC
 	public static Vector3 add(Vector3 add1, Vector3 add2) {
