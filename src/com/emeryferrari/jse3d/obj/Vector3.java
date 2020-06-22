@@ -226,4 +226,7 @@ public class Vector3 implements Serializable {
 	public static double angle(Vector3 angle1, Vector3 angle2) {
 		return Math.acos(dot(angle1, angle2)/(angle1.magnitude*angle2.magnitude));
 	}
+	public static double distance(Vector3 distance1, Vector3 distance2) {
+		return subtract(distance1, distance2).magnitude;
+	}
 }
