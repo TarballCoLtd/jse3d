@@ -193,5 +193,15 @@ public class Vector3 implements Serializable {
 		x -= subtract.x;
 		y -= subtract.y;
 		z -= subtract.z;
+		return this;
+	}
+	public static Vector3 multiply(Vector3 multiply1, Vector3 multiply2) {
+		return new Vector3(multiply1.x*multiply2.x, multiply1.y*multiply2.y, multiply1.z*multiply2.z);
+	}
+	public Vector3 multiply(Vector3 multiply) {
+		x *= multiply.x;
+		y *= multiply.y;
+		z *= multiply.z;
+		return this;
 	}
 }
