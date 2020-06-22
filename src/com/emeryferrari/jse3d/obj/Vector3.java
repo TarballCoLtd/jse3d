@@ -204,4 +204,13 @@ public class Vector3 implements Serializable {
 		z *= multiply.z;
 		return this;
 	}
+	public static Vector3 divide(Vector3 divide1, Vector3 divide2) {
+		return new Vector3(divide1.x/divide2.x, divide1.y/divide2.y, divide1.z/divide2.z);
+	}
+	public Vector3 divide(Vector3 divide) {
+		x /= divide.x;
+		y /= divide.y;
+		z /= divide.z;
+		return this;
+	}
 }
