@@ -229,4 +229,25 @@ public class Vector3 implements Serializable {
 	public static double distance(Vector3 distance1, Vector3 distance2) {
 		return subtract(distance1, distance2).magnitude;
 	}
+	public static Vector3 min(Vector3 min1, Vector3 min2) {
+		double tempX;
+		double tempY;
+		double tempZ;
+		if (min1.x < min2.x) {
+			tempX = min1.x;
+		} else {
+			tempX = min2.x;
+		}
+		if (min1.y < min2.y) {
+			tempY = min1.y;
+		} else {
+			tempY = min2.y;
+		}
+		if (min1.z < min2.z) {
+			tempZ = min1.z;
+		} else {
+			tempZ = min2.z;
+		}
+		return new Vector3(tempX, tempY, tempZ);
+	}
 }
