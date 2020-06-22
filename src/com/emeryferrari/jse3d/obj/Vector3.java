@@ -223,4 +223,7 @@ public class Vector3 implements Serializable {
 	public static double dot(Vector3 dot1, Vector3 dot2) {
 		return (dot1.x*dot2.x)+(dot1.y*dot2.y)+(dot1.z*dot2.z);
 	}
+	public static double angle(Vector3 angle1, Vector3 angle2) {
+		return Math.acos(dot(angle1, angle2)/(angle1.magnitude*angle2.magnitude));
+	}
 }
