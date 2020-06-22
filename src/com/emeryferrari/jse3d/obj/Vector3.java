@@ -19,6 +19,9 @@ public class Vector3 implements Serializable {
 	protected double magnitude;
 	protected double sqrMagnitude;
 	protected Vector3 normal;
+	public Vector3() {
+		this(0, 0, 0);
+	}
 	public Vector3(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
@@ -216,5 +219,8 @@ public class Vector3 implements Serializable {
 	// OTHER VECTOR MATH
 	public static Vector3 cross(Vector3 cross1, Vector3 cross2) {
 		return new Vector3((cross1.y*cross2.z)-(cross1.z*cross2.y), (cross1.z*cross2.x)-(cross1.x*cross2.z), (cross1.x*cross2.y)-(cross1.y*cross2.x));
+	}
+	public static double dot(Vector3 dot1, Vector3 dot2) {
+		return (dot1.x*dot2.x)+(dot1.y*dot2.y)+(dot1.z*dot2.z);
 	}
 }
