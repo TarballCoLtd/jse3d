@@ -311,4 +311,10 @@ public class Vector3 implements Serializable {
 		}
 		return this;
 	}
+	public static Vector3 scale(Vector3 scale1, Vector3 scale2) {
+		return multiply(scale1, scale2);
+	}
+	public Vector3 scale(Vector3 scale) {
+		return multiply(this, scale);
+	}
 }
