@@ -289,4 +289,20 @@ public class Vector3 implements Serializable {
 		}
 		return new Vector3(tempX, tempY, tempZ);
 	}
+	public static Vector3 clampMagnitude(Vector3 clamp, double maxLength) {
+		if (clamp.magnitude > maxLength) {
+			return multiply(clamp.normal, maxLength);
+		} else {
+			return clamp;
+		}
+	}
+	public Vector3 clampMagnitude(double maxLength) {
+		if (magnitude > maxLength) {
+			Vector3 temp = multiply(this, maxLength);
+			x = temp.x;
+			y = temp.y;
+			z = temp.z;
+		}
+		return this;
+	}
 }
