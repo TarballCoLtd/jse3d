@@ -3,11 +3,17 @@ import java.net.*;
 import java.io.*;
 import com.emeryferrari.jse3d.*;
 import com.emeryferrari.jse3d.obj.*;
+import com.emeryferrari.rsacodec.*;
+import java.security.spec.*;
+import javax.crypto.spec.*;
+import javax.crypto.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.security.*;
 class JSE3DNetworkHandler {
+	private static SecureRandom random;
 	ArrayList<User> locations = new ArrayList<User>();
 	Display display;
 	InetAddress address;
@@ -16,7 +22,9 @@ class JSE3DNetworkHandler {
 	Socket socket;
 	private boolean stop = false;
 	static final JSE3DNetworkHandler CLASS_OBJ = new JSE3DNetworkHandler();
+	static final String alphanumeral = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	public static boolean main(String[] args) {
+		random = new SecureRandom();
 		for (int i = 0; i < 1000; i++) {
 			CLASS_OBJ.locations.add(null);
 		}
@@ -52,11 +60,38 @@ class JSE3DNetworkHandler {
 				System.out.println("Connecting to server at " + address + ":" + port + "...");
 				socket = new Socket(address, port);
 				System.out.println("Connected!");
-				PrintWriter writer = new PrintWriter(socket.getOutputStream());
-				writer.println(username);
-				writer.println(JSE3DClientConst.API_VERSION);
-				writer.flush();
+				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+				PublicKey pubKey = null;
+				Object obj = ois.readObject();
+				if (obj instanceof PublicKey) {
+					pubKey = (PublicKey) obj;
+				} else {
+					System.out.println("Secure handshake failed. Disconnecting...");
+					socket.close();
+					System.exit(10);
+				}
+				System.out.println("got public key");
+				byte[] randKey = new byte[64];
+				for (int i = 0; i < randKey.length; i++) {
+					randKey[i] = (byte) alphanumeral.charAt(random.nextInt(alphanumeral.length()));
+				}
+				oos.writeObject(RSACodec.encrypt(randKey, pubKey));
+				KeySpec spec = new PBEKeySpec(new String(randKey, "UTF-8").toCharArray(), new byte[0], 1);
+				SecretKeyFactory skf = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
+				SecretKey key = skf.generateSecret(spec);
+				Cipher decrypt = Cipher.getInstance("PBEWithMD5AndDES");
+				Cipher encrypt = Cipher.getInstance("PBEWithMD5AndDES");
+				decrypt.init(Cipher.DECRYPT_MODE, key);
+				encrypt.init(Cipher.ENCRYPT_MODE, key);
+				CipherOutputStream cos = new CipherOutputStream(socket.getOutputStream(), encrypt);
+				CipherInputStream cis = new CipherInputStream(socket.getInputStream(), decrypt);
+				oos = new ObjectOutputStream(cos);
+				ois = new ObjectInputStream(cis);
+				oos.writeObject(username);
+				oos.writeObject(JSE3DClientConst.API_VERSION);
+				oos.flush();
+				System.out.println("wrote username");
 				Object object = ois.readObject();
 				Scene scene = null;
 				if (object instanceof Scene) {
@@ -76,7 +111,7 @@ class JSE3DNetworkHandler {
 					socket.close();
 					stop = true;
 				}
-				Thread receiver = new Thread(new Receiver(socket));
+				Thread receiver = new Thread(new Receiver(socket, ois));
 				receiver.setName("receiver");
 				receiver.start();
 				display = new Display(scene, "jse3dclient", true, true);
@@ -84,7 +119,7 @@ class JSE3DNetworkHandler {
 				JPanel buttons = new JPanel();
 				buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
 				JButton disconnect = new JButton("Disconnect");
-				disconnect.addActionListener(new DisconnectListener());
+				disconnect.addActionListener(new DisconnectListener(oos));
 				buttons.add(disconnect);
 				display.getFrame().getContentPane().add(BorderLayout.SOUTH, buttons);
 			} catch (IOException ex) {
@@ -93,14 +128,20 @@ class JSE3DNetworkHandler {
 			} catch (ClassNotFoundException ex) {
 				handleException(ex);
 				stop = true;
+			} catch (GeneralSecurityException ex) {
+				handleException(ex);
+				stop = true;
 			}
 		}
 	}
 	public class DisconnectListener implements ActionListener {
+		private ObjectOutputStream oos;
+		public DisconnectListener(ObjectOutputStream oos) {
+			this.oos = oos;
+		}
 		public void actionPerformed(ActionEvent ev) {
 			System.out.println("Disconnecting...");
 			try {
-				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 				oos.writeObject(new Disconnect(DisconnectType.GENERAL_DISCONNECT));
 				oos.flush();
 				socket.close();
@@ -112,16 +153,12 @@ class JSE3DNetworkHandler {
 	}
 	public class Receiver implements Runnable {
 		private Socket socket;
-		public Receiver(Socket socket) {
+		private ObjectInputStream ois;
+		public Receiver(Socket socket, ObjectInputStream ois) {
 			this.socket = socket;
+			this.ois = ois;
 		}
 		public void run() {
-			ObjectInputStream ois = null;
-			try {
-				ois = new ObjectInputStream(socket.getInputStream());
-			} catch (IOException ex) {
-				handleException(ex);
-			}
 			if (ois != null) {
 				while (!stop) {
 					try {
@@ -162,10 +199,13 @@ class JSE3DNetworkHandler {
 	}
 	public static void printUsage(int exitCode) {}
 	public static void handleException(Exception ex) {
+		ex.printStackTrace();
+		/*
 		System.out.println("  ** EXCEPTION THROWN **");
 		System.out.println(ex.getClass() + " occurred in thread \"" + Thread.currentThread().getName() + "\":");
 		System.out.println("Cause: " + ex.getMessage());
 		System.out.println();
+		*/
 	}
 	public void handleCommand(String command) {
 		if (command.equalsIgnoreCase("stop")) {

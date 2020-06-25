@@ -15,6 +15,9 @@ public class Client3D {
 	public Client3D(int port, String ip, String username) {
 		this(ip, port, username);
 	}
+	public Client3D(String ip, String username) {
+		this(ip, 5107, username);
+	}
 	public boolean start() {
 		if (!started) {
 			started = JSE3DNetworkHandler.main(args);
