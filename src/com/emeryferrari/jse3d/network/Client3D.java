@@ -3,6 +3,8 @@ public class Client3D {
 	private String[] args;
 	private boolean started;
 	public Client3D(String ip, int port, String username) {
+		System.setProperty("javax.net.ssl.trustStore", "alx.store");
+		System.setProperty("javax.net.ssl.keyStore", "alx.store");
 		args = new String[3];
 		args[0] = ip;
 		args[1] = ""+port;
@@ -14,9 +16,6 @@ public class Client3D {
 	}
 	public Client3D(int port, String ip, String username) {
 		this(ip, port, username);
-	}
-	public Client3D(String ip, String username) {
-		this(ip, 5107, username);
 	}
 	public boolean start() {
 		if (!started) {
