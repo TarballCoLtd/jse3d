@@ -2,14 +2,8 @@ package com.emeryferrari.jse3d.example;
 import com.emeryferrari.jse3d.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
-import com.emeryferrari.jse3d.network.*;
 public class JSE3DExample {
-	public static void main(String[] args) throws InterruptedException {
-		System.setProperty("javax.net.ssl.trustStore", "alx.store");
-		System.setProperty("javax.net.ssl.keyStore", "alx.store");
-		Client3D client = new Client3D("127.0.0.1", 5107, "user1");
-		client.start();
-		/*
+	public static void main(String[] args) {
 		Object3D[] objects = new Object3D[1];
 		for (int i = 0; i < objects.length; i++) {
 			objects[i] = ObjectTemplate.getCube();
@@ -22,6 +16,5 @@ public class JSE3DExample {
 		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		display.setRenderQuality(RenderMode.QUALITY);
 		display.startRender();
-		*/
 	}
 }

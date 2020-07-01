@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.net.ssl.*;
+import java.security.*;
 class JSE3DNetworkHandler {
 	ArrayList<User> locations = new ArrayList<User>();
 	Display display;
@@ -51,8 +52,17 @@ class JSE3DNetworkHandler {
 		if (address != null) {
 			try {
 				System.out.println("Connecting to server at " + address + ":" + port + "...");
-				SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-				SSLSocket socket = (SSLSocket) socketFactory.createSocket(address, port);
+				KeyStore ks = KeyStore.getInstance("JKS");
+				ks.load(new FileInputStream("alx.store"), "jse3d_alex".toCharArray());
+				KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+				kmf.init(ks, "jse3d_alex".toCharArray());
+				TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+				tmf.init(ks);
+				SSLContext sc = SSLContext.getInstance("TLS");
+				TrustManager[] trustManagers = tmf.getTrustManagers();
+				sc.init(kmf.getKeyManagers(), trustManagers, null);
+				SSLSocketFactory ssf = sc.getSocketFactory();
+				SSLSocket socket = (SSLSocket) ssf.createSocket(address, port);
 				socket.startHandshake();
 				System.out.println("Connected!");
 				PrintWriter writer = new PrintWriter(socket.getOutputStream());
@@ -96,6 +106,9 @@ class JSE3DNetworkHandler {
 			} catch (ClassNotFoundException ex) {
 				handleException(ex);
 				stop = true;
+			} catch (Exception ex) {
+				handleException(ex);
+				stop = true;
 			}
 		}
 	}
@@ -114,8 +127,8 @@ class JSE3DNetworkHandler {
  		}
 	}
 	public class Receiver implements Runnable {
-		private Socket socket;
-		public Receiver(Socket socket) {
+		private SSLSocket socket;
+		public Receiver(SSLSocket socket) {
 			this.socket = socket;
 		}
 		public void run() {
