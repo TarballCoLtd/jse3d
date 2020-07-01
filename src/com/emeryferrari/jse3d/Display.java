@@ -9,56 +9,56 @@ import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.exc.*;
 import com.emeryferrari.jse3d.obj.*;
 public class Display extends Kernel {
-	protected DisplayRenderer renderer;
-	protected Scene scene;
-	protected JFrame frame;
-	protected boolean renderPoints;
-	protected boolean rendering;
-	protected int pointWidth;
-	protected int pointHeight;
-	protected boolean rendererStarted;
-	protected boolean fpsLimit;
-	protected boolean fpsLogging;
-	protected Color lineColor;
-	protected boolean lineRender;
-	protected boolean faceRender;
-	protected int targetFps;
-	protected long optimalTime;
-	protected boolean invertColors;
-	protected Color backgroundColor;
-	protected Point lastMousePos;	
-	protected boolean mouseClicked;
-	protected Point mouseDiff;
-	protected boolean scrollWheel;
-	protected int physicsTimestep = 60;
-	protected Vector3 camPos;
-	protected CameraMode mode;
-	protected Distance[][] distance;
-	protected double[][] camScale;
-	protected final float scale = 125;
-	protected final double sensitivity = 125;
-	protected double xTransform = 0;
-	protected double yTransform = 0;
-	protected double viewAngleX = 0;
-	protected double viewAngleY = 0;
-	protected boolean camPosPrint = false;
-	protected int fps = 0;
-	protected boolean yAxisClamp;
+	protected DisplayRenderer renderer; // a JComponent that handles rendering
+	protected Scene scene; // the current scene
+	protected JFrame frame; // the frame that the scene is rendered in
+	protected boolean renderPoints; // true if points are to be rendered
+	protected boolean rendering; // true if the startRender() method has been called
+	protected int pointWidth; // width of points if renderPoints is true
+	protected int pointHeight; // height of points if renderPoints is true
+	protected boolean rendererStarted; // true if the startRender() method has been called
+	protected boolean fpsLimit; // true if FPS is being capped to a certain framerate
+	protected boolean fpsLogging; // true if the user wants to log FPS counts to the console
+	protected Color lineColor; // specifies color lines should be rendered in
+	protected boolean lineRender; // true if lines are being rendered
+	protected boolean faceRender; // true if faces are being rendered
+	protected int targetFps; // FPS cap
+	protected long optimalTime; // time variable used by FPS timer
+	protected boolean invertColors; // true if colors are inverted
+	protected Color backgroundColor; // skybox color
+	protected Point lastMousePos; // mouse variable used by view angle changers
+	protected boolean mouseClicked; // mouse variable used by view angle changers
+	protected Point mouseDiff; // mouse variable used by view angle changers
+	protected boolean scrollWheel; // mouse variable used by view angle changers
+	protected int physicsTimestep = 60; // physics timestep for transition operations
+	protected Vector3 camPos; // current camera position in relation to (0,0,0)
+	protected CameraMode mode; // current camera mode
+	protected Distance[][] distance; // used internally by scene renderer, represents distances between points and the camera
+	protected double[][] camScale; // used internally by scene renderer
+	protected final float scale = 125; // used internally by scene renderer
+	protected final double sensitivity = 125; // used internally by scene renderer
+	protected double xTransform = 0; // used internally by scene renderer
+	protected double yTransform = 0; // used internally by scene renderer
+	protected double viewAngleX = 0; // used internally by scene renderer, represents the angle of the camera
+	protected double viewAngleY = 0; // used internally by scene renderer, represents the angle of the camera
+	protected boolean camPosPrint = false; // true if camera position is to be printed to the frame
+	protected int fps = 0; // time variable used by FPS timer
+	protected boolean yAxisClamp; // true if viewAngleY is being clamped to [-pi, pi]
 	protected double viewAngle;
-	protected RenderTarget renderTarget;
-	protected RenderingHints hints;
-	protected boolean antialiasingHint;
-	protected RenderMode renderingHint;
-	protected boolean ditheringHint;
-	protected RenderMode colorRenderingHint;
-	protected boolean fractionalMetricsHint;
-	protected boolean textAntialiasingHint;
-	protected InterpolationMode interpolationHint;
-	protected RenderMode alphaInterpolationHint;
-	protected boolean assertion;
-	protected boolean altTrig;
-	protected int altTrigAcc;
-	protected Point camPosPrintPoint;
+	protected RenderTarget renderTarget; // current render target
+	protected RenderingHints hints; // current rendering hints
+	protected boolean antialiasingHint; // true if antialiasing should be used
+	protected RenderMode renderingHint; // specifies quality of render
+	protected boolean ditheringHint; // true if dithering should be enabled
+	protected RenderMode colorRenderingHint; // specifies quality of colors
+	protected boolean fractionalMetricsHint; // true if fractional metrics should be enabled
+	protected boolean textAntialiasingHint; // true if text antialiasing should be used
+	protected InterpolationMode interpolationHint; // true if image interpolation should be used
+	protected RenderMode alphaInterpolationHint; // true if alpha interpolation should be used
+	protected boolean assertion; // makes sure AssertionError's stack trace is only printed once
+	protected boolean altTrig; // true if alternate trigonometry methods should be used
+	protected int altTrigAcc; // represents accuracy of alternate trigonometry functions
+	protected Point camPosPrintPoint; // where the camera position should be printed to on the frame
 	// OPENCL VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
@@ -196,7 +196,7 @@ public class Display extends Kernel {
 		viewAngle = fovRadians;
 		yAxisClamp = true;
 	}
-	public Display startRender() {
+	public Display startRender() { // call this to make the frame visible and start rendering
 		if (!rendererStarted) {
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
@@ -220,7 +220,7 @@ public class Display extends Kernel {
 	public JFrame getFrame() {
 		return frame;
 	}
-	protected class DisplayRenderer extends JComponent {
+	protected class DisplayRenderer extends JComponent { // scene renderer
 		protected static final long serialVersionUID = 1L;
 		@SuppressWarnings("deprecation")
 		@Override
@@ -228,9 +228,10 @@ public class Display extends Kernel {
 			if (rendering) {
 				Graphics2D graphics = (Graphics2D) gfx;
 				try {
-					graphics.setRenderingHints(hints);
+					graphics.setRenderingHints(hints); // applies rendering hints
 				} catch (ConcurrentModificationException ex) {}
 				if (renderTarget == RenderTarget.CPU_SINGLETHREADED) {
+					// this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
 					Point[][] pointArrays = new Point[scene.object.length][];
 					if (invertColors) {
 						graphics.setColor(Display.invertColor(backgroundColor));
@@ -241,7 +242,7 @@ public class Display extends Kernel {
 					Point location = this.getLocation();
 					graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
 					Point mouse;
-					if (mode == CameraMode.DRAG) {
+					if (mode == CameraMode.DRAG) { // controls mouse
 						if (mouseClicked) {
 							Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 							mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
@@ -267,6 +268,7 @@ public class Display extends Kernel {
 						viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
 					} catch (NullPointerException ex) {}
 					if (altTrig) {
+						// called if alternate trigonometry should be used
 						for (int a = 0; a < scene.object.length; a++) {
 							Point[] points = new Point[scene.object[a].points.length];
 							// WRITTEN BY SAM KRUG START
@@ -339,13 +341,16 @@ public class Display extends Kernel {
 							}
 						}
 					} else {
+						// called if java.lang.Math trigonometry should be used
 						for (int a = 0; a < scene.object.length; a++) {
 							Point[] points = new Point[scene.object[a].points.length];
 							// WRITTEN BY SAM KRUG START
 							for (int i = 0; i < scene.object[a].points.length; i++) {
 								Vector3 localCamPos = new Vector3(0, 0, 0);
 								try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
+								// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
 								if (scene.object[a].points[i].getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].getY()*Math.sin(viewAngleY) < scene.camDist) {
+									// 3D to 2D point conversion
 									double zAngle = Math.atan((scene.object[a].points[i].getZ())/(scene.object[a].points[i].getX()));
 									if (scene.object[a].points[i].getX() == 0 && scene.object[a].points[i].getZ() == 0) {
 										zAngle = 0;
@@ -373,7 +378,7 @@ public class Display extends Kernel {
 									graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 								}
 							}
-							if (faceRender) {
+							if (faceRender) { // sorts faces so that they're rendered back to front
 								double objDist = 0.0;
 								int length = distance[a].length;
 								for (int x = 0; x < distance[a].length; x++) {
@@ -414,7 +419,7 @@ public class Display extends Kernel {
 						graphics.setColor(invertColor(backgroundColor));
 						graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 					}
-					if (faceRender) {
+					if (faceRender) { // sorts faces so that they're rendered back to front
 						for (int a = 0; a < scene.object.length; a++) {
 							for (int x = a+1; x < scene.object.length; x++) {
 								if (scene.object[a].camDist < scene.object[x].camDist) {
@@ -428,6 +433,7 @@ public class Display extends Kernel {
 									int[] xs = {0, 0, 0};
 									int[] ys = {0, 0, 0};
 									try {
+										// constructs a polygon in 2D
 										int[] xs2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].x};
 										int[] ys2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].y};
 										xs = xs2;
@@ -443,7 +449,7 @@ public class Display extends Kernel {
 							}
 						}
 					}
-					if (lineRender) {
+					if (lineRender) { // renders lines in wireframe mode
 						for (int a = 0; a < scene.object.length; a++) {
 							if (lineRender) {
 								if (invertColors) {
@@ -462,6 +468,8 @@ public class Display extends Kernel {
 					fps++;
 					this.revalidate();
 				} else {
+					// called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
+					// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
 					Vector3 localCamPos = new Vector3(0, 0, 0);
 					Point mouse;
 					if (mode == CameraMode.DRAG) {
@@ -513,7 +521,7 @@ public class Display extends Kernel {
 						}
 					}
 					Device chosen = null;
-					if (renderTarget == RenderTarget.CPU_MULTITHREADED) {
+					if (renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
 						chosen = Device.firstCPU();
 						if (chosen == null) {
 							System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
@@ -527,6 +535,7 @@ public class Display extends Kernel {
 						}
 					}
 					try {
+						// calculates multiple points concurrently on the selected OpenCL device
 						Range range = chosen.createRange(zAngleLength);
 						range.setLocalSize_0(zAngleLength);
 						execute(range);
@@ -566,7 +575,7 @@ public class Display extends Kernel {
 								graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
 							}
 						}
-						if (faceRender) {
+						if (faceRender) { // sorts faces so that they're rendered from back to front
 							double objDist = 0.0;
 							int length = distance[a].length;
 							for (int x = 0; x < distance[a].length; x++) {
@@ -606,7 +615,7 @@ public class Display extends Kernel {
 						graphics.setColor(invertColor(backgroundColor));
 						graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 					}
-					if (faceRender) {
+					if (faceRender) { // sorts faces so that they're rendered from back to front
 						for (int a = 0; a < scene.object.length; a++) {
 							for (int x = a+1; x < scene.object.length; x++) {
 								if (scene.object[a].camDist < scene.object[x].camDist) {
@@ -671,7 +680,6 @@ public class Display extends Kernel {
 			    	if (fpsLogging) {
 			    		System.out.println("FPS: " + fps);
 			    	}
-			    	calculateRenderingHints();
 			        lastFpsTime = 0;
 			        fps = 0;
 			    }
@@ -688,7 +696,7 @@ public class Display extends Kernel {
 			getFrame().repaint();
 		}
 	}
-	protected void calculateRenderingHints() {
+	protected void calculateRenderingHints() { // creates a rendering hints object based on the settings currently in place, this is applied at the start of every new frame, and recalculated whenever a rendering hint is changed
 		if (antialiasingHint) {
 			hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		} else {
@@ -760,7 +768,7 @@ public class Display extends Kernel {
 		cosThetas[id] = cos(asin((hypot(xTransforms[id], yTransforms[id])/scale)/maths[id]));
 		sinViewAngles[id] = sin(gpuViewAngle[0]/2);
 	}
-	protected class ClickListener implements MouseListener {
+	protected class ClickListener implements MouseListener { // calculations for CameraMode.DRAG
 		public void mouseEntered(MouseEvent ev) {}
 		public void mousePressed(MouseEvent ev) {
 			mouseClicked = true;
@@ -775,7 +783,7 @@ public class Display extends Kernel {
 		}
 		public void mouseExited(MouseEvent ev) {}
 	}
-	protected class ScrollListener implements MouseWheelListener {
+	protected class ScrollListener implements MouseWheelListener { // controls scroll wheel camera distance changes
 		public void mouseWheelMoved(MouseWheelEvent ev) {
 			if (scrollWheel) {
 				if (ev.getWheelRotation() > 0) {
@@ -1066,7 +1074,7 @@ public class Display extends Kernel {
 	public RenderMode getAlphaInterpolationMode() {
 		return alphaInterpolationHint;
 	}
-	public Display setRenderQuality(RenderMode mode) {
+	public Display setRenderQuality(RenderMode mode) { // sets rendering hints to either the best or the worst settings
 		if (mode == RenderMode.PERFORMANCE) {
 			antialiasingHint = false;
 			renderingHint = RenderMode.PERFORMANCE;
