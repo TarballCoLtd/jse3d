@@ -56,9 +56,9 @@ public class Display extends Kernel {
 	protected InterpolationMode interpolationHint; // true if image interpolation should be used
 	protected RenderMode alphaInterpolationHint; // true if alpha interpolation should be used
 	protected boolean assertion; // makes sure AssertionError's stack trace is only printed once
-	protected boolean altTrig; // true if alternate trigonometry methods should be used
-	protected int altTrigAcc; // represents accuracy of alternate trigonometry functions
 	protected Point camPosPrintPoint; // where the camera position should be printed to on the frame
+	protected Point mouse;
+	protected Point[][] pointArrays;
 	// OPENCL VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
@@ -80,6 +80,7 @@ public class Display extends Kernel {
 	final float[] cosThetas;
 	final float[] gpuViewAngle = new float[1];
 	final float[] sinViewAngles;
+	protected int zAngleLength;
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -136,8 +137,6 @@ public class Display extends Kernel {
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		camPosPrintPoint = new Point(0, 11);
-		altTrig = false;
-		altTrigAcc = 5;
 		assertion = false;
 		antialiasingHint = true;
 		renderingHint = RenderMode.PERFORMANCE;
@@ -222,448 +221,285 @@ public class Display extends Kernel {
 	}
 	protected class DisplayRenderer extends JComponent { // scene renderer
 		protected static final long serialVersionUID = 1L;
-		@SuppressWarnings("deprecation")
 		@Override
 		public void paintComponent(Graphics gfx) {
 			if (rendering) {
-				Graphics2D graphics = (Graphics2D) gfx;
-				try {
-					graphics.setRenderingHints(hints); // applies rendering hints
-				} catch (ConcurrentModificationException ex) {}
-				if (renderTarget == RenderTarget.CPU_SINGLETHREADED) {
-					// this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
-					Point[][] pointArrays = new Point[scene.object.length][];
-					if (invertColors) {
-						graphics.setColor(Display.invertColor(backgroundColor));
-					} else {
-						graphics.setColor(backgroundColor);
+				renderFrame(gfx, this);
+			}
+		}
+	}
+	protected void renderFrame(Graphics gfx, DisplayRenderer renderer) {
+		Graphics2D graphics = (Graphics2D) gfx;
+		try {
+			graphics.setRenderingHints(hints); // applies rendering hints
+		} catch (ConcurrentModificationException ex) {}
+		Dimension size = renderer.getSize();
+		Point location = renderer.getLocation();
+		if (renderTarget == RenderTarget.CPU_SINGLETHREADED) {
+			// this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
+			pointArrays = new Point[scene.object.length][];
+			renderBackground(graphics, size, location);
+			calculateMouse();
+			calculateViewAngles(size, location);
+			for (int a = 0; a < scene.object.length; a++) {
+				Point[] points = new Point[scene.object[a].points.length];
+				for (int i = 0; i < scene.object[a].points.length; i++) {
+					points[i] = calculatePoint(a, i, size, location);
+					if (renderPoints) {
+						renderPoint(graphics, points, i);
 					}
-					Dimension size = this.getSize();
-					Point location = this.getLocation();
-					graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
-					Point mouse;
-					if (mode == CameraMode.DRAG) { // controls mouse
-						if (mouseClicked) {
-							Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
-							mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
-						} else {
-							mouse = lastMousePos;
-						}
-					} else {
-						mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
-					}
-					viewAngleX = 0;
-					viewAngleY = 0;
-					try {
-						viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
-						if (yAxisClamp) {
-							if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
-								if (viewAngleY < 0) {
-									viewAngleY = -Math.PI/2*sensitivity;
-								} else {
-									viewAngleY = Math.PI/2*sensitivity;
-								}
-							}
-						}
-						viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
-					} catch (NullPointerException ex) {}
-					if (altTrig) {
-						// called if alternate trigonometry should be used
-						for (int a = 0; a < scene.object.length; a++) {
-							Point[] points = new Point[scene.object[a].points.length];
-							// WRITTEN BY SAM KRUG START
-							for (int i = 0; i < scene.object[a].points.length; i++) {
-								Vector3 localCamPos = new Vector3(0, 0, 0);
-								try {
-									localCamPos = getCameraPositionActual();
-								} catch (NullPointerException ex) {}
-								if (scene.object[a].points[i].getZ()*Math3D.cos(viewAngleX, altTrigAcc)*Math3D.cos(viewAngleY, altTrigAcc) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math3D.cos(viewAngleY, altTrigAcc) - scene.object[a].points[i].getY()*Math3D.sin(viewAngleY, altTrigAcc) < scene.camDist) {
-									double zAngle = Math.atan((scene.object[a].points[i].getZ())/(scene.object[a].points[i].getX()));
-									if (scene.object[a].points[i].getX() == 0 && scene.object[a].points[i].getZ() == 0) {
-										zAngle = 0;
-									}
-									double mag = Math.hypot(scene.object[a].points[i].getX(), scene.object[a].points[i].getZ());
-									if (scene.object[a].points[i].getX() < 0) {
-										xTransform = -mag*scale*Math3D.cos(viewAngleX+zAngle, altTrigAcc);
-										yTransform = -mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].getY())*scale*Math3D.cos(viewAngleY, altTrigAcc);
-									} else {
-										xTransform = mag*scale*Math3D.cos(viewAngleX+zAngle, altTrigAcc);
-										yTransform = mag*scale*Math3D.sin(viewAngleX+zAngle, altTrigAcc)*Math3D.sin(viewAngleY, altTrigAcc)+(scene.object[a].points[i].getY())*scale*Math3D.cos(viewAngleY, altTrigAcc);
-									}
-									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.getX()-scene.object[a].points[i].getX(), localCamPos.getY()-scene.object[a].points[i].getY(), localCamPos.getZ()-scene.object[a].points[i].getZ()), i);
-									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
-									camScale[a][i] = distance[a][i].distance*Math3D.cos(theta, altTrigAcc)*Math3D.sin(viewAngle/2, altTrigAcc);
-									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
-								}
-								// WRITTEN BY SAM KRUG END
-								if (renderPoints) {
-									if (invertColors) {
-										graphics.setColor(Color.WHITE);
-									} else {
-										graphics.setColor(Color.BLACK);
-									}
-									graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
-								}
-							}
-							if (faceRender) {
-								double objDist = 0.0;
-								int length = distance[a].length;
-								for (int x = 0; x < distance[a].length; x++) {
-									try {
-										objDist += distance[a][x].distance;
-									} catch (NullPointerException ex) {
-										length--;
-									}
-								}
-								objDist /= (double) length;
-								scene.object[a].camDist = objDist;
-								for (int x = 0; x < scene.object[a].faces.length; x++) {
-									int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-									double[] distances = new double[pointIDs.length];
-									for (int y = 0; y < pointIDs.length; y++) {
-										for (int z = 0; z < distance[a].length; z++) {
-											try {
-												if (distance[a][z].pointID == pointIDs[y]) {
-													distances[y] = distance[a][z].distance;
-												}
-											} catch (NullPointerException ex) {}
-										}
-									}
-									double average = 0.0;
-									for (int i = 0; i < distances.length; i++) {
-										average += distances[i];
-									}
-									average /= (double) distances.length;
-									scene.object[a].faces[x].camDist = average;
-								}
-								Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
-								pointArrays[a] = points;
-							}
-						}
-					} else {
-						// called if java.lang.Math trigonometry should be used
-						for (int a = 0; a < scene.object.length; a++) {
-							Point[] points = new Point[scene.object[a].points.length];
-							// WRITTEN BY SAM KRUG START
-							for (int i = 0; i < scene.object[a].points.length; i++) {
-								Vector3 localCamPos = new Vector3(0, 0, 0);
-								try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
-								// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
-								if (scene.object[a].points[i].getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].getY()*Math.sin(viewAngleY) < scene.camDist) {
-									// 3D to 2D point conversion
-									double zAngle = Math.atan((scene.object[a].points[i].getZ())/(scene.object[a].points[i].getX()));
-									if (scene.object[a].points[i].getX() == 0 && scene.object[a].points[i].getZ() == 0) {
-										zAngle = 0;
-									}
-									double mag = Math.hypot(scene.object[a].points[i].getX(), scene.object[a].points[i].getZ());
-									if (scene.object[a].points[i].getX() < 0) {
-										xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-										yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
-									} else {
-										xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-										yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
-									}
-									distance[a][i] = new Distance(Math3D.hypot3(localCamPos.getX()-scene.object[a].points[i].getX(), localCamPos.getY()-scene.object[a].points[i].getY(), localCamPos.getZ()-scene.object[a].points[i].getZ()), i);
-									double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
-									camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
-									points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
-								}
-								// WRITTEN BY SAM KRUG END
-								if (renderPoints) {
-									if (invertColors) {
-										graphics.setColor(Color.WHITE);
-									} else {
-										graphics.setColor(Color.BLACK);
-									}
-									graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
-								}
-							}
-							if (faceRender) { // sorts faces so that they're rendered back to front
-								double objDist = 0.0;
-								int length = distance[a].length;
-								for (int x = 0; x < distance[a].length; x++) {
-									try {
-										objDist += distance[a][x].distance;
-									} catch (NullPointerException ex) {
-										length--;
-									}
-								}
-								objDist /= (double) length;
-								scene.object[a].camDist = objDist;
-								for (int x = 0; x < scene.object[a].faces.length; x++) {
-									int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-									double[] distances = new double[pointIDs.length];
-									for (int y = 0; y < pointIDs.length; y++) {
-										for (int z = 0; z < distance[a].length; z++) {
-											try {
-												if (distance[a][z].pointID == pointIDs[y]) {
-													distances[y] = distance[a][z].distance;
-												}
-											} catch (NullPointerException ex) {}
-										}
-									}
-									double average = 0.0;
-									for (int i = 0; i < distances.length; i++) {
-										average += distances[i];
-									}
-									average /= (double) distances.length;
-									scene.object[a].faces[x].camDist = average;
-								}
-								Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
-								pointArrays[a] = points;
-							}
-						}
-					}
-					if (camPosPrint) {
-						Vector3 cameraPos = getCameraPositionActual();
-						graphics.setColor(invertColor(backgroundColor));
-						graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
-					}
-					if (faceRender) { // sorts faces so that they're rendered back to front
-						for (int a = 0; a < scene.object.length; a++) {
-							for (int x = a+1; x < scene.object.length; x++) {
-								if (scene.object[a].camDist < scene.object[x].camDist) {
-									Point[] temp = pointArrays[a];
-									pointArrays[a] = pointArrays[x];
-									pointArrays[x] = temp;
-								}
-							}
-							for (int x = 0; x < scene.object[a].faces.length; x++) {
-								for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
-									int[] xs = {0, 0, 0};
-									int[] ys = {0, 0, 0};
-									try {
-										// constructs a polygon in 2D
-										int[] xs2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].x};
-										int[] ys2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].y};
-										xs = xs2;
-										ys = ys2;
-									} catch (NullPointerException ex) {}
-									if (invertColors) {
-										graphics.setColor(Display.invertColor(scene.object[a].faces[x].triangles[y].color));
-									} else {
-										graphics.setColor(scene.object[a].faces[x].triangles[y].color);
-									}
-									graphics.fillPolygon(xs, ys, 3);
-								}
-							}
-						}
-					}
-					if (lineRender) { // renders lines in wireframe mode
-						for (int a = 0; a < scene.object.length; a++) {
-							if (lineRender) {
-								if (invertColors) {
-									graphics.setColor(Display.invertColor(lineColor));
-								} else {
-									graphics.setColor(lineColor);
-								}
-								for (int i = 0; i < scene.object[a].edges.length; i++) {
-									int point1 = scene.object[a].edges[i].pointID1;
-									int point2 = scene.object[a].edges[i].pointID2;
-									try {graphics.drawLine(pointArrays[a][point1].x, pointArrays[a][point1].y, pointArrays[a][point2].x, pointArrays[a][point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
-								}
-							}
-						}
-					}
-					fps++;
-					this.revalidate();
-				} else {
-					// called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
-					// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
-					Vector3 localCamPos = new Vector3(0, 0, 0);
-					Point mouse;
-					if (mode == CameraMode.DRAG) {
-						if (mouseClicked) {
-							Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
-							mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
-						} else {
-							mouse = lastMousePos;
-						}
-					} else {
-						mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
-					}
-					Dimension size = this.getSize();
-					Point location = this.getLocation();
-					viewAngleX = 0;
-					viewAngleY = 0;
-					// WRITTEN BY SAM KRUG START
-					try {
-						viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
-						if (yAxisClamp) {
-							if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
-								if (viewAngleY < 0) {
-									viewAngleY = -Math.PI/2*sensitivity;
-								} else {
-									viewAngleY = Math.PI/2*sensitivity;
-								}
-							}
-						}
-						viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
-						localCamPos = getCameraPositionActual();
-					} catch (NullPointerException ex) {}
-					localCamPosX[0] = (float) localCamPos.getX();
-					localCamPosY[0] = (float) localCamPos.getY();
-					localCamPosZ[0] = (float) localCamPos.getZ();
-					gpuViewAngle[0] = (float) viewAngle;
-					viewAngleXInput[0] = (float) viewAngleX;
-					viewAngleYInput[0] = (float) viewAngleY;
-					// WRITTEN BY SAM KRUG END
-					int zAngleLength = 0;
-					for (int x = 0; x < scene.object.length; x++) {
-						zAngleLength += scene.object[x].points.length;
-					}
-					for (int x = 0; x < scene.object.length; x++) {
-						for (int y = 0; y < scene.object[x].points.length; y++) {
-							int index = (scene.object[x].points.length*x)+y;
-							zAngleX[index] = (float) scene.object[x].points[y].getX();
-							zAngleY[index] = (float) scene.object[x].points[y].getY();
-							zAngleZ[index] = (float) scene.object[x].points[y].getZ();
-						}
-					}
-					Device chosen = null;
-					if (renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
-						chosen = Device.firstCPU();
-						if (chosen == null) {
-							System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
-							throw new CPU_OpenCLDriverNotFoundError();
-						}
-					} else {
-						chosen = Device.bestGPU();
-						if (chosen == null) {
-							System.err.println("FATAL ERROR: The OpenCL driver for your GPU is not installed, but it is required for the GPU rendering feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
-							throw new GPU_OpenCLDriverNotFoundError();
-						}
-					}
-					try {
-						// calculates multiple points concurrently on the selected OpenCL device
-						Range range = chosen.createRange(zAngleLength);
-						range.setLocalSize_0(zAngleLength);
-						execute(range);
-					} catch (AssertionError err) {
-						if (!assertion) {
-							System.err.println("java.lang.AssertionError: Selected OpenCL device not available. This is a bug with jse3d. In the meantime, try setting the number of objects in the scene to a multiple of how many cores the selected device has as a temporary workaround. Normally this is a power of 2, however that is not always true.");
-							assertion = true;
-						}
-					}
-					Point[][] pointArrays = new Point[scene.object.length][];
-					if (invertColors) {
-						graphics.setColor(Display.invertColor(backgroundColor));
-					} else {
-						graphics.setColor(backgroundColor);
-					}
-					graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
-					for (int a = 0; a < scene.object.length; a++) {
-						Point[] points = new Point[scene.object[a].points.length];
-						// WRITTEN BY SAM KRUG START: HEAVILY MODIFIED
-						for (int i = 0; i < scene.object[a].points.length; i++) {
-							int id = (scene.object[a].points.length*a)+i;
-							distance[a][i] = new Distance(0.0, -1);
-							if (scene.object[a].points[i].getZ()*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].getX()*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].getY()*sinViewAngleY[0] < scene.camDist) {
-								xTransform = xTransforms[id];
-								yTransform = yTransforms[id];
-								distance[a][i] = new Distance(maths[id], i);
-								camScale[a][i] = distance[a][i].distance*cosThetas[id]*sinViewAngles[id];
-								points[i] = new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
-							}
-							// WRITTEN BY SAM KRUG END
-							if (renderPoints) {
-								if (invertColors) {
-									graphics.setColor(Color.WHITE);
-								} else {
-									graphics.setColor(Color.BLACK);
-								}
-								graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
-							}
-						}
-						if (faceRender) { // sorts faces so that they're rendered from back to front
-							double objDist = 0.0;
-							int length = distance[a].length;
-							for (int x = 0; x < distance[a].length; x++) {
-								try {
-									objDist += distance[a][x].distance;
-								} catch (NullPointerException ex) {
-									length--;
-								}
-							}
-							objDist /= (double) length;
-							scene.object[a].camDist = objDist;
-							for (int x = 0; x < scene.object[a].faces.length; x++) {
-								int[] pointIDs = scene.object[a].faces[x].getPointIDs();
-								double[] distances = new double[pointIDs.length];
-								for (int y = 0; y < pointIDs.length; y++) {
-									for (int z = 0; z < distance[a].length; z++) {
-										try {
-											if (distance[a][z].pointID == pointIDs[y]) {
-												distances[y] = distance[a][z].distance;
-											}
-										} catch (NullPointerException ex) {}
-									}
-								}
-								double average = 0.0;
-								for (int i = 0; i < distances.length; i++) {
-									average += distances[i];
-								}
-								average /= (double) distances.length;
-								scene.object[a].faces[x].camDist = average;
-							}
-							Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
-							pointArrays[a] = points;
-						}
-					}
-					if (camPosPrint) {
-						Vector3 cameraPos = getCameraPositionActual();
-						graphics.setColor(invertColor(backgroundColor));
-						graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
-					}
-					if (faceRender) { // sorts faces so that they're rendered from back to front
-						for (int a = 0; a < scene.object.length; a++) {
-							for (int x = a+1; x < scene.object.length; x++) {
-								if (scene.object[a].camDist < scene.object[x].camDist) {
-									Point[] temp = pointArrays[a];
-									pointArrays[a] = pointArrays[x];
-									pointArrays[x] = temp;
-								}
-							}
-							for (int x = 0; x < scene.object[a].faces.length; x++) {
-								for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
-									int[] xs = {0, 0, 0};
-									int[] ys = {0, 0, 0};
-									try {
-										int[] xs2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].x};
-										int[] ys2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].y};
-										xs = xs2;
-										ys = ys2;
-									} catch (NullPointerException ex) {}
-									if (invertColors) {
-										graphics.setColor(Display.invertColor(scene.object[a].faces[x].triangles[y].color));
-									} else {
-										graphics.setColor(scene.object[a].faces[x].triangles[y].color);
-									}
-									graphics.fillPolygon(xs, ys, 3);
-								}
-							}
-						}
-					}
-					if (lineRender) {
-						for (int a = 0; a < scene.object.length; a++) {
-							if (lineRender) {
-								if (invertColors) {
-									graphics.setColor(Display.invertColor(lineColor));
-								} else {
-									graphics.setColor(lineColor);
-								}
-								for (int i = 0; i < scene.object[a].edges.length; i++) {
-									int point1 = scene.object[a].edges[i].pointID1;
-									int point2 = scene.object[a].edges[i].pointID2;
-									try {graphics.drawLine(pointArrays[a][point1].x, pointArrays[a][point1].y, pointArrays[a][point2].x, pointArrays[a][point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
-								}
-							}
-						}
-					}
-					fps++;
-					this.revalidate();
+				}
+				if (faceRender) { // sorts faces so that they're rendered back to front
+					sortFaces(a, points);
 				}
 			}
+			renderExtras(graphics);
+		} else {
+			// called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
+			// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
+			Vector3 localCamPos = new Vector3(0, 0, 0);
+			try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
+			calculateMouse();
+			calculateViewAngles(size, location);
+			prepareGPU(localCamPos);
+			calculateOnGPU();
+			pointArrays = new Point[scene.object.length][];
+			renderBackground(graphics, size, location);
+			for (int a = 0; a < scene.object.length; a++) {
+				Point[] points = new Point[scene.object[a].points.length];
+				for (int i = 0; i < scene.object[a].points.length; i++) {
+					points[i] = calculatePointGPU(a, i, size, location);
+					if (renderPoints) {
+						setColor(graphics, Color.BLACK);
+						graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
+					}
+				}
+				if (faceRender) { // sorts faces so that they're rendered from back to front
+					sortFaces(a, points);
+				}
+			}
+			renderExtras(graphics);
+		}
+		fps++;
+		renderer.revalidate();
+	}
+	protected void renderExtras(Graphics2D graphics) {
+		if (camPosPrint) {
+			printCameraPosition(graphics);
+		}
+		if (faceRender) { // sorts faces so that they're rendered from back to front
+			renderFaces(graphics);
+		}
+		if (lineRender) {
+			renderLines(graphics);
+		}
+	}
+	@SuppressWarnings("deprecation")
+	protected void calculateOnGPU() {
+		Device chosen = null;
+		if (renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
+			chosen = Device.firstCPU();
+			if (chosen == null) {
+				System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
+				throw new CPU_OpenCLDriverNotFoundError();
+			}
+		} else {
+			chosen = Device.bestGPU();
+			if (chosen == null) {
+				System.err.println("FATAL ERROR: The OpenCL driver for your GPU is not installed, but it is required for the GPU rendering feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
+				throw new GPU_OpenCLDriverNotFoundError();
+			}
+		}
+		try {
+			// calculates multiple points concurrently on the selected OpenCL device
+			Range range = chosen.createRange(zAngleLength);
+			range.setLocalSize_0(zAngleLength);
+			execute(range);
+		} catch (AssertionError err) {
+			if (!assertion) {
+				System.err.println("java.lang.AssertionError: Selected OpenCL device not available. This is a bug with jse3d. In the meantime, try setting the number of objects in the scene to a multiple of how many cores the selected device has as a temporary workaround. Normally this is a power of 2, however that is not always true.");
+				assertion = true;
+			}
+		}
+	}
+	protected void prepareGPU(Vector3 localCamPos) {
+		localCamPosX[0] = (float) localCamPos.getX();
+		localCamPosY[0] = (float) localCamPos.getY();
+		localCamPosZ[0] = (float) localCamPos.getZ();
+		gpuViewAngle[0] = (float) viewAngle;
+		viewAngleXInput[0] = (float) viewAngleX;
+		viewAngleYInput[0] = (float) viewAngleY;
+		zAngleLength = 0;
+		for (int x = 0; x < scene.object.length; x++) {
+			zAngleLength += scene.object[x].points.length;
+		}
+		for (int x = 0; x < scene.object.length; x++) {
+			for (int y = 0; y < scene.object[x].points.length; y++) {
+				int index = (scene.object[x].points.length*x)+y;
+				zAngleX[index] = (float) scene.object[x].points[y].getX();
+				zAngleY[index] = (float) scene.object[x].points[y].getY();
+				zAngleZ[index] = (float) scene.object[x].points[y].getZ();
+			}
+		}
+	}
+	protected void renderBackground(Graphics2D graphics, Dimension size, Point location) {
+		setColor(graphics, backgroundColor);
+		graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
+	}
+	protected void renderPoint(Graphics2D graphics, Point[] points, int i) {
+		setColor(graphics, Color.BLACK);
+		graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
+	}
+	protected void printCameraPosition(Graphics2D graphics) {
+		Vector3 cameraPos = getCameraPositionActual();
+		graphics.setColor(invertColors ? backgroundColor : invertColor(backgroundColor));
+		graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
+	}
+	protected void calculateViewAngles(Dimension size, Point location) {
+		viewAngleX = 0;
+		viewAngleY = 0;
+		try {
+			viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
+			if (yAxisClamp) {
+				if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+					if (viewAngleY < 0) {
+						viewAngleY = -Math.PI/2*sensitivity;
+					} else {
+						viewAngleY = Math.PI/2*sensitivity;
+					}
+				}
+			}
+			viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+		} catch (NullPointerException ex) {}
+	}
+	protected void setColor(Graphics2D graphics, Color color) {
+		graphics.setColor(color);
+		if (invertColors) {
+			graphics.setColor(Display.invertColor(color));
+		}
+	}
+	protected void renderFaces(Graphics2D graphics) {
+		for (int a = 0; a < scene.object.length; a++) {
+			for (int x = a+1; x < scene.object.length; x++) {
+				if (scene.object[a].camDist < scene.object[x].camDist) {
+					Point[] temp = pointArrays[a];
+					pointArrays[a] = pointArrays[x];
+					pointArrays[x] = temp;
+				}
+			}
+			for (int x = 0; x < scene.object[a].faces.length; x++) {
+				for (int y = 0; y < scene.object[a].faces[x].triangles.length; y++) {
+					int[] xs = {0, 0, 0};
+					int[] ys = {0, 0, 0};
+					try {
+						int[] xs2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].x, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].x};
+						int[] ys2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].y};
+						xs = xs2;
+						ys = ys2;
+					} catch (NullPointerException ex) {
+						System.out.println("null");
+					}
+					setColor(graphics, scene.object[a].faces[x].triangles[y].color);
+					graphics.fillPolygon(xs, ys, 3);
+				}
+			}
+		}
+	}
+	protected void sortFaces(int a, Point[] points) {
+		double objDist = 0.0;
+		int length = distance[a].length;
+		for (int x = 0; x < distance[a].length; x++) {
+			try {
+				objDist += distance[a][x].distance;
+			} catch (NullPointerException ex) {
+				length--;
+			}
+		}
+		objDist /= (double) length;
+		scene.object[a].camDist = objDist;
+		for (int x = 0; x < scene.object[a].faces.length; x++) {
+			int[] pointIDs = scene.object[a].faces[x].getPointIDs();
+			double[] distances = new double[pointIDs.length];
+			for (int y = 0; y < pointIDs.length; y++) {
+				for (int z = 0; z < distance[a].length; z++) {
+					try {
+						if (distance[a][z].pointID == pointIDs[y]) {
+							distances[y] = distance[a][z].distance;
+						}
+					} catch (NullPointerException ex) {}
+				}
+			}
+			double average = 0.0;
+			for (int i = 0; i < distances.length; i++) {
+				average += distances[i];
+			}
+			average /= (double) distances.length;
+			scene.object[a].faces[x].camDist = average;
+		}
+		Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
+		pointArrays[a] = points;
+	}
+	protected void renderLines(Graphics2D graphics) {
+		for (int a = 0; a < scene.object.length; a++) {
+			if (invertColors) {
+				graphics.setColor(Display.invertColor(lineColor));
+			} else {
+				graphics.setColor(lineColor);
+			}
+			for (int i = 0; i < scene.object[a].edges.length; i++) {
+				int point1 = scene.object[a].edges[i].pointID1;
+				int point2 = scene.object[a].edges[i].pointID2;
+				try {graphics.drawLine(pointArrays[a][point1].x, pointArrays[a][point1].y, pointArrays[a][point2].x, pointArrays[a][point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
+			}
+		}
+	}
+	protected Point calculatePoint(int a, int i, Dimension size, Point location) {
+		Vector3 localCamPos = new Vector3(0, 0, 0);
+		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
+		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
+		if (scene.object[a].points[i].getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].getY()*Math.sin(viewAngleY) < scene.camDist) {
+			// 3D to 2D point conversion
+			double zAngle = Math.atan((scene.object[a].points[i].getZ())/(scene.object[a].points[i].getX()));
+			if (scene.object[a].points[i].getX() == 0 && scene.object[a].points[i].getZ() == 0) {
+				zAngle = 0;
+			}
+			double mag = Math.hypot(scene.object[a].points[i].getX(), scene.object[a].points[i].getZ());
+			if (scene.object[a].points[i].getX() < 0) {
+				xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
+				yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
+			} else {
+				xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
+				yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
+			}
+			distance[a][i] = new Distance(Math3D.hypot3(localCamPos.getX()-scene.object[a].points[i].getX(), localCamPos.getY()-scene.object[a].points[i].getY(), localCamPos.getZ()-scene.object[a].points[i].getZ()), i);
+			double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
+			camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
+			return new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
+		}
+		return null;
+	}
+	protected Point calculatePointGPU(int a, int i, Dimension size, Point location) {
+		int id = (scene.object[a].points.length*a)+i;
+		distance[a][i] = new Distance(0.0, -1);
+		if (scene.object[a].points[i].getZ()*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].getX()*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].getY()*sinViewAngleY[0] < scene.camDist) {
+			xTransform = xTransforms[id];
+			yTransform = yTransforms[id];
+			distance[a][i] = new Distance(maths[id], i);
+			camScale[a][i] = distance[a][i].distance*cosThetas[id]*sinViewAngles[id];
+			return new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
+		}
+		return null;
+	}
+	protected void calculateMouse() {
+		if (mode == CameraMode.DRAG) {
+			if (mouseClicked) {
+				Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
+				mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
+			} else {
+				mouse = lastMousePos;
+			}
+		} else {
+			mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 		}
 	}
 	protected class Renderer implements Runnable {
@@ -1094,18 +930,6 @@ public class Display extends Kernel {
 			interpolationHint = InterpolationMode.BICUBIC;
 			alphaInterpolationHint = RenderMode.QUALITY;
 		}
-		return this;
-	}
-	public Display enableAlternateTrigonometry() {
-		altTrig = true;
-		return this;
-	}
-	public Display disableAlternateTrigonometry() {
-		altTrig = false;
-		return this;
-	}
-	public Display setAlternateTrigonometryAccuracy(int accuracy) {
-		altTrigAcc = accuracy;
 		return this;
 	}
 }
