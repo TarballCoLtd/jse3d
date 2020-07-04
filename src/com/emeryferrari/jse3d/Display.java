@@ -14,8 +14,7 @@ public class Display extends Kernel {
 	protected JFrame frame; // the frame that the scene is rendered in
 	protected boolean renderPoints; // true if points are to be rendered
 	protected boolean rendering; // true if the startRender() method has been called
-	protected int pointWidth; // width of points if renderPoints is true
-	protected int pointHeight; // height of points if renderPoints is true
+	protected Dimension pointSize; // width and height of drawn points
 	protected boolean rendererStarted; // true if the startRender() method has been called
 	protected boolean fpsLimit; // true if FPS is being capped to a certain framerate
 	protected boolean fpsLogging; // true if the user wants to log FPS counts to the console
@@ -118,24 +117,24 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight) {
-		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight);
+		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians) {
-		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians);
+		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight, fovRadians);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
-		this(scene, frameTitle, frameVisible, renderPoints, 5, 5, frameWidth, frameHeight, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
+		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, Math.toRadians(80));
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight) {
+		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, Math.toRadians(80));
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, 4096, 32, 128);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, double fovRadians) {
+		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, 4096, 32, 128);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight ,int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
-		this(scene, frameTitle, frameVisible, renderPoints, pointWidth, pointHeight, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int pointWidth, int pointHeight, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		camPosPrintPoint = new Point(0, 11);
 		assertion = false;
 		antialiasingHint = true;
@@ -173,8 +172,7 @@ public class Display extends Kernel {
 		distance = new Distance[maxObjects][maxPointsObject];
 		camScale = new double[maxObjects][maxPointsObject];
 		this.renderPoints = renderPoints;
-		this.pointWidth = pointWidth;
-		this.pointHeight = pointHeight;
+		this.pointSize = pointSize;
 		rendererStarted = false;
 		fpsLimit = true;
 		fpsLogging = false;
@@ -230,13 +228,10 @@ public class Display extends Kernel {
 	}
 	protected void renderFrame(Graphics gfx, DisplayRenderer renderer) {
 		Graphics2D graphics = (Graphics2D) gfx;
-		try {
-			graphics.setRenderingHints(hints); // applies rendering hints
-		} catch (ConcurrentModificationException ex) {}
+		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
 		Dimension size = renderer.getSize();
 		Point location = renderer.getLocation();
-		if (renderTarget == RenderTarget.CPU_SINGLETHREADED) {
-			// this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
+		if (renderTarget == RenderTarget.CPU_SINGLETHREADED) { // this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
 			pointArrays = new Point[scene.object.length][];
 			renderBackground(graphics, size, location);
 			calculateMouse();
@@ -254,8 +249,7 @@ public class Display extends Kernel {
 				}
 			}
 			renderExtras(graphics);
-		} else {
-			// called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
+		} else { // called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
 			// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
 			Vector3 localCamPos = new Vector3(0, 0, 0);
 			try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
@@ -271,7 +265,7 @@ public class Display extends Kernel {
 					points[i] = calculatePointGPU(a, i, size, location);
 					if (renderPoints) {
 						setColor(graphics, Color.BLACK);
-						graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
+						graphics.fillOval(points[i].x, points[i].y, pointSize.width, pointSize.height);
 					}
 				}
 				if (faceRender) { // sorts faces so that they're rendered from back to front
@@ -348,7 +342,7 @@ public class Display extends Kernel {
 	}
 	protected void renderPoint(Graphics2D graphics, Point[] points, int i) {
 		setColor(graphics, Color.BLACK);
-		graphics.fillOval(points[i].x, points[i].y, pointWidth, pointHeight);
+		graphics.fillOval(points[i].x, points[i].y, pointSize.width, pointSize.height);
 	}
 	protected void printCameraPosition(Graphics2D graphics) {
 		Vector3 cameraPos = getCameraPositionActual();
