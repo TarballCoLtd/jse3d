@@ -12,9 +12,9 @@ public class JSE3DExample {
 		Scene scene = new Scene(objects, 5.0);
 		Display display = new Display(scene, "jse3d demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
 		display.enableFPSLogging();
+		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
-		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
-		display.setRenderQuality(RenderMode.QUALITY);
+		display.setRenderTarget(RenderTarget.GPU);
 		display.startRender();
 	}
 }

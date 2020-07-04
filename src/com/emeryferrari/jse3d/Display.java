@@ -396,9 +396,7 @@ public class Display extends Kernel {
 						int[] ys2 = {pointArrays[a][scene.object[a].faces[x].triangles[y].pointID1].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID2].y, pointArrays[a][scene.object[a].faces[x].triangles[y].pointID3].y};
 						xs = xs2;
 						ys = ys2;
-					} catch (NullPointerException ex) {
-						System.out.println("null");
-					}
+					} catch (NullPointerException ex) {}
 					setColor(graphics, scene.object[a].faces[x].triangles[y].color);
 					graphics.fillPolygon(xs, ys, 3);
 				}
