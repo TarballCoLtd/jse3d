@@ -1,12 +1,22 @@
 package com.emeryferrari.jse3d.obj;
 import java.io.*;
 import com.emeryferrari.jse3d.gfx.*;
+import com.emeryferrari.jse3d.interfaces.*;
 public class Object3D implements Serializable {
 	private static final long serialVersionUID = 1L;
+	protected boolean started = false;
 	public Vector3[] points;
 	public Line[] edges = {};
 	public Face[] faces = {};
 	public double camDist = 0;
+	public Updatable updatable = new Updatable() {
+		@Override
+		public void start() {}
+		@Override
+		public void update() {}
+		@Override
+		public void fixedUpdate() {}
+	};
 	public Object3D(Vector3[] points, Face[] faces, Line[] edges) {
 		this(points, faces);
 		this.edges = edges;
@@ -86,6 +96,22 @@ public class Object3D implements Serializable {
 			}
 		}
 		return -1;
+	}
+	public Object3D setScript(Updatable updatable) {
+		this.updatable = updatable;
+		return this;
+	}
+	public void start() {
+		if (!started) {
+			updatable.start();
+		}
+		started = true;
+	}
+	public void update() {
+		updatable.update();
+	}
+	public void fixedUpdate() {
+		updatable.fixedUpdate();
 	}
 	@Override
 	public boolean equals(Object object) {

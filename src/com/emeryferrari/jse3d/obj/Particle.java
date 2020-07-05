@@ -1,5 +1,6 @@
 package com.emeryferrari.jse3d.obj;
 public class Particle {
+	protected boolean started = false;
 	protected Vector3 position;
 	protected Trajectory trajectory;
 	public Particle(Vector3 position, Trajectory trajectory) {
@@ -16,7 +17,10 @@ public class Particle {
 		return this;
 	}
 	public void start() {
-		trajectory.start();
+		if (!started) {
+			trajectory.start();
+		}
+		started = true;
 	}
 	public void update() {
 		trajectory.update();

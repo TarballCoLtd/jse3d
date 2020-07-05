@@ -30,9 +30,9 @@ public class Display extends Kernel {
 	protected RenderingHints hints; // current rendering hints
 	protected Point mouse;
 	protected Point[][] pointArrays; // array of 2D point arrays where 3D points should be rendered on the frame
-	protected ArrayList<Particle> particles;
 	protected Vector3 localCamPos;
 	protected Time time;
+	protected ParticleKernel particleKernel;
 	private DisplaySettings settings;
 	// OPENCL POINT VARIABLES
 	final float[] zAngleX;
@@ -114,7 +114,6 @@ public class Display extends Kernel {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		time = new Time();
 		settings = new DisplaySettings();
-		particles = new ArrayList<Particle>();
 		calculateRenderingHints();
 		zAngleX = new float[maxPointsTotal];
 		zAngleY = new float[maxPointsTotal];
@@ -155,8 +154,12 @@ public class Display extends Kernel {
 	}
 	public Display startRender() { // call this to make the frame visible and start rendering
 		if (!rendererStarted) {
-			for (int i = 0; i < particles.size(); i++) {
-				try {particles.get(i).start();} catch (NullPointerException ex) {}
+			particleKernel = new ParticleKernel(this);
+			for (int i = 0; i < scene.object.length; i++) {
+				try {scene.object[i].start();} catch (NullPointerException ex) {}
+			}
+			for (int i = 0; i < scene.particles.size(); i++) {
+				try {scene.particles.get(i).start();} catch (NullPointerException ex) {}
 			}
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
@@ -187,14 +190,13 @@ public class Display extends Kernel {
 		@Override
 		public void paintComponent(Graphics gfx) {
 			if (rendering) {
-				renderFrame(gfx, this);
+				renderFrame((Graphics2D)gfx, this);
 			}
 		}
 	}
-	protected void renderFrame(Graphics gfx, DisplayRenderer renderer) {
+	protected void renderFrame(Graphics2D graphics, DisplayRenderer renderer) {
 		localCamPos = new Vector3(0, 0, 0);
 		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
-		Graphics2D graphics = (Graphics2D) gfx;
 		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
 		Dimension size = renderer.getSize();
 		Point location = renderer.getLocation();
@@ -214,7 +216,7 @@ public class Display extends Kernel {
 				if (settings.faceRender) { // sorts faces so that they're rendered back to front
 					sortFaces(a, points);
 				}
-			}
+			}					
 			renderExtras(graphics, size, location);
 		} else { // called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
 			// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
@@ -252,27 +254,27 @@ public class Display extends Kernel {
 		if (settings.lineRender) {
 			renderLines(graphics);
 		}
-		for (int a = 0; a < particles.size(); a++) {
-			renderParticle(graphics, calculateParticle(a, size, location), particles.get(a).getPosition());
+		for (int a = 0; a < scene.particles.size(); a++) {
+			renderParticle(graphics, calculateParticle(a, size, location), scene.particles.get(a).getPosition());
 		}
 	}
 	protected Point calculateParticle(int particleID, Dimension size, Point location) {
 		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
-		if (particles.get(particleID).getPosition().getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + particles.get(particleID).getPosition().getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - particles.get(particleID).getPosition().getY()*Math.sin(viewAngleY) < scene.camDist) {
+		if (scene.particles.get(particleID).getPosition().getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.particles.get(particleID).getPosition().getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.particles.get(particleID).getPosition().getY()*Math.sin(viewAngleY) < scene.camDist) {
 			// 3D to 2D point conversion
-			double zAngle = Math.atan(particles.get(particleID).getPosition().getZ()/particles.get(particleID).getPosition().getX());
-			if (particles.get(particleID).getPosition().getX() == 0 && particles.get(particleID).getPosition().getZ() == 0) {
+			double zAngle = Math.atan(scene.particles.get(particleID).getPosition().getZ()/scene.particles.get(particleID).getPosition().getX());
+			if (scene.particles.get(particleID).getPosition().getX() == 0 && scene.particles.get(particleID).getPosition().getZ() == 0) {
 				zAngle = 0;
 			}
-			double mag = Math.hypot(particles.get(particleID).getPosition().getX(), particles.get(particleID).getPosition().getZ());
-			if (particles.get(particleID).getPosition().getX() < 0) {
+			double mag = Math.hypot(scene.particles.get(particleID).getPosition().getX(), scene.particles.get(particleID).getPosition().getZ());
+			if (scene.particles.get(particleID).getPosition().getX() < 0) {
 				xTransform = -mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
-				yTransform = -mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
+				yTransform = -mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
 			} else {
 				xTransform = mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
-				yTransform = mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
+				yTransform = mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
 			}
-			double distance = Math3D.hypot3(localCamPos.getX()-particles.get(particleID).getPosition().getX(), localCamPos.getY()-particles.get(particleID).getPosition().getY(), localCamPos.getZ()-particles.get(particleID).getPosition().getZ());
+			double distance = Math3D.hypot3(localCamPos.getX()-scene.particles.get(particleID).getPosition().getX(), localCamPos.getY()-scene.particles.get(particleID).getPosition().getY(), localCamPos.getZ()-scene.particles.get(particleID).getPosition().getZ());
 			double theta = Math.asin((Math.hypot(xTransform, yTransform)/DisplaySettings.SCALE)/distance);
 			double camScale = distance*Math.cos(theta)*Math.sin(settings.viewAngle/2);
 			return new Point((int)((size.width+location.x)/2+xTransform/camScale), (int)((size.height+location.y)/2-yTransform/camScale));
@@ -362,7 +364,7 @@ public class Display extends Kernel {
 	protected void renderParticle(Graphics2D graphics, Point point, Vector3 position) {
 		graphics.setColor(Color.BLACK);
 		double reciprocal = 1.0/Math3D.hypot3(localCamPos.getX()-position.getX(), localCamPos.getY()-position.getY(), localCamPos.getZ()-position.getZ());
-		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));
+		try {graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));} catch (NullPointerException ex) {}
 	}
 	protected void printCameraPosition(Graphics2D graphics) {
 		Vector3 cameraPos = getCameraPositionActual();
@@ -498,18 +500,19 @@ public class Display extends Kernel {
 			    }
 			    renderFrame();
 			    time.reset();
-			    for (int i = 0; i < particles.size(); i++) {
-			    	try {particles.get(i).update();} catch (NullPointerException ex) {}
+			    for (int i = 0; i < scene.object.length; i++) {
+			    	try {scene.object[i].update();} catch (NullPointerException ex) {}
+			    }
+			    for (int i = 0; i < scene.particles.size(); i++) {
+			    	try {scene.particles.get(i).update();} catch (NullPointerException ex) {}
 			    }
 			    if (settings.fpsLimit) {
 			    	long tmp = (lastLoopTime-System.nanoTime()+optimalTime)/1000000;
-			    	if (tmp > 0) {
-			    		try {Thread.sleep(tmp);} catch (InterruptedException ex) {ex.printStackTrace();}
-			    	}
+			    	try {Thread.sleep(tmp > 0 ? tmp : 0);} catch (InterruptedException ex) {ex.printStackTrace();}
 			    }
 			}
 		}
-		protected void renderFrame() {
+		private void renderFrame() {
 			getFrame().repaint();
 		}
 	}
@@ -527,14 +530,15 @@ public class Display extends Kernel {
 					lastFpsTime = 0L;
 					OPTIMAL_TIME = 1000000000/settings.physicsTimestep;
 				}
-				for (int i = 0; i < particles.size(); i++) {
-					try {particles.get(i).fixedUpdate();} catch (NullPointerException ex) {}
+				for (int i = 0; i < scene.object.length; i++) {
+					try {scene.object[i].fixedUpdate();} catch (NullPointerException ex) {}
+				}
+				for (int i = 0; i < scene.particles.size(); i++) {
+					try {scene.particles.get(i).fixedUpdate();} catch (NullPointerException ex) {}
 				}
 				time.fixedReset();
 				long tmp = (lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000;
-				if (tmp > 0) {
-					try {Thread.sleep(tmp);} catch (InterruptedException ex) {ex.printStackTrace();}
-				}
+				try {Thread.sleep(tmp > 0 ? tmp : 0);} catch (InterruptedException ex) {ex.printStackTrace();}
 			}
 		}
 	}
@@ -685,6 +689,12 @@ public class Display extends Kernel {
 		return scene;
 	}
 	public Display setScene(Scene scene) {
+		for (int i = 0; i < scene.object.length; i++) {
+			try {scene.object[i].start();} catch (NullPointerException ex) {}
+		}
+		for (int i = 0; i < scene.particles.size(); i++) {
+			try {scene.particles.get(i).start();} catch (NullPointerException ex) {}
+		}
 		this.scene = scene;
 		return this;
 	}
@@ -932,15 +942,15 @@ public class Display extends Kernel {
 		return this;
 	}
 	public int addParticle(Particle particle) {
-		particle.start();
-		particles.add(particle);
-		return particles.size()-1;
+		try {particle.start();} catch (NullPointerException ex) {}
+		scene.particles.add(particle);
+		return scene.particles.size()-1;
 	}
 	public void removeParticle(int particleID) {
-		particles.set(particleID, null);
+		scene.particles.set(particleID, null);
 	}
 	public ArrayList<Particle> getParticles() {
-		return particles;
+		return scene.particles;
 	}
 	public Display setPointSize(Dimension pointSize) {
 		settings.pointSize = pointSize;
@@ -951,5 +961,13 @@ public class Display extends Kernel {
 	}
 	public Time getTime() {
 		return time;
+	}
+	public Display enablePointRendering() {
+		settings.renderPoints = true;
+		return this;
+	}
+	public Display disablePointRendering() {
+		settings.renderPoints = false;
+		return this;
 	}
 }

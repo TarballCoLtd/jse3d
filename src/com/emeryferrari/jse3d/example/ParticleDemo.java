@@ -13,29 +13,33 @@ public class ParticleDemo {
 		}
 		Scene scene = new Scene(objects, 7.5);
 		Display display = new Display(scene, "jse3d demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
-		display.enableFPSLogging();
+		//display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
+		display.setRenderQuality(RenderMode.QUALITY);
 		display.setPointSize(new Dimension(40, 40));
 		display.startRender();
 		Trajectory trajectory = new Trajectory();
 		Particle particle = new Particle(new Vector3(0, 0, 0), trajectory);
 		Updatable runnable = new Updatable() {
 			private Vector3 increment;
+			private Vector3 currentPos;
 			@Override
 			public void start() {
 				increment = new Vector3(0, 4, 0);
+				currentPos = particle.getPosition();
 			}
 			@Override
-			public void update() {}
-			@Override
-			public void fixedUpdate() {
-				Vector3 currentPos = particle.getPosition();
+			public void update() {
 				if (currentPos.getY() > Math.PI*2) {
 					increment.setY(-4.0);
 				} else if (currentPos.getY() < -Math.PI*2) {
 					increment.setY(4.0);
 				}
+			}
+			@Override
+			public void fixedUpdate() {
+				currentPos = particle.getPosition();
 				double y = currentPos.getY()+(increment.getY()*display.getTime().fixedDeltaTime);
 				particle.setPosition(new Vector3(Math.sin(y)*3, y, 0));
 			}
