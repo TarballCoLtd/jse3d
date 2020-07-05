@@ -1,5 +1,5 @@
 package com.emeryferrari.jse3d.example;
-import com.emeryferrari.jse3d.*;
+import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 public class CubeDemo {

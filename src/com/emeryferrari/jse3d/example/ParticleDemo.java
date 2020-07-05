@@ -1,5 +1,5 @@
 package com.emeryferrari.jse3d.example;
-import com.emeryferrari.jse3d.*;
+import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 public class ParticleDemo {
@@ -13,7 +13,7 @@ public class ParticleDemo {
 		Display display = new Display(scene, "jse3d demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
 		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
-		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
+		display.setRenderTarget(RenderTarget.GPU);
 		display.setPointSize(new java.awt.Dimension(40, 40));
 		display.startRender();
 		Trajectory trajectory = new Trajectory();
@@ -23,9 +23,9 @@ public class ParticleDemo {
 			@Override
 			public void run() {
 				Vector3 currentPos = particle.getPosition();
-				if (currentPos.getY() > 4) {
+				if (currentPos.getY() > 3) {
 					increment.setY(-4.0);
-				} else if (currentPos.getY() < -4) {
+				} else if (currentPos.getY() < -3) {
 					increment.setY(4.0);
 				}
 				particle.setPosition(new Vector3(currentPos.getX()+(increment.getX()*Time.fixedDeltaTime), currentPos.getY()+(increment.getY()*Time.fixedDeltaTime), currentPos.getZ()+(increment.getZ()*Time.fixedDeltaTime)));

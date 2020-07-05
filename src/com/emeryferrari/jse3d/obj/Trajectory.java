@@ -1,5 +1,5 @@
 package com.emeryferrari.jse3d.obj;
-import com.emeryferrari.jse3d.*;
+import com.emeryferrari.jse3d.gfx.*;
 public class Trajectory {
 	protected Runnable move;
 	protected Particle particle;

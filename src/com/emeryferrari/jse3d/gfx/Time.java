@@ -1,4 +1,4 @@
-package com.emeryferrari.jse3d;
+package com.emeryferrari.jse3d.gfx;
 public class Time {
 	private Time() {}
 	private static long fixedLast = System.nanoTime();

@@ -1,6 +1,6 @@
 package com.emeryferrari.jse3d.obj;
 import java.io.*;
-import com.emeryferrari.jse3d.*;
+import com.emeryferrari.jse3d.gfx.*;
 public class Vector3 implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public static final Vector3 back = new Vector3(0, 0, -1);

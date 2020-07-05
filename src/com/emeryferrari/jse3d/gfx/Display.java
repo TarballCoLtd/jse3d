@@ -1,10 +1,11 @@
-package com.emeryferrari.jse3d;
+package com.emeryferrari.jse3d.gfx;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.awt.event.*;
 import com.aparapi.*;
 import com.aparapi.device.*;
+import com.emeryferrari.jse3d.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.exc.*;
 import com.emeryferrari.jse3d.obj.*;

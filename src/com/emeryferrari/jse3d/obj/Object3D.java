@@ -1,6 +1,6 @@
 package com.emeryferrari.jse3d.obj;
 import java.io.*;
-import com.emeryferrari.jse3d.*;
+import com.emeryferrari.jse3d.gfx.*;
 public class Object3D implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public Vector3[] points;

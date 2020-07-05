@@ -1,7 +1,7 @@
 package com.emeryferrari.jse3d.network;
 import java.net.*;
 import java.io.*;
-import com.emeryferrari.jse3d.*;
+import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.obj.*;
 import javax.swing.*;
 import java.awt.*;
