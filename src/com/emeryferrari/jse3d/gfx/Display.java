@@ -13,53 +13,25 @@ public class Display extends Kernel {
 	protected DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
 	protected JFrame frame; // the frame that the scene is rendered in
-	protected boolean renderPoints; // true if points are to be rendered
 	protected boolean rendering; // true if the startRender() method has been called
-	protected Dimension pointSize; // width and height of drawn points
 	protected boolean rendererStarted; // true if the startRender() method has been called
-	protected boolean fpsLimit; // true if FPS is being capped to a certain framerate
-	protected boolean fpsLogging; // true if the user wants to log FPS counts to the console
-	protected Color lineColor; // specifies color lines should be rendered in
-	protected boolean lineRender; // true if lines are being rendered
-	protected boolean faceRender; // true if faces are being rendered
-	protected int targetFps; // FPS cap
 	protected long optimalTime; // time variable used by FPS timer
-	protected boolean invertColors; // true if colors are inverted
-	protected Color backgroundColor; // skybox color
 	protected Point lastMousePos; // mouse variable used by view angle changers
 	protected boolean mouseClicked; // mouse variable used by view angle changers
 	protected Point mouseDiff; // mouse variable used by view angle changers
-	protected boolean scrollWheel; // mouse variable used by view angle changers
-	protected int physicsTimestep = 60; // physics timestep for transition operations
 	protected Vector3 camPos; // current camera position in relation to (0,0,0)
-	protected CameraMode mode; // current camera mode
 	protected Distance[][] distance; // used internally by scene renderer, represents distances between points and the camera
 	protected double[][] camScale; // used internally by scene renderer
-	protected final float scale = 125; // used internally by scene renderer
-	protected final double sensitivity = 125; // used internally by scene renderer
 	protected double xTransform = 0; // used internally by scene renderer
 	protected double yTransform = 0; // used internally by scene renderer
 	protected double viewAngleX = 0; // used internally by scene renderer, represents the angle of the camera
 	protected double viewAngleY = 0; // used internally by scene renderer, represents the angle of the camera
-	protected boolean camPosPrint = false; // true if camera position is to be printed to the frame
 	protected int fps = 0; // time variable used by FPS timer
-	protected boolean yAxisClamp; // true if viewAngleY is being clamped to [-pi, pi]
-	protected double viewAngle;
-	protected RenderTarget renderTarget; // current render target
 	protected RenderingHints hints; // current rendering hints
-	protected boolean antialiasingHint; // true if antialiasing should be used
-	protected RenderMode renderingHint; // specifies quality of render
-	protected boolean ditheringHint; // true if dithering should be enabled
-	protected RenderMode colorRenderingHint; // specifies quality of colors
-	protected boolean fractionalMetricsHint; // true if fractional metrics should be enabled
-	protected boolean textAntialiasingHint; // true if text antialiasing should be used
-	protected InterpolationMode interpolationHint; // image interpolation settings
-	protected RenderMode alphaInterpolationHint; // alpha interpolation settings
-	protected boolean assertion; // makes sure AssertionError's stack trace is only printed once
-	protected Point camPosPrintPoint; // where the camera position should be printed to on the frame
 	protected Point mouse;
 	protected Point[][] pointArrays; // array of 2D point arrays where 3D points should be rendered on the frame
 	protected ArrayList<Particle> particles;
+	private DisplaySettings settings;
 	// OPENCL VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
@@ -137,17 +109,8 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		settings = new DisplaySettings();
 		particles = new ArrayList<Particle>();
-		camPosPrintPoint = new Point(0, 11);
-		assertion = false;
-		antialiasingHint = true;
-		renderingHint = RenderMode.PERFORMANCE;
-		ditheringHint = false;
-		colorRenderingHint = RenderMode.QUALITY;
-		fractionalMetricsHint = false;
-		textAntialiasingHint = false;
-		interpolationHint = InterpolationMode.BILINEAR;
-		alphaInterpolationHint = RenderMode.QUALITY;
 		calculateRenderingHints();
 		zAngleX = new float[maxPointsTotal];
 		zAngleY = new float[maxPointsTotal];
@@ -159,7 +122,6 @@ public class Display extends Kernel {
 		maths = new float[maxPointsTotal];
 		cosThetas = new float[maxPointsTotal];
 		sinViewAngles = new float[maxPointsTotal];
-		renderTarget = RenderTarget.GPU;
 		renderer = new DisplayRenderer();
 		this.scene = scene;
 		if (frameTitle.equals("")) {
@@ -174,27 +136,18 @@ public class Display extends Kernel {
 		frame.getContentPane().add(BorderLayout.CENTER, renderer);
 		distance = new Distance[maxObjects][maxPointsObject];
 		camScale = new double[maxObjects][maxPointsObject];
-		this.renderPoints = renderPoints;
-		this.pointSize = pointSize;
+		settings.renderPoints = renderPoints;
+		settings.pointSize = pointSize;
 		rendererStarted = false;
-		fpsLimit = true;
-		fpsLogging = false;
-		lineRender = true;
-		faceRender = true;
-		targetFps = fps;
-		optimalTime = 1000000000/targetFps;
-		invertColors = false;
-		lineColor = Color.BLACK;
-		backgroundColor = Color.WHITE;
+		settings.targetFps = fps;
+		optimalTime = 1000000000/settings.targetFps;
 		renderer.addMouseListener(new ClickListener());
 		renderer.addMouseWheelListener(new ScrollListener());
 		mouseClicked = false;
-		scrollWheel = true;
-		mode = CameraMode.DRAG;
+		
 		camPos = new Vector3(0, 0, 0);
 		mouseDiff = new Point(0, 0);
-		viewAngle = fovRadians;
-		yAxisClamp = true;
+		settings.viewAngle = fovRadians;
 	}
 	public Display startRender() { // call this to make the frame visible and start rendering
 		if (!rendererStarted) {
@@ -236,7 +189,7 @@ public class Display extends Kernel {
 		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
 		Dimension size = renderer.getSize();
 		Point location = renderer.getLocation();
-		if (renderTarget == RenderTarget.CPU_SINGLETHREADED) { // this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
+		if (settings.renderTarget == RenderTarget.CPU_SINGLETHREADED) { // this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
 			pointArrays = new Point[scene.object.length][];
 			renderBackground(graphics, size, location);
 			calculateMouse();
@@ -245,11 +198,11 @@ public class Display extends Kernel {
 				Point[] points = new Point[scene.object[a].points.length];
 				for (int i = 0; i < scene.object[a].points.length; i++) {
 					points[i] = calculatePoint(a, i, size, location);
-					if (renderPoints) {
+					if (settings.renderPoints) {
 						renderPoint(graphics, points[i]);
 					}
 				}
-				if (faceRender) { // sorts faces so that they're rendered back to front
+				if (settings.faceRender) { // sorts faces so that they're rendered back to front
 					sortFaces(a, points);
 				}
 			}
@@ -268,11 +221,11 @@ public class Display extends Kernel {
 				Point[] points = new Point[scene.object[a].points.length];
 				for (int i = 0; i < scene.object[a].points.length; i++) {
 					points[i] = calculatePointGPU(a, i, size, location);
-					if (renderPoints) {
+					if (settings.renderPoints) {
 						renderPoint(graphics, points[i]);
 					}
 				}
-				if (faceRender) { // sorts faces so that they're rendered from back to front
+				if (settings.faceRender) { // sorts faces so that they're rendered from back to front
 					sortFaces(a, points);
 				}
 			}
@@ -283,13 +236,13 @@ public class Display extends Kernel {
 	}
 	
 	protected void renderExtras(Graphics2D graphics, Dimension size, Point location) {
-		if (camPosPrint) {
+		if (settings.camPosPrint) {
 			printCameraPosition(graphics);
 		}
-		if (faceRender) { // sorts faces so that they're rendered from back to front
+		if (settings.faceRender) { // sorts faces so that they're rendered from back to front
 			renderFaces(graphics);
 		}
-		if (lineRender) {
+		if (settings.lineRender) {
 			renderLines(graphics);
 		}
 		for (int a = 0; a < particles.size(); a++) {
@@ -308,15 +261,15 @@ public class Display extends Kernel {
 			}
 			double mag = Math.hypot(particles.get(particleID).getPosition().getX(), particles.get(particleID).getPosition().getZ());
 			if (particles.get(particleID).getPosition().getX() < 0) {
-				xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-				yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(particles.get(particleID).getPosition().getY())*scale*Math.cos(viewAngleY);
+				xTransform = -mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
+				yTransform = -mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
 			} else {
-				xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-				yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(particles.get(particleID).getPosition().getY())*scale*Math.cos(viewAngleY);
+				xTransform = mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
+				yTransform = mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
 			}
 			double distance = Math3D.hypot3(localCamPos.getX()-particles.get(particleID).getPosition().getX(), localCamPos.getY()-particles.get(particleID).getPosition().getY(), localCamPos.getZ()-particles.get(particleID).getPosition().getZ());
-			double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance);
-			double camScale = distance*Math.cos(theta)*Math.sin(viewAngle/2);
+			double theta = Math.asin((Math.hypot(xTransform, yTransform)/DisplaySettings.SCALE)/distance);
+			double camScale = distance*Math.cos(theta)*Math.sin(settings.viewAngle/2);
 			return new Point((int)((size.width+location.x)/2+xTransform/camScale), (int)((size.height+location.y)/2-yTransform/camScale));
 		}
 		return null;
@@ -333,15 +286,15 @@ public class Display extends Kernel {
 			}
 			double mag = Math.hypot(scene.object[a].points[i].getX(), scene.object[a].points[i].getZ());
 			if (scene.object[a].points[i].getX() < 0) {
-				xTransform = -mag*scale*Math.cos(viewAngleX+zAngle);
-				yTransform = -mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
+				xTransform = -mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
+				yTransform = -mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
 			} else {
-				xTransform = mag*scale*Math.cos(viewAngleX+zAngle);
-				yTransform = mag*scale*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*scale*Math.cos(viewAngleY);
+				xTransform = mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
+				yTransform = mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
 			}
 			distance[a][i] = new Distance(Math3D.hypot3(localCamPos.getX()-scene.object[a].points[i].getX(), localCamPos.getY()-scene.object[a].points[i].getY(), localCamPos.getZ()-scene.object[a].points[i].getZ()), i);
-			double theta = Math.asin((Math.hypot(xTransform, yTransform)/scale)/distance[a][i].distance);
-			camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(viewAngle/2);
+			double theta = Math.asin((Math.hypot(xTransform, yTransform)/DisplaySettings.SCALE)/distance[a][i].distance);
+			camScale[a][i] = distance[a][i].distance*Math.cos(theta)*Math.sin(settings.viewAngle/2);
 			return new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
 		}
 		return null;
@@ -349,7 +302,7 @@ public class Display extends Kernel {
 	@SuppressWarnings("deprecation")
 	protected void calculateOnGPU() {
 		Device chosen = null;
-		if (renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
+		if (settings.renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
 			chosen = Device.firstCPU();
 			if (chosen == null) {
 				System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
@@ -368,9 +321,9 @@ public class Display extends Kernel {
 			range.setLocalSize_0(zAngleLength);
 			execute(range);
 		} catch (AssertionError err) {
-			if (!assertion) {
+			if (!settings.assertion) {
 				System.err.println("java.lang.AssertionError: Selected OpenCL device not available. This is a bug with jse3d. In the meantime, try setting the number of objects in the scene to a multiple of how many cores the selected device has as a temporary workaround. Normally this is a power of 2, however that is not always true.");
-				assertion = true;
+				settings.assertion = true;
 			}
 		}
 	}
@@ -378,7 +331,7 @@ public class Display extends Kernel {
 		localCamPosX[0] = (float) localCamPos.getX();
 		localCamPosY[0] = (float) localCamPos.getY();
 		localCamPosZ[0] = (float) localCamPos.getZ();
-		gpuViewAngle[0] = (float) viewAngle;
+		gpuViewAngle[0] = (float) settings.viewAngle;
 		viewAngleXInput[0] = (float) viewAngleX;
 		viewAngleYInput[0] = (float) viewAngleY;
 		zAngleLength = 0;
@@ -395,38 +348,38 @@ public class Display extends Kernel {
 		}
 	}
 	protected void renderBackground(Graphics2D graphics, Dimension size, Point location) {
-		setColor(graphics, backgroundColor);
+		setColor(graphics, settings.backgroundColor);
 		graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
 	}
 	protected void renderPoint(Graphics2D graphics, Point point) {
 		setColor(graphics, Color.BLACK);
-		graphics.fillOval(point.x, point.y, (int)(pointSize.width*(1.0/scene.camDist)), (int)(pointSize.height*(1.0/scene.camDist)));
+		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*(1.0/scene.camDist)), (int)(settings.pointSize.height*(1.0/scene.camDist))); // development note: change this to point's distance to camera to avoid a bug
 	}
 	protected void printCameraPosition(Graphics2D graphics) {
 		Vector3 cameraPos = getCameraPositionActual();
-		graphics.setColor(invertColors ? backgroundColor : invertColor(backgroundColor));
+		graphics.setColor(settings.invertColors ? settings.backgroundColor : invertColor(settings.backgroundColor));
 		graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 	}
 	protected void calculateViewAngles(Dimension size, Point location) {
 		viewAngleX = 0;
 		viewAngleY = 0;
 		try {
-			viewAngleY = -((location.y+mouse.y-size.height)/2)/sensitivity;
-			if (yAxisClamp) {
-				if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*sensitivity) {
+			viewAngleY = -((location.y+mouse.y-size.height)/2)/DisplaySettings.SENSITIVITY;
+			if (settings.yAxisClamp) {
+				if (Math.abs((location.y+mouse.y-size.height)/2)>Math.PI/2*DisplaySettings.SENSITIVITY) {
 					if (viewAngleY < 0) {
-						viewAngleY = -Math.PI/2*sensitivity;
+						viewAngleY = -Math.PI/2*DisplaySettings.SENSITIVITY;
 					} else {
-						viewAngleY = Math.PI/2*sensitivity;
+						viewAngleY = Math.PI/2*DisplaySettings.SENSITIVITY;
 					}
 				}
 			}
-			viewAngleX = -((location.x+mouse.x-size.width)/2)/sensitivity;
+			viewAngleX = -((location.x+mouse.x-size.width)/2)/DisplaySettings.SENSITIVITY;
 		} catch (NullPointerException ex) {}
 	}
 	protected void setColor(Graphics2D graphics, Color color) {
 		graphics.setColor(color);
-		if (invertColors) {
+		if (settings.invertColors) {
 			graphics.setColor(Display.invertColor(color));
 		}
 	}
@@ -491,10 +444,10 @@ public class Display extends Kernel {
 	}
 	protected void renderLines(Graphics2D graphics) {
 		for (int a = 0; a < scene.object.length; a++) {
-			if (invertColors) {
-				graphics.setColor(Display.invertColor(lineColor));
+			if (settings.invertColors) {
+				graphics.setColor(Display.invertColor(settings.lineColor));
 			} else {
-				graphics.setColor(lineColor);
+				graphics.setColor(settings.lineColor);
 			}
 			for (int i = 0; i < scene.object[a].edges.length; i++) {
 				int point1 = scene.object[a].edges[i].pointID1;
@@ -516,7 +469,7 @@ public class Display extends Kernel {
 		return null;
 	}
 	protected void calculateMouse() {
-		if (mode == CameraMode.DRAG) {
+		if (settings.mode == CameraMode.DRAG) {
 			if (mouseClicked) {
 				Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 				mouse = new Point(temp.x-mouseDiff.x, temp.y-mouseDiff.y);
@@ -538,7 +491,7 @@ public class Display extends Kernel {
 			    lastLoopTime = now;
 			    lastFpsTime += updateLength;
 			    if (lastFpsTime >= 1000000000) {
-			    	if (fpsLogging) {
+			    	if (settings.fpsLogging) {
 			    		System.out.println("FPS: " + fps);
 			    	}
 			        lastFpsTime = 0;
@@ -546,7 +499,7 @@ public class Display extends Kernel {
 			    }
 			    renderFrame();
 			    Time.reset();
-			    if (fpsLimit) {
+			    if (settings.fpsLimit) {
 			    	long tmp = (lastLoopTime-System.nanoTime()+optimalTime)/1000000;
 			    	if (tmp > 0) {
 			    		try {Thread.sleep(tmp);} catch (InterruptedException ex) {ex.printStackTrace();}
@@ -562,7 +515,7 @@ public class Display extends Kernel {
 		public void run() {
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
-			long OPTIMAL_TIME = 1000000000/physicsTimestep;
+			long OPTIMAL_TIME = 1000000000/settings.physicsTimestep;
 			while (true) {
 				long now = System.nanoTime();
 				long updateLength = now-lastLoopTime;
@@ -570,7 +523,7 @@ public class Display extends Kernel {
 				lastFpsTime += updateLength;
 				if (lastFpsTime >= 1000000000) {
 					lastFpsTime = 0L;
-					OPTIMAL_TIME = 1000000000/physicsTimestep;
+					OPTIMAL_TIME = 1000000000/settings.physicsTimestep;
 				}
 				for (int i = 0; i < particles.size(); i++) {
 					particles.get(i).run();
@@ -584,44 +537,44 @@ public class Display extends Kernel {
 		}
 	}
 	protected void calculateRenderingHints() { // creates a rendering hints object based on the settings currently in place, this is applied at the start of every new frame, and recalculated whenever a rendering hint is changed
-		if (antialiasingHint) {
+		if (settings.antialiasingHint) {
 			hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		} else {
 			hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 		}
-		if (renderingHint == RenderMode.PERFORMANCE) {
+		if (settings.renderingHint == RenderMode.PERFORMANCE) {
 			hints.add(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED));
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
 		}
-		if (ditheringHint) {
+		if (settings.ditheringHint) {
 			hints.add(new RenderingHints(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE));
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE));
 		}
-		if (colorRenderingHint == RenderMode.PERFORMANCE) {
+		if (settings.colorRenderingHint == RenderMode.PERFORMANCE) {
 			hints.add(new RenderingHints(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED));
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY));
 		}
-		if (fractionalMetricsHint) {
+		if (settings.fractionalMetricsHint) {
 			hints.add(new RenderingHints(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON));
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF));
 		}
-		if (textAntialiasingHint) {
+		if (settings.textAntialiasingHint) {
 			hints.add(new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON));
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
 		}
-		if (interpolationHint == InterpolationMode.BICUBIC) {
+		if (settings.interpolationHint == InterpolationMode.BICUBIC) {
 			hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
-		} else if (interpolationHint == InterpolationMode.BILINEAR) {
+		} else if (settings.interpolationHint == InterpolationMode.BILINEAR) {
 			hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR));
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR));
 		}
-		if (alphaInterpolationHint == RenderMode.PERFORMANCE) {
+		if (settings.alphaInterpolationHint == RenderMode.PERFORMANCE) {
 			hints.add(new RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED));
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY));
@@ -645,14 +598,14 @@ public class Display extends Kernel {
 		cosViewAngleXzAngle[id] = cos(viewAngleXInput[0]+zAngles);
 		mags = hypot(zAngleX[id], zAngleZ[id]);
 		if (zAngleX[id] < 0) {
-			xTransforms[id] = -mags*scale*cosViewAngleXzAngle[id];
-			yTransforms[id] = -mags*scale*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*scale*cosViewAngleY[0];
+			xTransforms[id] = -mags*DisplaySettings.SCALE*cosViewAngleXzAngle[id];
+			yTransforms[id] = -mags*DisplaySettings.SCALE*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*DisplaySettings.SCALE*cosViewAngleY[0];
 		} else {
-			xTransforms[id] = mags*scale*cosViewAngleXzAngle[id];
-			yTransforms[id] = mags*scale*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*scale*cosViewAngleY[0];
+			xTransforms[id] = mags*DisplaySettings.SCALE*cosViewAngleXzAngle[id];
+			yTransforms[id] = mags*DisplaySettings.SCALE*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*DisplaySettings.SCALE*cosViewAngleY[0];
 		}
 		maths[id] = sqrt(pow(localCamPosX[0]-zAngleX[id], 2)+pow(localCamPosY[0]-zAngleY[id], 2)+pow(localCamPosZ[0]-zAngleZ[id], 2));
-		cosThetas[id] = cos(asin((hypot(xTransforms[id], yTransforms[id])/scale)/maths[id]));
+		cosThetas[id] = cos(asin((hypot(xTransforms[id], yTransforms[id])/DisplaySettings.SCALE)/maths[id]));
 		sinViewAngles[id] = sin(gpuViewAngle[0]/2);
 	}
 	protected class ClickListener implements MouseListener { // calculations for CameraMode.DRAG
@@ -672,7 +625,7 @@ public class Display extends Kernel {
 	}
 	protected class ScrollListener implements MouseWheelListener { // controls scroll wheel camera distance changes
 		public void mouseWheelMoved(MouseWheelEvent ev) {
-			if (scrollWheel) {
+			if (settings.scrollWheel) {
 				if (ev.getWheelRotation() > 0) {
 					scene.camDist *= 1.2;
 				} else {
@@ -682,56 +635,56 @@ public class Display extends Kernel {
 		}
 	}
 	public Display setTargetFPS(int fps) {
-		targetFps = fps;
-		optimalTime = 1000000000 / targetFps;
+		settings.targetFps = fps;
+		optimalTime = 1000000000 / settings.targetFps;
 		return this;
 	}
 	public Display enableFPSLimit() {
-		fpsLimit = true;
+		settings.fpsLimit = true;
 		return this;
 	}
 	public Display disableFPSLimit() {
-		fpsLimit = false;
+		settings.fpsLimit = false;
 		return this;
 	}
 	public Display enableFPSLogging() {
-		fpsLogging = true;
+		settings.fpsLogging = true;
 		return this;
 	}
 	public Display disableFPSLogging() {
-		fpsLogging = false;
+		settings.fpsLogging = false;
 		return this;
 	}
 	public Display enableLineRendering() {
-		lineRender = true;
+		settings.lineRender = true;
 		return this;
 	}
 	public Display disableLineRendering() {
-		lineRender = false;
+		settings.lineRender = false;
 		return this;
 	}
 	public Display enableFaceRendering() {
-		faceRender = true;
+		settings.faceRender = true;
 		return this;
 	}
 	public Display disableFaceRendering() {
-		faceRender = false;
+		settings.faceRender = false;
 		return this;
 	}
 	public Display setLineColor(Color color) {
-		lineColor = color;
+		settings.lineColor = color;
 		return this;
 	}
 	public Display enableInvertColors() {
-		invertColors = true;
+		settings.invertColors = true;
 		return this;
 	}
 	public Display disableInvertColors() {
-		invertColors = false;
+		settings.invertColors = false;
 		return this;
 	}
 	public Display setBackgroundColor(Color color) {
-		backgroundColor = color;
+		settings.backgroundColor = color;
 		return this;
 	}
 	public Scene getScene() {
@@ -742,11 +695,11 @@ public class Display extends Kernel {
 		return this;
 	}
 	public Display setPhysicsTimestep(int timestep) { // not an actual timestep, the precision of physics movements is proportional to the timestep, rather than inversely proportional
-		physicsTimestep = timestep;
+		settings.physicsTimestep = timestep;
 		return this;
 	}
 	public int getPhysicsTimestep() {
-		return physicsTimestep;
+		return settings.physicsTimestep;
 	}
 	public Display setCameraPositionRel(Vector3 point) {
 		Thread cameraPos = new CameraPos(point, this);
@@ -795,18 +748,22 @@ public class Display extends Kernel {
 		}
 		@Override
 		public void run() {
-			double xIteration = xt/(double)physicsTimestep*((double)millis/1000.0);
-			double yIteration = yt/(double)physicsTimestep*((double)millis/1000.0);
-			double zIteration = zt/(double)physicsTimestep*((double)millis/1000.0);
+			double xIteration = xt/(double)settings.physicsTimestep*((double)millis/1000.0);
+			double yIteration = yt/(double)settings.physicsTimestep*((double)millis/1000.0);
+			double zIteration = zt/(double)settings.physicsTimestep*((double)millis/1000.0);
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
-			final long OPTIMAL_TIME = 1000000000 / physicsTimestep;
-			for (int x = 0; x < (int)(physicsTimestep*((double)millis/1000.0)); x++) {
+			long OPTIMAL_TIME = 1000000000 / settings.physicsTimestep;
+			for (int x = 0; x < (int)(settings.physicsTimestep*((double)millis/1000.0)); x++) {
 				long now = System.nanoTime();
 			    long updateLength = now - lastLoopTime;
 			    lastLoopTime = now;
 			    lastFpsTime += updateLength;
 			    if (lastFpsTime >= 1000000000) {
+			    	xIteration = xt/(double)settings.physicsTimestep*((double)millis/1000.0);
+			    	yIteration = yt/(double)settings.physicsTimestep*((double)millis/1000.0);
+			    	zIteration = zt/(double)settings.physicsTimestep*((double)millis/1000.0);
+			    	OPTIMAL_TIME = 1000000000 / settings.physicsTimestep;
 			        lastFpsTime = 0;
 			    }
 			    for (int y = 0; y < scene.object.length; y++) {
@@ -818,11 +775,11 @@ public class Display extends Kernel {
 		}
 	}
 	public Display enableScrollWheel() {
-		scrollWheel = true;
+		settings.scrollWheel = true;
 		return this;
 	}
 	public Display disableScrollWheel() {
-		scrollWheel = false;
+		settings.scrollWheel = false;
 		return this;
 	}
 	public Display setCameraDistance(double distance) {
@@ -830,11 +787,11 @@ public class Display extends Kernel {
 		return this;
 	}
 	public Display setCameraMode(CameraMode mode) {
-		this.mode = mode;
+		settings.mode = mode;
 		return this;
 	}
 	public CameraMode getCameraMode() {
-		return mode;
+		return settings.mode;
 	}
 	protected static Color invertColor(Color color) {
 		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
@@ -846,27 +803,27 @@ public class Display extends Kernel {
 		return new Vector3(x, y, z);
 	}
 	public Display enableCameraPositionPrinting() {
-		camPosPrint = true;
+		settings.camPosPrint = true;
 		return this;
 	}
 	public Display enableCameraPositionPrinting(Point pos) {
-		camPosPrintPoint = pos;
+		settings.camPosPrintPoint = pos;
 		return enableCameraPositionPrinting();
 	}
 	public Display disableCameraPositionPrinting() {
-		camPosPrint = false;
+		settings.camPosPrint = false;
 		return this;
 	}
 	public Display setCameraPositionPrintingPosition(Point pos) {
-		camPosPrintPoint = pos;
+		settings.camPosPrintPoint = pos;
 		return this;
 	}
 	public double getFOVRadians() {
-		return viewAngle;
+		return settings.viewAngle;
 	}
 	public Display setFOVRadians(double viewAngle) {
 		if (Math.abs(viewAngle) < Math.PI) {
-			this.viewAngle = viewAngle;
+			settings.viewAngle = viewAngle;
 		} else {
 			double newAngle = viewAngle;
 			while (newAngle > Math.PI) {
@@ -875,111 +832,111 @@ public class Display extends Kernel {
 			while (newAngle < -Math.PI) {
 				newAngle += Math.PI;
 			}
-			this.viewAngle = newAngle;
+			settings.viewAngle = newAngle;
 		}
 		return this;
 	}
 	public double getFOVDegrees() {
-		return Math.toDegrees(viewAngle);
+		return Math.toDegrees(settings.viewAngle);
 	}
 	public Display setFOVDegrees(double degrees) {
 		setFOVRadians(Math.toRadians(degrees));
 		return this;
 	}
 	public Display enableYAxisClamping() {
-		yAxisClamp = true;
+		settings.yAxisClamp = true;
 		return this;
 	}
 	public Display disableYAxisClamping() {
-		yAxisClamp = false;
+		settings.yAxisClamp = false;
 		return this;
 	}
 	public Display setRenderTarget(RenderTarget renderMode) {
-		renderTarget = renderMode;
+		settings.renderTarget = renderMode;
 		return this;
 	}
 	public RenderTarget getRenderTarget() {
-		return renderTarget;
+		return settings.renderTarget;
 	}
 	public Display enableAntialiasing() {
-		antialiasingHint = true;
+		settings.antialiasingHint = true;
 		return this;
 	}
 	public Display disableAntialiasing() {
-		antialiasingHint = false;
+		settings.antialiasingHint = false;
 		return this;
 	}
 	public Display setRenderingMode(RenderMode mode) {
-		renderingHint = mode;
+		settings.renderingHint = mode;
 		return this;
 	}
 	public RenderMode getRenderingMode() {
-		return renderingHint;
+		return settings.renderingHint;
 	}
 	public Display enableDithering() {
-		ditheringHint = true;
+		settings.ditheringHint = true;
 		return this;
 	}
 	public Display disableDithering() {
-		ditheringHint = false;
+		settings.ditheringHint = false;
 		return this;
 	}
 	public Display setColorRenderingMode(RenderMode mode) {
-		colorRenderingHint = mode;
+		settings.colorRenderingHint = mode;
 		return this;
 	}
 	public RenderMode getColorRenderingMode() {
-		return colorRenderingHint;
+		return settings.colorRenderingHint;
 	}
 	public Display enableFractionalMetrics() {
-		fractionalMetricsHint = true;
+		settings.fractionalMetricsHint = true;
 		return this;
 	}
 	public Display disableFractionalMetrics() {
-		fractionalMetricsHint = false;
+		settings.fractionalMetricsHint = false;
 		return this;
 	}
 	public Display enableTextAntialiasing() {
-		textAntialiasingHint = true;
+		settings.textAntialiasingHint = true;
 		return this;
 	}
 	public Display disableTextAntialiasing() {
-		textAntialiasingHint = false;
+		settings.textAntialiasingHint = false;
 		return this;
 	}
 	public Display setInterpolationMode(InterpolationMode mode) {
-		interpolationHint = mode;
+		settings.interpolationHint = mode;
 		return this;
 	}
 	public InterpolationMode getInterpolationMode() {
-		return interpolationHint;
+		return settings.interpolationHint;
 	}
 	public Display setAlphaInterpolationMode(RenderMode mode) {
-		alphaInterpolationHint = mode;
+		settings.alphaInterpolationHint = mode;
 		return this;
 	}
 	public RenderMode getAlphaInterpolationMode() {
-		return alphaInterpolationHint;
+		return settings.alphaInterpolationHint;
 	}
 	public Display setRenderQuality(RenderMode mode) { // sets rendering hints to either the best or the worst settings
 		if (mode == RenderMode.PERFORMANCE) {
-			antialiasingHint = false;
-			renderingHint = RenderMode.PERFORMANCE;
-			ditheringHint = false;
-			colorRenderingHint = RenderMode.PERFORMANCE;
-			fractionalMetricsHint = false;
-			textAntialiasingHint = false;
-			interpolationHint = InterpolationMode.NEAREST_NEIGHBOR;
-			alphaInterpolationHint = RenderMode.PERFORMANCE;
+			settings.antialiasingHint = false;
+			settings.renderingHint = RenderMode.PERFORMANCE;
+			settings.ditheringHint = false;
+			settings.colorRenderingHint = RenderMode.PERFORMANCE;
+			settings.fractionalMetricsHint = false;
+			settings.textAntialiasingHint = false;
+			settings.interpolationHint = InterpolationMode.NEAREST_NEIGHBOR;
+			settings.alphaInterpolationHint = RenderMode.PERFORMANCE;
 		} else {
-			antialiasingHint = true;
-			renderingHint = RenderMode.QUALITY;
-			ditheringHint = true;
-			colorRenderingHint = RenderMode.QUALITY;
-			fractionalMetricsHint = true;
-			textAntialiasingHint = true;
-			interpolationHint = InterpolationMode.BICUBIC;
-			alphaInterpolationHint = RenderMode.QUALITY;
+			settings.antialiasingHint = true;
+			settings.renderingHint = RenderMode.QUALITY;
+			settings.ditheringHint = true;
+			settings.colorRenderingHint = RenderMode.QUALITY;
+			settings.fractionalMetricsHint = true;
+			settings.textAntialiasingHint = true;
+			settings.interpolationHint = InterpolationMode.BICUBIC;
+			settings.alphaInterpolationHint = RenderMode.QUALITY;
 		}
 		return this;
 	}
@@ -994,10 +951,10 @@ public class Display extends Kernel {
 		return particles;
 	}
 	public Display setPointSize(Dimension pointSize) {
-		this.pointSize = pointSize;
+		settings.pointSize = pointSize;
 		return this;
 	}
 	public Dimension getPointSize() {
-		return pointSize;
+		return settings.pointSize;
 	}
 }
