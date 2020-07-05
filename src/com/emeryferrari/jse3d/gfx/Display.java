@@ -31,6 +31,7 @@ public class Display extends Kernel {
 	protected Point mouse;
 	protected Point[][] pointArrays; // array of 2D point arrays where 3D points should be rendered on the frame
 	protected ArrayList<Particle> particles;
+	protected Vector3 localCamPos;
 	protected Time time;
 	private DisplaySettings settings;
 	// OPENCL VARIABLES
@@ -190,6 +191,8 @@ public class Display extends Kernel {
 		}
 	}
 	protected void renderFrame(Graphics gfx, DisplayRenderer renderer) {
+		localCamPos = new Vector3(0, 0, 0);
+		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 		Graphics2D graphics = (Graphics2D) gfx;
 		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
 		Dimension size = renderer.getSize();
@@ -204,7 +207,7 @@ public class Display extends Kernel {
 				for (int i = 0; i < scene.object[a].points.length; i++) {
 					points[i] = calculatePoint(a, i, size, location);
 					if (settings.renderPoints) {
-						renderPoint(graphics, points[i]);
+						renderPoint(graphics, points[i], a, i);
 					}
 				}
 				if (settings.faceRender) { // sorts faces so that they're rendered back to front
@@ -214,8 +217,6 @@ public class Display extends Kernel {
 			renderExtras(graphics, size, location);
 		} else { // called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
 			// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
-			Vector3 localCamPos = new Vector3(0, 0, 0);
-			try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 			calculateMouse();
 			calculateViewAngles(size, location);
 			prepareGPU(localCamPos);
@@ -227,7 +228,7 @@ public class Display extends Kernel {
 				for (int i = 0; i < scene.object[a].points.length; i++) {
 					points[i] = calculatePointGPU(a, i, size, location);
 					if (settings.renderPoints) {
-						renderPoint(graphics, points[i]);
+						renderPoint(graphics, points[i], a, i);
 					}
 				}
 				if (settings.faceRender) { // sorts faces so that they're rendered from back to front
@@ -251,12 +252,10 @@ public class Display extends Kernel {
 			renderLines(graphics);
 		}
 		for (int a = 0; a < particles.size(); a++) {
-			renderPoint(graphics, calculateParticle(a, size, location));
+			renderParticle(graphics, calculateParticle(a, size, location), particles.get(a).getPosition());
 		}
 	}
 	protected Point calculateParticle(int particleID, Dimension size, Point location) {
-		Vector3 localCamPos = new Vector3(0, 0, 0);
-		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
 		if (particles.get(particleID).getPosition().getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + particles.get(particleID).getPosition().getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - particles.get(particleID).getPosition().getY()*Math.sin(viewAngleY) < scene.camDist) {
 			// 3D to 2D point conversion
@@ -280,8 +279,6 @@ public class Display extends Kernel {
 		return null;
 	}
 	protected Point calculatePoint(int a, int i, Dimension size, Point location) {
-		Vector3 localCamPos = new Vector3(0, 0, 0);
-		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
 		if (scene.object[a].points[i].getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].getY()*Math.sin(viewAngleY) < scene.camDist) {
 			// 3D to 2D point conversion
@@ -356,9 +353,15 @@ public class Display extends Kernel {
 		setColor(graphics, settings.backgroundColor);
 		graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
 	}
-	protected void renderPoint(Graphics2D graphics, Point point) {
+	protected void renderPoint(Graphics2D graphics, Point point, int a, int i) {
 		setColor(graphics, Color.BLACK);
-		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*(1.0/scene.camDist)), (int)(settings.pointSize.height*(1.0/scene.camDist))); // development note: change this to point's distance to camera to avoid a bug
+		double reciprocal = 1.0/distance[a][i].distance;
+		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));
+	}
+	protected void renderParticle(Graphics2D graphics, Point point, Vector3 position) {
+		setColor(graphics, Color.BLACK);
+		double reciprocal = 1.0/Math3D.hypot3(localCamPos.getX()-position.getX(), localCamPos.getY()-position.getY(), localCamPos.getZ()-position.getZ());
+		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));
 	}
 	protected void printCameraPosition(Graphics2D graphics) {
 		Vector3 cameraPos = getCameraPositionActual();
