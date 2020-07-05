@@ -31,6 +31,7 @@ public class Display extends Kernel {
 	protected Point mouse;
 	protected Point[][] pointArrays; // array of 2D point arrays where 3D points should be rendered on the frame
 	protected ArrayList<Particle> particles;
+	protected Time time;
 	private DisplaySettings settings;
 	// OPENCL VARIABLES
 	final float[] zAngleX;
@@ -109,6 +110,7 @@ public class Display extends Kernel {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		time = new Time();
 		settings = new DisplaySettings();
 		particles = new ArrayList<Particle>();
 		calculateRenderingHints();
@@ -151,6 +153,9 @@ public class Display extends Kernel {
 	}
 	public Display startRender() { // call this to make the frame visible and start rendering
 		if (!rendererStarted) {
+			for (int i = 0; i < particles.size(); i++) {
+				try {particles.get(i).start();} catch (NullPointerException ex) {}
+			}
 			lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-frame.getLocationOnScreen().y);
 			rendering = true;
 			Thread renderer = new Thread(new Renderer());
@@ -498,7 +503,10 @@ public class Display extends Kernel {
 			        fps = 0;
 			    }
 			    renderFrame();
-			    Time.reset();
+			    time.reset();
+			    for (int i = 0; i < particles.size(); i++) {
+			    	try {particles.get(i).update();} catch (NullPointerException ex) {}
+			    }
 			    if (settings.fpsLimit) {
 			    	long tmp = (lastLoopTime-System.nanoTime()+optimalTime)/1000000;
 			    	if (tmp > 0) {
@@ -526,9 +534,9 @@ public class Display extends Kernel {
 					OPTIMAL_TIME = 1000000000/settings.physicsTimestep;
 				}
 				for (int i = 0; i < particles.size(); i++) {
-					particles.get(i).run();
+					try {particles.get(i).fixedUpdate();} catch (NullPointerException ex) {}
 				}
-				Time.fixedReset();
+				time.fixedReset();
 				long tmp = (lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000;
 				if (tmp > 0) {
 					try {Thread.sleep(tmp);} catch (InterruptedException ex) {ex.printStackTrace();}
@@ -941,6 +949,7 @@ public class Display extends Kernel {
 		return this;
 	}
 	public int addParticle(Particle particle) {
+		particle.start();
 		particles.add(particle);
 		return particles.size()-1;
 	}
@@ -956,5 +965,8 @@ public class Display extends Kernel {
 	}
 	public Dimension getPointSize() {
 		return settings.pointSize;
+	}
+	public Time getTime() {
+		return time;
 	}
 }

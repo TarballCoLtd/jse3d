@@ -1,33 +1,50 @@
 package com.emeryferrari.jse3d.obj;
 import com.emeryferrari.jse3d.gfx.*;
+import com.emeryferrari.jse3d.interfaces.*;
 public class Trajectory {
-	protected Runnable move;
+	protected Updatable move;
 	protected Particle particle;
 	public Trajectory() {
-		move = new Runnable() {
+		move = new Updatable() {
 			@Override
-			public void run() {}
+			public void start() {}
+			@Override
+			public void update() {}
+			@Override
+			public void fixedUpdate() {}
 		};
 	}
-	public Trajectory(Runnable runnable) {
-		this.move = runnable;
+	public Trajectory(Updatable script) {
+		this.move = script;
 	}
-	public void setLinear(Vector3 increment) {
-		move = new Runnable() {
+	public Trajectory setLinear(Vector3 increment, Time time) {
+		move = new Updatable() {
 			@Override
-			public void run() {
+			public void start() {}
+			@Override
+			public void update() {}
+			@Override
+			public void fixedUpdate() {
 				Vector3 currentPos = particle.getPosition();
-				particle.setPosition(new Vector3(currentPos.getX()+(increment.getX()*Time.fixedDeltaTime), currentPos.getY()+(increment.getY()*Time.fixedDeltaTime), currentPos.getZ()+(increment.getZ()*Time.fixedDeltaTime)));
+				particle.setPosition(new Vector3(currentPos.getX()+(increment.getX()*time.fixedDeltaTime), currentPos.getY()+(increment.getY()*time.fixedDeltaTime), currentPos.getZ()+(increment.getZ()*time.fixedDeltaTime)));
 			}
 		};
+		return this;
 	}
-	public void run() {
-		move.run();
+	public void start() {
+		move.start();
+	}
+	public void update() {
+		move.update();
+	}
+	public void fixedUpdate() {
+		move.fixedUpdate();
 	}
 	void setParticle(Particle particle) {
 		this.particle = particle;
 	}
-	public void setRunnable(Runnable runnable) {
-		move = runnable;
+	public Trajectory setScript(Updatable script) {
+		move = script;
+		return this;
 	}
 }

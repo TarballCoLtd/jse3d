@@ -15,8 +15,14 @@ public class Particle {
 		this.position = position;
 		return this;
 	}
-	public void run() {
-		trajectory.run();
+	public void start() {
+		trajectory.start();
+	}
+	public void update() {
+		trajectory.update();
+	}
+	public void fixedUpdate() {
+		trajectory.fixedUpdate();
 	}
 	public Trajectory getTrajectory() {
 		return trajectory;
