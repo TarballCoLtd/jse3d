@@ -3,6 +3,7 @@ import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 import com.emeryferrari.jse3d.interfaces.*;
+import java.awt.*;
 public class ParticleDemo {
 	public static void main(String[] args) {
 		Object3D[] objects = new Object3D[1];
@@ -15,7 +16,7 @@ public class ParticleDemo {
 		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
-		display.setPointSize(new java.awt.Dimension(40, 40));
+		display.setPointSize(new Dimension(40, 40));
 		display.startRender();
 		Trajectory trajectory = new Trajectory();
 		Particle particle = new Particle(new Vector3(0, 0, 0), trajectory);

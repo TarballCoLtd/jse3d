@@ -34,7 +34,7 @@ public class Display extends Kernel {
 	protected Vector3 localCamPos;
 	protected Time time;
 	private DisplaySettings settings;
-	// OPENCL VARIABLES
+	// OPENCL POINT VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
 	final float[] zAngleZ;
@@ -56,6 +56,7 @@ public class Display extends Kernel {
 	final float[] gpuViewAngle = new float[1];
 	final float[] sinViewAngles;
 	protected int zAngleLength;
+	// OPENCL PARTICLE VARIABLES
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -350,22 +351,22 @@ public class Display extends Kernel {
 		}
 	}
 	protected void renderBackground(Graphics2D graphics, Dimension size, Point location) {
-		setColor(graphics, settings.backgroundColor);
+		graphics.setColor(settings.backgroundColor);
 		graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
 	}
 	protected void renderPoint(Graphics2D graphics, Point point, int a, int i) {
-		setColor(graphics, Color.BLACK);
+		graphics.setColor(Color.BLACK);
 		double reciprocal = 1.0/distance[a][i].distance;
 		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));
 	}
 	protected void renderParticle(Graphics2D graphics, Point point, Vector3 position) {
-		setColor(graphics, Color.BLACK);
+		graphics.setColor(Color.BLACK);
 		double reciprocal = 1.0/Math3D.hypot3(localCamPos.getX()-position.getX(), localCamPos.getY()-position.getY(), localCamPos.getZ()-position.getZ());
 		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));
 	}
 	protected void printCameraPosition(Graphics2D graphics) {
 		Vector3 cameraPos = getCameraPositionActual();
-		graphics.setColor(settings.invertColors ? settings.backgroundColor : invertColor(settings.backgroundColor));
+		graphics.setColor(settings.backgroundColor);
 		graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 	}
 	protected void calculateViewAngles(Dimension size, Point location) {
@@ -384,12 +385,6 @@ public class Display extends Kernel {
 			}
 			viewAngleX = -((location.x+mouse.x-size.width)/2)/DisplaySettings.SENSITIVITY;
 		} catch (NullPointerException ex) {}
-	}
-	protected void setColor(Graphics2D graphics, Color color) {
-		graphics.setColor(color);
-		if (settings.invertColors) {
-			graphics.setColor(Display.invertColor(color));
-		}
 	}
 	protected void renderFaces(Graphics2D graphics) {
 		for (int a = 0; a < scene.object.length; a++) {
@@ -410,7 +405,7 @@ public class Display extends Kernel {
 						xs = xs2;
 						ys = ys2;
 					} catch (NullPointerException ex) {}
-					setColor(graphics, scene.object[a].faces[x].triangles[y].color);
+					graphics.setColor(scene.object[a].faces[x].triangles[y].color);
 					graphics.fillPolygon(xs, ys, 3);
 				}
 			}
@@ -452,11 +447,7 @@ public class Display extends Kernel {
 	}
 	protected void renderLines(Graphics2D graphics) {
 		for (int a = 0; a < scene.object.length; a++) {
-			if (settings.invertColors) {
-				graphics.setColor(Display.invertColor(settings.lineColor));
-			} else {
-				graphics.setColor(settings.lineColor);
-			}
+			graphics.setColor(settings.lineColor);
 			for (int i = 0; i < scene.object[a].edges.length; i++) {
 				int point1 = scene.object[a].edges[i].pointID1;
 				int point2 = scene.object[a].edges[i].pointID2;
@@ -500,7 +491,7 @@ public class Display extends Kernel {
 			    lastFpsTime += updateLength;
 			    if (lastFpsTime >= 1000000000) {
 			    	if (settings.fpsLogging) {
-			    		System.out.println("FPS: " + fps);
+			    		System.out.println("FPS: " + (fps < 1 ? 0 : fps-1));
 			    	}
 			        lastFpsTime = 0;
 			        fps = 0;
@@ -686,14 +677,6 @@ public class Display extends Kernel {
 		settings.lineColor = color;
 		return this;
 	}
-	public Display enableInvertColors() {
-		settings.invertColors = true;
-		return this;
-	}
-	public Display disableInvertColors() {
-		settings.invertColors = false;
-		return this;
-	}
 	public Display setBackgroundColor(Color color) {
 		settings.backgroundColor = color;
 		return this;
@@ -803,9 +786,6 @@ public class Display extends Kernel {
 	}
 	public CameraMode getCameraMode() {
 		return settings.mode;
-	}
-	protected static Color invertColor(Color color) {
-		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
 	}
 	public Vector3 getCameraPositionActual() {
 		double x = (Math.sin(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.getX();

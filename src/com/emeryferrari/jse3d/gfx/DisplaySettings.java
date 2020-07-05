@@ -10,7 +10,6 @@ class DisplaySettings {
 	boolean lineRender; // true if lines are being rendered
 	boolean faceRender; // true if faces are being rendered
 	int targetFps; // FPS cap
-	boolean invertColors; // true if colors are inverted
 	Color backgroundColor; // skybox color
 	boolean scrollWheel; // mouse variable used by view angle changers
 	int physicsTimestep = 60; // physics timestep for transition operations
@@ -48,7 +47,6 @@ class DisplaySettings {
 		fpsLogging = false;
 		lineRender = true;
 		faceRender = true;
-		invertColors = false;
 		lineColor = Color.BLACK;
 		backgroundColor = Color.WHITE;
 		scrollWheel = true;
