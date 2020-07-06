@@ -1,5 +1,6 @@
 package com.emeryferrari.jse3d.example;
 import com.emeryferrari.jse3d.gfx.*;
+import java.awt.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 public class CubeDemo {
@@ -10,8 +11,11 @@ public class CubeDemo {
 			objects[i].movePosRel(new Vector3(i*2-objects.length/2, i*2-objects.length/2, i*2-objects.length/2), new Vector3(0, 0, 0));
 		}
 		Scene scene = new Scene(objects, 5.0);
-		Display display = new Display(scene, "jse3d demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
+		Display display = new Display(scene, "jse3d cube demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
+		display.setPointSize(new Dimension(40, 40));
 		display.enableFPSLogging();
+		display.enablePointRendering();
+		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
 		display.startRender();

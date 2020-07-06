@@ -355,7 +355,9 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 	protected void renderPoint(Graphics2D graphics, Point point, int a, int i) {
 		graphics.setColor(Color.BLACK);
 		double reciprocal = 1.0/distance[a][i].distance;
-		graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));
+		int width = (int)(settings.pointSize.width*reciprocal);
+		int height = (int)(settings.pointSize.height*reciprocal);
+		try {graphics.fillOval(point.x-(width/2), point.y-(height/2), width, height);} catch (NullPointerException ex) {}
 	}
 	protected void renderParticle(Graphics2D graphics, Point point, Vector3 position) {
 		graphics.setColor(Color.BLACK);

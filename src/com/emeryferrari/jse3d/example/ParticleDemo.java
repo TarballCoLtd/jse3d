@@ -6,7 +6,7 @@ import com.emeryferrari.jse3d.interfaces.*;
 import java.awt.*;
 public class ParticleDemo {
 	public static void main(String[] args) {
-		Object3D[] objects = new Object3D[1];
+		Object3D[] objects = new Object3D[1024];
 		for (int i = 0; i < objects.length; i++) {
 			objects[i] = ObjectTemplate.getCube();
 			objects[i].movePosRel(new Vector3(i*2-objects.length/2, i*2-objects.length/2, i*2-objects.length/2), new Vector3(0, 0, 0));
@@ -16,7 +16,7 @@ public class ParticleDemo {
 		display.enableFPSLogging();
 		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
-		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
+		display.setRenderTarget(RenderTarget.GPU);
 		display.setRenderQuality(RenderMode.QUALITY);
 		display.setPointSize(new Dimension(40, 40));
 		display.startRender();
