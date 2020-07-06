@@ -366,8 +366,14 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 	}
 	protected void printCameraPosition(Graphics2D graphics) {
 		Vector3 cameraPos = getCameraPositionActual();
-		graphics.setColor(settings.backgroundColor);
+		graphics.setColor(invertColor(settings.backgroundColor));
 		graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
+	}
+	protected Color invertColor(Color color) {
+		int r = 255-color.getRed();
+		int g = 255-color.getGreen();
+		int b = 255-color.getGreen();
+		return new Color(r, g, b, color.getAlpha());
 	}
 	protected void calculateViewAngles(Dimension size, Point location) {
 		double viewAngleX = 0;
