@@ -12,9 +12,9 @@ import com.emeryferrari.jse3d.obj.*;
 /** Represents a jse3d frame.
  * @author Emery Ferrari
  * @author Sam Krug
- * 
+ * @since 1.0 beta
  */
-public class Display extends Kernel { // kernel extension necessary for OpenCL rendering
+public class Display extends Kernel { // extension of Kernel is necessary for OpenCL rendering
 	protected DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
 	protected JFrame frame; // the frame that the scene is rendered in
@@ -62,60 +62,213 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 	protected int zAngleLength;
 	// OpenCL PARTICLE VARIABLES
 	// coming soon
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 */
 	public Display(Scene scene) {
 		this(scene, "");
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 */
 	public Display(Scene scene, String frameTitle) {
 		this(scene, frameTitle, true);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, int maxPointsTotal,int maxPointsObject,  int maxObjects) {
 		this(scene, frameTitle, true, maxPointsTotal, maxPointsObject, maxObjects);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 */
 	public Display(Scene scene, String frameTitle, double fovRadians) {
 		this(scene, frameTitle, true, fovRadians);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, true, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible) {
 		this (scene, frameTitle, frameVisible, false);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this (scene, frameTitle, frameVisible, false, maxPointsTotal, maxPointsObject, maxObjects);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians) {
 		this (scene, frameTitle, frameVisible, false, fovRadians);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this (scene, frameTitle, frameVisible, false, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param frameWidth The preferred width of the frame.
+	 * @param frameHeight The preferred height of the frame.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param frameWidth The preferred width of the frame.
+	 * @param frameHeight The preferred height of the frame.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight, fovRadians);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param frameWidth The preferred width of the frame.
+	 * @param frameHeight The preferred height of the frame.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param pointSize The size in 2D of points rendered onto the frame.
+	 * @param frameWidth The preferred width of the frame.
+	 * @param frameHeight The preferred height of the frame.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, Math.toRadians(80));
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param pointSize The size in 2D of points rendered onto the frame.
+	 * @param frameWidth The preferred width of the frame.
+	 * @param frameHeight The preferred height of the frame.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, 4096, 32, 128);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param pointSize The size in 2D of points rendered onto the frame.
+	 * @param frameWidth The preferred width of the frame.
+	 * @param frameHeight The preferred height of the frame.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
+	/**
+	 * @param scene The scene that should be rendered by this Display object.
+	 * @param frameTitle The title of the frame created by this Display object.
+	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
+	 * @param renderPoints Whether individual points should be rendered.
+	 * @param pointSize The size in 2D of points rendered onto the frame.
+	 * @param frameWidth The preferred width of the frame.
+	 * @param frameHeight The preferred height of the frame.
+	 * @param fps The maximum FPS this Display should render the Scene in.
+	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
+	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
+	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
+	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		time = new Time();
 		settings = new DisplaySettings();
@@ -153,6 +306,9 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		mouseDiff = new Point(0, 0);
 		settings.viewAngle = fovRadians;
 	}
+	/** Starts render of the Scene.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display startRender() { // call this to make the frame visible and start rendering
 		if (!rendererStarted) {
 			particleKernel = new ParticleKernel(this);
@@ -171,18 +327,31 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		}
 		return this;
 	}
+	/** Pauses render of the Scene.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display pauseRender() {
 		rendering = false;
 		return this;
 	}
+	/** Resumes previously paused render of the scene.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display resumeRender() {
 		rendering = true;
 		return this;
 	}
+	/** Sets the frame's visibility.
+	 * @param visible Whether the frame should be visible.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setVisible(boolean visible) {
 		frame.setVisible(visible);
 		return this;
 	}
+	/** Returns the Display's JFrame.
+	 * @return The Display's JFrame.
+	 */
 	public JFrame getFrame() {
 		return frame;
 	}
@@ -244,7 +413,6 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		fps++;
 		renderer.revalidate();
 	}
-	
 	protected void renderExtras(Graphics2D graphics, Dimension size, Point location) {
 		if (settings.camPosPrint) {
 			printCameraPosition(graphics);
@@ -597,6 +765,8 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		}
 	}
 	// ORIGINAL CPU CODE BY SAM KRUG, GPU ADAPTATION BY EMERY FERRARI
+	/** Code to be recompiled to OpenCL and run on GPU or multithreaded CPU by Aparapi. Do not execute this method.
+	 */
 	public void run() {
 		int id = getGlobalId();
 		if (id == 0) {
@@ -650,54 +820,97 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 			}
 		}
 	}
+	/** Sets the Display's FPS cap.
+	 * @param fps The new FPS cap.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setTargetFPS(int fps) {
 		settings.targetFps = fps;
 		optimalTime = 1000000000 / settings.targetFps;
 		return this;
 	}
+	/** Enables usage of the FPS cap.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableFPSLimit() {
 		settings.fpsLimit = true;
 		return this;
 	}
+	/** Disables usage of the FPS cap.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableFPSLimit() {
 		settings.fpsLimit = false;
 		return this;
 	}
+	/** Enables printing the current FPS to the console.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableFPSLogging() {
 		settings.fpsLogging = true;
 		return this;
 	}
+	/** Disables printing the current FPS to the console.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableFPSLogging() {
 		settings.fpsLogging = false;
 		return this;
 	}
+	/** Enables rendering Lines in the Scene.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableLineRendering() {
 		settings.lineRender = true;
 		return this;
 	}
+	/** Disables rendering Lines in the Scene.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableLineRendering() {
 		settings.lineRender = false;
 		return this;
 	}
+	/** Enables rendering Faces in the Scene.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableFaceRendering() {
 		settings.faceRender = true;
 		return this;
 	}
+	/** Disables rendering Faces in the Scene.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableFaceRendering() {
 		settings.faceRender = false;
 		return this;
 	}
+	/** Sets the color in which Lines should be drawn.
+	 * @param color The color in which Lines should be drawn.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setLineColor(Color color) {
 		settings.lineColor = color;
 		return this;
 	}
+	/** Sets the color in which the background should be drawn.
+	 * @param color The color in which the background should be drawn.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setBackgroundColor(Color color) {
 		settings.backgroundColor = color;
 		return this;
 	}
+	/** Returns the current Scene being rendered.
+	 * @return The current Scene being rendered.
+	 */
 	public Scene getScene() {
 		return scene;
 	}
+	/** Switches rendering to the Scene parameter.
+	 * @param scene Scene to which to switch rendering.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setScene(Scene scene) {
 		for (int i = 0; i < scene.object.length; i++) {
 			try {scene.object[i].start();} catch (NullPointerException ex) {}
@@ -708,23 +921,42 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		this.scene = scene;
 		return this;
 	}
+	/** Sets physics timestep.
+	 * @param timestep The new physics timestep.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setPhysicsTimestep(int timestep) { // not an actual timestep, the precision of physics movements is proportional to the timestep, rather than inversely proportional
 		settings.physicsTimestep = timestep;
 		return this;
 	}
+	/** Returns the current physics timestep.
+	 * @return The current physics timestep.
+	 */
 	public int getPhysicsTimestep() {
 		return settings.physicsTimestep;
 	}
+	/** Sets the camera's position relative to its current position.
+	 * @param point New relative camera position.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setCameraPositionRel(Vector3 point) {
 		Thread cameraPos = new CameraPos(point, this);
 		cameraPos.start();
 		return this;
 	}
+	/** Transitions the camera's position relative to its current position over a user-specified amount of time.
+	 * @param point New relative camera position.
+	 * @param millis How long it should take to complete this operation in milliseconds.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display transitionCameraPositionRel(Vector3 point, int millis) {
 		Thread transition = new Transition(point, millis, this);
 		transition.start();
 		return this;
 	}
+	/** Returns the camera's current position without taking into account the camera's distance to the position.
+	 * @return The camera's current position.
+	 */
 	public Vector3 getCameraPosition() {
 		return camPos;
 	}
@@ -788,50 +1020,91 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 			camPos.set(camPos.getX()+xt, camPos.getY()+yt, camPos.getZ()+zt);
 		}
 	}
+	/** Enables the ability to change the camera's distance to its position with the scroll wheel.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableScrollWheel() {
 		settings.scrollWheel = true;
 		return this;
 	}
+	/** Disables the ability to change the camera's distance to its position with the scroll wheel.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableScrollWheel() {
 		settings.scrollWheel = false;
 		return this;
 	}
+	/** Sets the camera's distance to its position.
+	 * @param distance The new distance to the camera's position.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setCameraDistance(double distance) {
 		scene.camDist = distance;
 		return this;
 	}
+	/** Sets whether the user should have to press down on the left mouse button to change perspective. 
+	 * @param mode The new camera mode.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setCameraMode(CameraMode mode) {
 		settings.mode = mode;
 		return this;
 	}
+	/** Returns the current camera mode.
+	 * @return The current camera mode.
+	 */
 	public CameraMode getCameraMode() {
 		return settings.mode;
 	}
+	/** Returns the camera's current position while taking into account its distance to its position.
+	 * @return The camera's current position while taking into account its distance to its position.
+	 */
 	public Vector3 getCameraPositionActual() {
 		double x = (sphere.sinViewAngleX*sphere.cosViewAngleY*scene.camDist) + camPos.getX();
 		double y = -((sphere.sinViewAngleY*scene.camDist) + camPos.getY());
 		double z = (sphere.cosViewAngleX*sphere.cosViewAngleY*scene.camDist) + camPos.getZ();
 		return new Vector3(x, y, z);
 	}
+	/** Enables printing the camera's actual position to (0,11) or a user-specified point on the frame.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableCameraPositionPrinting() {
 		settings.camPosPrint = true;
 		return this;
 	}
+	/** Enables printing the camera's actual position to the user-specified point on the frame.
+	 * @param pos
+	 * @return
+	 */
 	public Display enableCameraPositionPrinting(Point pos) {
 		settings.camPosPrintPoint = pos;
 		return enableCameraPositionPrinting();
 	}
+	/** Disables printing the camera's actual position to the frame.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableCameraPositionPrinting() {
 		settings.camPosPrint = false;
 		return this;
 	}
+	/** Sets the position on the frame at which the camera's actual position should be printed.
+	 * @param pos The position on the frame at which the camera's actual position should be printed.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setCameraPositionPrintingPosition(Point pos) {
 		settings.camPosPrintPoint = pos;
 		return this;
 	}
+	/** Returns the current FOV in radians.
+	 * @return The current FOV in radians.
+	 */
 	public double getFOVRadians() {
 		return settings.viewAngle;
 	}
+	/** Sets the current FOV in radians.
+	 * @param viewAngle The new FOV in radians.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setFOVRadians(double viewAngle) {
 		if (Math.abs(viewAngle) < Math.PI) {
 			settings.viewAngle = viewAngle;
@@ -847,88 +1120,192 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		}
 		return this;
 	}
+	/** Returns the current FOV in degrees.
+	 * @return The current FOV in degrees.
+	 */
 	public double getFOVDegrees() {
 		return Math.toDegrees(settings.viewAngle);
 	}
+	/** Sets the current FOV in degrees.
+	 * @param degrees The new FOV in degrees.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setFOVDegrees(double degrees) {
 		setFOVRadians(Math.toRadians(degrees));
 		return this;
 	}
+	/** Enables clamping the y-axis viewing angle such that the user cannot move the camera past the y-axis.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableYAxisClamping() {
 		settings.yAxisClamp = true;
 		return this;
 	}
+	/** Disables clamping the y-axis viewing angle such that the user cannot move the camera past the y-axis.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableYAxisClamping() {
 		settings.yAxisClamp = false;
 		return this;
 	}
+	/** Sets the device on which the current Scene should be computed. This can be set at any time with seamless switching.
+	 * @param renderMode The new compute device.
+	 * @return
+	 */
 	public Display setRenderTarget(RenderTarget renderMode) {
 		settings.renderTarget = renderMode;
 		return this;
 	}
+	/** Returns the current compute device.
+	 * @return The current compute device.
+	 */
 	public RenderTarget getRenderTarget() {
 		return settings.renderTarget;
 	}
+	/** Enables anti-aliasing (disables aliasing).
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableAntialiasing() {
 		settings.antialiasingHint = true;
 		return this;
 	}
+	/** Disables anti-aliasing (enables aliasing).
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableAntialiasing() {
 		settings.antialiasingHint = false;
 		return this;
 	}
+	/** Enables aliasing (disables anti-aliasing).
+	 * @return The Display object on which this method was called.
+	 * @since 2.5.5
+	 */
+	public Display enableAliasing() {
+		return disableAntialiasing();
+	}
+	/** Disables aliasing (enables anti-aliasing).
+	 * @return The Display object on which this method was called.
+	 * @since 2.5.5
+	 */
+	public Display disableAliasing() {
+		return enableAntialiasing();
+	}
+	/** Sets general render quality.
+	 * @param mode The new render quality.
+	 * @return
+	 */
 	public Display setRenderingMode(RenderMode mode) {
 		settings.renderingHint = mode;
 		return this;
 	}
+	/** Returns the current render quality.
+	 * @return The current render quality.
+	 */
 	public RenderMode getRenderingMode() {
 		return settings.renderingHint;
 	}
+	/** Enables dithering.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableDithering() {
 		settings.ditheringHint = true;
 		return this;
 	}
+	/** Disables dithering.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableDithering() {
 		settings.ditheringHint = false;
 		return this;
 	}
+	/**
+	 * @param mode Sets color render quality.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setColorRenderingMode(RenderMode mode) {
 		settings.colorRenderingHint = mode;
 		return this;
 	}
+	/** Returns the current color render quality.
+	 * @return The current color render quality.
+	 */
 	public RenderMode getColorRenderingMode() {
 		return settings.colorRenderingHint;
 	}
+	/** Enables fractional metrics.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableFractionalMetrics() {
 		settings.fractionalMetricsHint = true;
 		return this;
 	}
+	/** Disables fractional metrics.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableFractionalMetrics() {
 		settings.fractionalMetricsHint = false;
 		return this;
 	}
+	/** Enables text anti-aliasing (disables text aliasing).
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enableTextAntialiasing() {
 		settings.textAntialiasingHint = true;
 		return this;
 	}
+	/** Disables text anti-aliasing (enables text aliasing).
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disableTextAntialiasing() {
 		settings.textAntialiasingHint = false;
 		return this;
 	}
+	/** Enables text aliasing (disables text anti-aliasing).
+	 * @return The Display object on which this method was called.
+	 * @since 2.5.5
+	 */
+	public Display enableTextAliasing() {
+		return disableTextAntialiasing();
+	}
+	/** Disables text aliasing (enables text anti-aliasing);
+	 * @return The Display object on which this method was called.
+	 * @since 2.5.5
+	 */
+	public Display disableTextAliasing() {
+		return enableTextAntialiasing();
+	}
+	/** Sets image interpolation mode.
+	 * @param mode The new image interpolation mode.
+	 * @return
+	 */
 	public Display setInterpolationMode(InterpolationMode mode) {
 		settings.interpolationHint = mode;
 		return this;
 	}
+	/** Returns the current image interpolation mode.
+	 * @return
+	 */
 	public InterpolationMode getInterpolationMode() {
 		return settings.interpolationHint;
 	}
+	/** Sets alpha interpolation quality.
+	 * @param mode The new alpha interpolation quality.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setAlphaInterpolationMode(RenderMode mode) {
 		settings.alphaInterpolationHint = mode;
 		return this;
 	}
+	/** Returns the current alpha interpolation quality.
+	 * @return The Display object on which this method was called.
+	 */
 	public RenderMode getAlphaInterpolationMode() {
 		return settings.alphaInterpolationHint;
 	}
+	/** Sets overall render quality.
+	 * @param mode The new overall render quality.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display setRenderQuality(RenderMode mode) { // sets rendering hints to either the best or worst settings
 		if (mode == RenderMode.PERFORMANCE) {
 			settings.antialiasingHint = false;
@@ -951,31 +1328,59 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		}
 		return this;
 	}
+	/** Adds a particle to the particle system.
+	 * @param particle The new particle to be added.
+	 * @return The particle ID needed to remove the particle.
+	 */
 	public int addParticle(Particle particle) {
 		try {particle.start();} catch (NullPointerException ex) {}
 		scene.particles.add(particle);
 		return scene.particles.size()-1;
 	}
-	public void removeParticle(int particleID) {
+	/** Removes a particle from the particle system.
+	 * @param particleID The particle ID of the particle you wish to remove.
+	 * @return The Display object on which this method was called.
+	 */
+	public Display removeParticle(int particleID) {
 		scene.particles.set(particleID, null);
+		return this;
 	}
+	/** Returns the current particle array.
+	 * @return The current particle array.
+	 */
 	public ArrayList<Particle> getParticles() {
 		return scene.particles;
 	}
+	/** Sets the size in 2D in which points should be rendered.
+	 * @param pointSize
+	 * @return
+	 */
 	public Display setPointSize(Dimension pointSize) {
 		settings.pointSize = pointSize;
 		return this;
 	}
+	/** Returns the size in 2D in which points are being rendered.
+	 * @return The Display object on which this method was called.
+	 */
 	public Dimension getPointSize() {
 		return settings.pointSize;
 	}
+	/** Returns this Display's Time object. Used for timing physics operations.
+	 * @return The Display object on which this method was called.
+	 */
 	public Time getTime() {
 		return time;
 	}
+	/** Enables rendering points to the frame.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display enablePointRendering() {
 		settings.renderPoints = true;
 		return this;
 	}
+	/** Disables rendering points to the frame.
+	 * @return The Display object on which this method was called.
+	 */
 	public Display disablePointRendering() {
 		settings.renderPoints = false;
 		return this;
