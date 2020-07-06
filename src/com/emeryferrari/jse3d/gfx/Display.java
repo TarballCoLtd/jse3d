@@ -214,7 +214,7 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 				}
 			}					
 			renderExtras(graphics, size, location);
-		} else { // called if OpenCL should be used, whether its on the graphics card or CPU in multithreaded mode
+		} else { // called if OpenCL should be used, whether its on a graphics card or CPU in multithreaded mode
 			// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
 			calculateMouse();
 			calculateViewAngles(size, location);
@@ -316,8 +316,7 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 				throw new GPU_OpenCLDriverNotFoundError();
 			}
 		}
-		try {
-			// calculates multiple points concurrently on the selected OpenCL device
+		try { // calculates multiple points concurrently on the selected OpenCL device
 			Range range = chosen.createRange(zAngleLength);
 			range.setLocalSize_0(zAngleLength);
 			execute(range);
@@ -354,7 +353,8 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 	}
 	protected void renderPoint(Graphics2D graphics, Point point, int a, int i) {
 		graphics.setColor(Color.BLACK);
-		double reciprocal = 1.0/distance[a][i].distance;
+		double reciprocal = 0.0;
+		try {reciprocal = 1.0/distance[a][i].distance;} catch (NullPointerException ex) {}
 		int width = (int)(settings.pointSize.width*reciprocal);
 		int height = (int)(settings.pointSize.height*reciprocal);
 		try {graphics.fillOval(point.x-(width/2), point.y-(height/2), width, height);} catch (NullPointerException ex) {}
@@ -737,7 +737,7 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		@Override
 		public void run() {
 			for (int i = 0; i < scene.object.length; i++) {
-				scene.object[i].movePosRel(xt, yt, zt, display);
+				scene.object[i].movePosRel(-xt, -yt, -zt, display);
 			}
 			camPos.set(camPos.getX()+xt, camPos.getY()+yt, camPos.getZ()+zt);
 		}
@@ -776,7 +776,7 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 			        lastFpsTime = 0;
 			    }
 			    for (int y = 0; y < scene.object.length; y++) {
-			    	scene.object[y].movePosRel(xIteration, yIteration, zIteration, display);
+			    	scene.object[y].movePosRel(-xIteration, -yIteration, -zIteration, display);
 			    }
 			    try {Thread.sleep((lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 			}

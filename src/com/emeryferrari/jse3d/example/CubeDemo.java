@@ -4,8 +4,8 @@ import java.awt.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 public class CubeDemo {
-	public static void main(String[] args) {
-		Object3D[] objects = new Object3D[1];
+	public static void main(String[] args) throws InterruptedException {
+		Object3D[] objects = new Object3D[1024];
 		for (int i = 0; i < objects.length; i++) {
 			objects[i] = ObjectTemplate.getCube();
 			objects[i].movePosRel(new Vector3(i*2-objects.length/2, i*2-objects.length/2, i*2-objects.length/2), new Vector3(0, 0, 0));
@@ -17,7 +17,8 @@ public class CubeDemo {
 		display.enablePointRendering();
 		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
-		display.setRenderTarget(RenderTarget.GPU);
+		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		display.startRender();
+		Thread.sleep(5000);
 	}
 }
