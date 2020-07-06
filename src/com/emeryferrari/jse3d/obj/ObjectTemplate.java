@@ -5,11 +5,10 @@ public class ObjectTemplate {
 	public static Object3D getCube() {
 		Vector3[] points = {new Vector3(1, 1, 1), new Vector3(1, 1, -1), new Vector3(1, -1, 1), new Vector3(1, -1, -1), new Vector3(-1, 1, 1), new Vector3(-1, 1, -1), new Vector3(-1, -1, 1), new Vector3(-1, -1, -1)};
 		Line[] edges = {new Line(0, 1), new Line(2, 3), new Line(0, 2), new Line(1, 3), new Line(4, 5), new Line(6, 7), new Line(4, 6), new Line(5, 7), new Line(0, 4), new Line(1, 5), new Line(2, 6), new Line(3, 7)};
-		//Triangle[] triangles1 = {new Triangle(0, 1, 2, Color.BLUE), new Triangle(1, 2, 3, Color.BLUE)};
-		//Triangle[] triangles2 = {new Triangle(0, 2, 4, Color.RED), new Triangle(2, 4, 6, Color.RED)};
-		//Face[] faces = {new Face(triangles1), new Face(triangles2)};
-		//return new Object3D(points, faces, edges);
-		return new Object3D(points, edges);
+		Triangle[] triangles1 = {new Triangle(0, 1, 2, Color.BLUE), new Triangle(1, 2, 3, Color.BLUE)};
+		Triangle[] triangles2 = {new Triangle(0, 2, 4, Color.RED), new Triangle(2, 4, 6, Color.RED)};
+		Face[] faces = {new Face(triangles1), new Face(triangles2)};
+		return new Object3D(points, faces, edges);
 	}
 	public static Object3D getTriangle() {
 		Vector3[] points = {new Vector3(0, 0, 0), new Vector3(2, 0, 0), new Vector3(1, 1, 0)};

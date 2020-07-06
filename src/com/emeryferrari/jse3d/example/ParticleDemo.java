@@ -4,9 +4,13 @@ import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 import com.emeryferrari.jse3d.interfaces.*;
 import java.awt.*;
+/** Demo for particles.
+ * @author Emery Ferrari
+ * @since 2.5
+ */
 public class ParticleDemo {
 	public static void main(String[] args) {
-		Object3D[] objects = new Object3D[1024];
+		Object3D[] objects = new Object3D[1];
 		for (int i = 0; i < objects.length; i++) {
 			objects[i] = ObjectTemplate.getCube();
 			objects[i].movePosRel(new Vector3(i*2-objects.length/2, i*2-objects.length/2, i*2-objects.length/2), new Vector3(0, 0, 0));
@@ -14,7 +18,6 @@ public class ParticleDemo {
 		Scene scene = new Scene(objects, 7.5);
 		Display display = new Display(scene, "jse3d particle demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
 		display.enableFPSLogging();
-		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
 		display.setRenderQuality(RenderMode.QUALITY);
