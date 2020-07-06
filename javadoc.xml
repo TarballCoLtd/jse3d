@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="jse3d" default="all" basedir=".">
+	<target depends="javadoc" description="build javadoc jar" name="package-docs">
+		<jar compress="true" destfile="javadoc.jar" basedir="doc" />
+	</target>
+</project>
