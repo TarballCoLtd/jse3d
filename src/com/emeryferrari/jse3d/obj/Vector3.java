@@ -1,5 +1,6 @@
 package com.emeryferrari.jse3d.obj;
 import java.io.*;
+import java.beans.*;
 import com.emeryferrari.jse3d.gfx.*;
 public class Vector3 implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -22,7 +23,8 @@ public class Vector3 implements Serializable {
 	public Vector3() {
 		this(0, 0, 0);
 	}
-	public Vector3(double x, double y, double z) { // development note: add @ConstructorProperties()
+	@ConstructorProperties({"x", "y"})
+	public Vector3(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
