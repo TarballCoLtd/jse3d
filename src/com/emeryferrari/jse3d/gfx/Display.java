@@ -757,9 +757,9 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 		}
 		@Override
 		public void run() {
-			double xIteration = xt/(double)settings.physicsTimestep*((double)millis/1000.0);
-			double yIteration = yt/(double)settings.physicsTimestep*((double)millis/1000.0);
-			double zIteration = zt/(double)settings.physicsTimestep*((double)millis/1000.0);
+			double xIteration = -(xt/(double)settings.physicsTimestep*((double)millis/1000.0));
+			double yIteration = -(yt/(double)settings.physicsTimestep*((double)millis/1000.0));
+			double zIteration = -(zt/(double)settings.physicsTimestep*((double)millis/1000.0));
 			long lastFpsTime = 0L;
 			long lastLoopTime = System.nanoTime();
 			long OPTIMAL_TIME = 1000000000 / settings.physicsTimestep;
@@ -776,7 +776,7 @@ public class Display extends Kernel { // kernel extension necessary for OpenCL r
 			        lastFpsTime = 0;
 			    }
 			    for (int y = 0; y < scene.object.length; y++) {
-			    	scene.object[y].movePosRel(-xIteration, -yIteration, -zIteration, display);
+			    	scene.object[y].movePosRel(xIteration, yIteration, zIteration, display);
 			    }
 			    try {Thread.sleep((lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000);} catch (InterruptedException ex) {ex.printStackTrace();}
 			}
