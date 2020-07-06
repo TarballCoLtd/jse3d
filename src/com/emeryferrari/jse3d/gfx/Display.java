@@ -9,6 +9,11 @@ import com.emeryferrari.jse3d.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.exc.*;
 import com.emeryferrari.jse3d.obj.*;
+/** Represents a jse3d frame.
+ * @author Emery Ferrari
+ * @author Sam Krug
+ * 
+ */
 public class Display extends Kernel { // kernel extension necessary for OpenCL rendering
 	protected DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
