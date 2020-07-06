@@ -32,9 +32,9 @@ public class ParticleDemo {
 			@Override
 			public void update() {
 				if (currentPos.getY() > Math.PI*2) {
-					increment.setY(-4.0);
+					increment.setY(-Math.abs(increment.getY()));
 				} else if (currentPos.getY() < -Math.PI*2) {
-					increment.setY(4.0);
+					increment.setY(Math.abs(increment.getY()));
 				}
 			}
 			@Override

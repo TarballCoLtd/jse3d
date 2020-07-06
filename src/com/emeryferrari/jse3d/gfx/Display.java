@@ -327,7 +327,7 @@ public class Display extends Kernel {
 			execute(range);
 		} catch (AssertionError err) {
 			if (!settings.assertion) {
-				System.err.println("java.lang.AssertionError: Selected OpenCL device not available. This is a bug with jse3d. In the meantime, try setting the number of objects in the scene to a multiple of how many cores the selected device has as a temporary workaround. Normally this is a power of 2, however that is not always true.");
+				System.err.println("java.lang.AssertionError: Selected OpenCL device not available. This is a bug with jse3d. In the meantime, try setting the number of points in the scene to a multiple of how many cores the selected device has as a temporary workaround. Normally this is a power of 2, however that is not always true.");
 				settings.assertion = true;
 			}
 		}
