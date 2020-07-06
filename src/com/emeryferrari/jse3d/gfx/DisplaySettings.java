@@ -14,7 +14,7 @@ class DisplaySettings {
 	boolean scrollWheel; // mouse variable used by view angle changers
 	int physicsTimestep = 60; // physics timestep for transition operations
 	CameraMode mode; // current camera mode
-	static final float SCALE = 125; // used internally by scene renderer
+	static final float SCALE = 150; // used internally by scene renderer
 	static final double SENSITIVITY = 125; // used internally by scene renderer
 	boolean camPosPrint = false; // true if camera position is to be printed to the frame
 	boolean yAxisClamp; // true if viewAngleY is being clamped to [-pi, pi]

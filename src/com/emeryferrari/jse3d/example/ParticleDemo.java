@@ -12,8 +12,8 @@ public class ParticleDemo {
 			objects[i].movePosRel(new Vector3(i*2-objects.length/2, i*2-objects.length/2, i*2-objects.length/2), new Vector3(0, 0, 0));
 		}
 		Scene scene = new Scene(objects, 7.5);
-		Display display = new Display(scene, "jse3d demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
-		//display.enableFPSLogging();
+		Display display = new Display(scene, "jse3d particle demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
+		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
 		display.setRenderQuality(RenderMode.QUALITY);

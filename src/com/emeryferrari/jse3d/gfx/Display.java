@@ -127,7 +127,7 @@ public class Display extends Kernel {
 		sinViewAngles = new float[maxPointsTotal];
 		renderer = new DisplayRenderer();
 		this.scene = scene;
-		frame = new JFrame(frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " // " + JSE3DConst.FULL_NAME);
+		frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " // " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") ? " development build" : ""));
 		frame.setSize(frameWidth, frameHeight);
 		frame.setVisible(frameVisible);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
