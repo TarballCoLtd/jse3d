@@ -9,7 +9,7 @@ import com.emeryferrari.jse3d.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.exc.*;
 import com.emeryferrari.jse3d.obj.*;
-public class Display extends Kernel {
+public class Display extends Kernel { // kernel extension necessary for OpenCL rendering
 	protected DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
 	protected JFrame frame; // the frame that the scene is rendered in
@@ -24,17 +24,16 @@ public class Display extends Kernel {
 	protected double[][] camScale; // used internally by scene renderer
 	protected double xTransform = 0; // used internally by scene renderer
 	protected double yTransform = 0; // used internally by scene renderer
-	protected double viewAngleX = 0; // used internally by scene renderer, represents the angle of the camera
-	protected double viewAngleY = 0; // used internally by scene renderer, represents the angle of the camera
+	protected ViewAngle sphere; // used internally by scene renderer, represents a point on a sphere around the current camera position
 	protected int fps = 0; // time variable used by FPS timer
 	protected RenderingHints hints; // current rendering hints
 	protected Point mouse;
 	protected Point[][] pointArrays; // array of 2D point arrays where 3D points should be rendered on the frame
 	protected Vector3 localCamPos;
-	protected Time time;
-	protected ParticleKernel particleKernel;
-	private DisplaySettings settings;
-	// OPENCL POINT VARIABLES
+	protected Time time; // controls delta time and fixed delta time for this Display instance
+	protected ParticleKernel particleKernel; // kernel responsible for calculating particle positions with OpenCL
+	private DisplaySettings settings; // display settings
+	// OpenCL OBJECT VARIABLES
 	final float[] zAngleX;
 	final float[] zAngleY;
 	final float[] zAngleZ;
@@ -56,7 +55,8 @@ public class Display extends Kernel {
 	final float[] gpuViewAngle = new float[1];
 	final float[] sinViewAngles;
 	protected int zAngleLength;
-	// OPENCL PARTICLE VARIABLES
+	// OpenCL PARTICLE VARIABLES
+	// coming soon
 	public Display(Scene scene) {
 		this(scene, "");
 	}
@@ -256,7 +256,7 @@ public class Display extends Kernel {
 	}
 	protected Point calculateParticle(int particleID, Dimension size, Point location) {
 		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
-		if (scene.particles.get(particleID).getPosition().getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.particles.get(particleID).getPosition().getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.particles.get(particleID).getPosition().getY()*Math.sin(viewAngleY) < scene.camDist) {
+		if (scene.particles.get(particleID).getPosition().getZ()*sphere.cosViewAngleX*sphere.cosViewAngleY + scene.particles.get(particleID).getPosition().getX()*sphere.sinViewAngleX*sphere.cosViewAngleY - scene.particles.get(particleID).getPosition().getY()*sphere.sinViewAngleY < scene.camDist) {
 			// 3D to 2D point conversion
 			double zAngle = Math.atan(scene.particles.get(particleID).getPosition().getZ()/scene.particles.get(particleID).getPosition().getX());
 			if (scene.particles.get(particleID).getPosition().getX() == 0 && scene.particles.get(particleID).getPosition().getZ() == 0) {
@@ -264,11 +264,11 @@ public class Display extends Kernel {
 			}
 			double mag = Math.hypot(scene.particles.get(particleID).getPosition().getX(), scene.particles.get(particleID).getPosition().getZ());
 			if (scene.particles.get(particleID).getPosition().getX() < 0) {
-				xTransform = -mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
-				yTransform = -mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
+				xTransform = -mag*DisplaySettings.SCALE*Math.cos(sphere.viewAngleX+zAngle);
+				yTransform = -mag*DisplaySettings.SCALE*Math.sin(sphere.viewAngleX+zAngle)*sphere.sinViewAngleY+(scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*sphere.cosViewAngleY;
 			} else {
-				xTransform = mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
-				yTransform = mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
+				xTransform = mag*DisplaySettings.SCALE*Math.cos(sphere.viewAngleX+zAngle);
+				yTransform = mag*DisplaySettings.SCALE*Math.sin(sphere.viewAngleX+zAngle)*sphere.sinViewAngleY+(scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*sphere.cosViewAngleY;
 			}
 			double distance = Math3D.hypot3(localCamPos.getX()-scene.particles.get(particleID).getPosition().getX(), localCamPos.getY()-scene.particles.get(particleID).getPosition().getY(), localCamPos.getZ()-scene.particles.get(particleID).getPosition().getZ());
 			double theta = Math.asin((Math.hypot(xTransform, yTransform)/DisplaySettings.SCALE)/distance);
@@ -279,7 +279,7 @@ public class Display extends Kernel {
 	}
 	protected Point calculatePoint(int a, int i, Dimension size, Point location) {
 		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
-		if (scene.object[a].points[i].getZ()*Math.cos(viewAngleX)*Math.cos(viewAngleY) + scene.object[a].points[i].getX()*Math.sin(viewAngleX)*Math.cos(viewAngleY) - scene.object[a].points[i].getY()*Math.sin(viewAngleY) < scene.camDist) {
+		if (scene.object[a].points[i].getZ()*sphere.cosViewAngleX*sphere.cosViewAngleY + scene.object[a].points[i].getX()*sphere.sinViewAngleX*sphere.cosViewAngleY - scene.object[a].points[i].getY()*sphere.sinViewAngleY < scene.camDist) {
 			// 3D to 2D point conversion
 			double zAngle = Math.atan((scene.object[a].points[i].getZ())/(scene.object[a].points[i].getX()));
 			if (scene.object[a].points[i].getX() == 0 && scene.object[a].points[i].getZ() == 0) {
@@ -287,11 +287,11 @@ public class Display extends Kernel {
 			}
 			double mag = Math.hypot(scene.object[a].points[i].getX(), scene.object[a].points[i].getZ());
 			if (scene.object[a].points[i].getX() < 0) {
-				xTransform = -mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
-				yTransform = -mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
+				xTransform = -mag*DisplaySettings.SCALE*Math.cos(sphere.viewAngleX+zAngle);
+				yTransform = -mag*DisplaySettings.SCALE*Math.sin(sphere.viewAngleX+zAngle)*sphere.sinViewAngleY+(scene.object[a].points[i].getY())*DisplaySettings.SCALE*sphere.cosViewAngleY;
 			} else {
-				xTransform = mag*DisplaySettings.SCALE*Math.cos(viewAngleX+zAngle);
-				yTransform = mag*DisplaySettings.SCALE*Math.sin(viewAngleX+zAngle)*Math.sin(viewAngleY)+(scene.object[a].points[i].getY())*DisplaySettings.SCALE*Math.cos(viewAngleY);
+				xTransform = mag*DisplaySettings.SCALE*Math.cos(sphere.viewAngleX+zAngle);
+				yTransform = mag*DisplaySettings.SCALE*Math.sin(sphere.viewAngleX+zAngle)*sphere.sinViewAngleY+(scene.object[a].points[i].getY())*DisplaySettings.SCALE*sphere.cosViewAngleY;
 			}
 			distance[a][i] = new Distance(Math3D.hypot3(localCamPos.getX()-scene.object[a].points[i].getX(), localCamPos.getY()-scene.object[a].points[i].getY(), localCamPos.getZ()-scene.object[a].points[i].getZ()), i);
 			double theta = Math.asin((Math.hypot(xTransform, yTransform)/DisplaySettings.SCALE)/distance[a][i].distance);
@@ -333,8 +333,8 @@ public class Display extends Kernel {
 		localCamPosY[0] = (float) localCamPos.getY();
 		localCamPosZ[0] = (float) localCamPos.getZ();
 		gpuViewAngle[0] = (float) settings.viewAngle;
-		viewAngleXInput[0] = (float) viewAngleX;
-		viewAngleYInput[0] = (float) viewAngleY;
+		viewAngleXInput[0] = (float) sphere.viewAngleX;
+		viewAngleYInput[0] = (float) sphere.viewAngleY;
 		zAngleLength = 0;
 		for (int x = 0; x < scene.object.length; x++) {
 			zAngleLength += scene.object[x].points.length;
@@ -368,8 +368,8 @@ public class Display extends Kernel {
 		graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 	}
 	protected void calculateViewAngles(Dimension size, Point location) {
-		viewAngleX = 0;
-		viewAngleY = 0;
+		double viewAngleX = 0;
+		double viewAngleY = 0;
 		try {
 			viewAngleY = -((location.y+mouse.y-size.height)/2)/DisplaySettings.SENSITIVITY;
 			if (settings.yAxisClamp) {
@@ -383,6 +383,7 @@ public class Display extends Kernel {
 			}
 			viewAngleX = -((location.x+mouse.x-size.width)/2)/DisplaySettings.SENSITIVITY;
 		} catch (NullPointerException ex) {}
+		sphere = new ViewAngle(viewAngleX, viewAngleY);
 	}
 	protected void renderFaces(Graphics2D graphics) {
 		for (int a = 0; a < scene.object.length; a++) {
@@ -794,9 +795,9 @@ public class Display extends Kernel {
 		return settings.mode;
 	}
 	public Vector3 getCameraPositionActual() {
-		double x = (Math.sin(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.getX();
-		double y = -((Math.sin(viewAngleY)*scene.camDist) + camPos.getY());
-		double z = (Math.cos(viewAngleX)*Math.cos(viewAngleY)*scene.camDist) + camPos.getZ();
+		double x = (sphere.sinViewAngleX*sphere.cosViewAngleY*scene.camDist) + camPos.getX();
+		double y = -((sphere.sinViewAngleY*scene.camDist) + camPos.getY());
+		double z = (sphere.cosViewAngleX*sphere.cosViewAngleY*scene.camDist) + camPos.getZ();
 		return new Vector3(x, y, z);
 	}
 	public Display enableCameraPositionPrinting() {
@@ -915,7 +916,7 @@ public class Display extends Kernel {
 	public RenderMode getAlphaInterpolationMode() {
 		return settings.alphaInterpolationHint;
 	}
-	public Display setRenderQuality(RenderMode mode) { // sets rendering hints to either the best or the worst settings
+	public Display setRenderQuality(RenderMode mode) { // sets rendering hints to either the best or worst settings
 		if (mode == RenderMode.PERFORMANCE) {
 			settings.antialiasingHint = false;
 			settings.renderingHint = RenderMode.PERFORMANCE;
