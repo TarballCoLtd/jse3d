@@ -1,6 +1,10 @@
 package com.emeryferrari.jse3d.obj;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.*;
+/** Represents a collection of Object3Ds and Particles.
+ * @author Emery Ferrari
+ * @since 1.0 beta
+ */
 public class Scene implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public Object3D[] object;

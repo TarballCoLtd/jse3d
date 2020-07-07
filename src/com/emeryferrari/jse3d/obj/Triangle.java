@@ -1,6 +1,10 @@
 package com.emeryferrari.jse3d.obj;
 import java.awt.*;
 import java.io.*;
+/** Represents a collection of 3 points with a specified color.
+ * @author Emery Ferrari
+ * @since 1.0 beta
+ */
 public class Triangle implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public int pointID1;

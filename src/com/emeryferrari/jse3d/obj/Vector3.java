@@ -2,6 +2,10 @@ package com.emeryferrari.jse3d.obj;
 import java.io.*;
 import java.beans.*;
 import com.emeryferrari.jse3d.gfx.*;
+/** Represents a 3D vector.
+ * @author Emery Ferrari
+ * @since 2.2
+ */
 public class Vector3 implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public static final Vector3 back = new Vector3(0, 0, -1);

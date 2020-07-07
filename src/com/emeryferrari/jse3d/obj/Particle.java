@@ -1,4 +1,8 @@
 package com.emeryferrari.jse3d.obj;
+/** Represents a particle.
+ * @author Emery Ferrari
+ * @since 2.5
+ */
 public class Particle {
 	protected boolean started = false;
 	protected Vector3 position;

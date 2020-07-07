@@ -2,6 +2,10 @@ package com.emeryferrari.jse3d.obj;
 import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.interfaces.*;
 import com.emeryferrari.jse3d.obj.update.*;
+/** Represents a Particle's trajectory.
+ * @author Emery Ferrari
+ * @since 2.5
+ */
 public class Trajectory {
 	protected Updatable move;
 	protected Particle particle;

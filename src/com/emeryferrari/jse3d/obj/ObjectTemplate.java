@@ -1,5 +1,9 @@
 package com.emeryferrari.jse3d.obj;
 import java.awt.Color;
+/** Holds different Object3D templates.
+ * @author Emery Ferrari
+ * @since 1.4.1
+ */
 public class ObjectTemplate {
 	private ObjectTemplate() {}
 	public static Object3D getCube() {
