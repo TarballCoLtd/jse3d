@@ -30,6 +30,7 @@ class DisplaySettings {
 	RenderMode alphaInterpolationHint; // alpha interpolation settings
 	boolean assertion; // makes sure AssertionError's stack trace is only printed once
 	Point camPosPrintPoint; // where the camera position should be printed to on the frame
+	int maxPointsTotal;
 	public DisplaySettings() {
 		renderPoints = false;
 		camPosPrintPoint = new Point(0, 11);
@@ -52,5 +53,6 @@ class DisplaySettings {
 		scrollWheel = true;
 		mode = CameraMode.DRAG;
 		yAxisClamp = true;
+		maxPointsTotal = 1;
 	}
 }

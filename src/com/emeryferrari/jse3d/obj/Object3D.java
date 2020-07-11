@@ -9,10 +9,20 @@ import com.emeryferrari.jse3d.interfaces.*;
 public class Object3D implements Serializable {
 	private static final long serialVersionUID = 1L;
 	protected boolean started = false;
+	/** The points contained in this Object3D.
+	 */
 	public Vector3[] points;
+	/** The Lines contained in this Object3D.
+	 */
 	public Line[] edges = {};
+	/** The Faces contained in this Object3D.
+	 */
 	public Face[] faces = {};
+	/** The distance from this Object3D to the camera. Do not set this value.
+	 */
 	public double camDist = 0;
+	/** This Object3D's script.
+	 */
 	public Updatable updatable = new Updatable() {
 		@Override
 		public void start() {}
@@ -21,21 +31,42 @@ public class Object3D implements Serializable {
 		@Override
 		public void fixedUpdate() {}
 	};
+	/** Constructs an Object3D with the specified points, Faces, and Lines.
+	 * @param points An array of points in the form of Vector3s.
+	 * @param faces An array of Faces to be rendered.
+	 * @param edges An array of Lines to be rendered.
+	 */
 	public Object3D(Vector3[] points, Face[] faces, Line[] edges) {
 		this(points, faces);
 		this.edges = edges;
 	}
+	/** Constructs an Object3D with the specified points, Faces, and Lines.
+	 * @param points An array of points in the form of Vector3s.
+	 * @param edges An array of Lines to be rendered.
+	 * @param faces An array of Faces to be rendered.
+	 */
 	public Object3D(Vector3[] points, Line[] edges, Face[] faces) {
 		this(points, faces, edges);
 	}
+	/** Constructs an Object3D with the specified points and Faces.
+	 * @param points An array of points in the form of Vector3s.
+	 * @param faces An array of Faces to be rendered.
+	 */
 	public Object3D(Vector3[] points, Face[] faces) {
 		this(points);
 		this.faces = faces;
 	}
+	/** Constructs an Object3D with the specified points and Lines.
+	 * @param points An array of points in the form of Vector3s.
+	 * @param edges An array of Lines to be rendered.
+	 */
 	public Object3D(Vector3[] points, Line[] edges) {
-		this.points = points;
+		this(points);
 		this.edges = edges;
 	}
+	/** Constructs an Object3D with the specified points.
+	 * @param points An array of points in the form of Vector3s.
+	 */
 	public Object3D(Vector3[] points) {
 		this.points = points;
 	}
@@ -101,6 +132,10 @@ public class Object3D implements Serializable {
 		}
 		return -1;
 	}
+	/** Sets this Object3D's script.
+	 * @param updatable
+	 * @return The Object3D on which this method was called.
+	 */
 	public Object3D setScript(Updatable updatable) {
 		this.updatable = updatable;
 		return this;

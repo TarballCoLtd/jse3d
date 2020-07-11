@@ -14,7 +14,7 @@ import com.emeryferrari.jse3d.obj.*;
  * @author Sam Krug
  * @since 1.0 beta
  */
-public class Display extends Kernel { // extension of Kernel is necessary for OpenCL rendering
+public class Display { // extension of Kernel is necessary for OpenCL rendering
 	protected DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
 	protected JFrame frame; // the frame that the scene is rendered in
@@ -37,28 +37,8 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 	protected Vector3 localCamPos;
 	protected Time time; // controls delta time and fixed delta time for this Display instance
 	protected ParticleKernel particleKernel; // kernel responsible for calculating particle positions with OpenCL
-	private DisplaySettings settings; // display settings
-	// OpenCL OBJECT VARIABLES
-	final float[] zAngleX;
-	final float[] zAngleY;
-	final float[] zAngleZ;
-	final float[] viewAngleXInput = new float[1];
-	final float[] viewAngleYInput = new float[1];
-	final float[] sinViewAngleX = new float[1];
-	final float[] sinViewAngleY = new float[1];
-	final float[] cosViewAngleX = new float[1];
-	final float[] cosViewAngleY = new float[1];
-	final float[] sinViewAngleXzAngle;
-	final float[] cosViewAngleXzAngle;
-	final float[] xTransforms;
-	final float[] yTransforms;
-	final float[] localCamPosX = new float[1];
-	final float[] localCamPosY = new float[1];
-	final float[] localCamPosZ = new float[1];
-	final float[] maths;
-	final float[] cosThetas;
-	final float[] gpuViewAngle = new float[1];
-	final float[] sinViewAngles;
+	protected ObjectKernel objKernel;
+	DisplaySettings settings; // display settings
 	protected int zAngleLength;
 	// OpenCL PARTICLE VARIABLES
 	// coming soon
@@ -273,17 +253,8 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 		time = new Time();
 		settings = new DisplaySettings();
 		calculateRenderingHints();
-		zAngleX = new float[maxPointsTotal];
-		zAngleY = new float[maxPointsTotal];
-		zAngleZ = new float[maxPointsTotal];
-		sinViewAngleXzAngle = new float[maxPointsTotal];
-		cosViewAngleXzAngle = new float[maxPointsTotal];
-		xTransforms = new float[maxPointsTotal];
-		yTransforms = new float[maxPointsTotal];
-		maths = new float[maxPointsTotal];
-		cosThetas = new float[maxPointsTotal];
-		sinViewAngles = new float[maxPointsTotal];
 		renderer = new DisplayRenderer();
+		settings.maxPointsTotal = maxPointsTotal;
 		this.scene = scene;
 		frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " // " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") ? " development build" : ""));
 		frame.setSize(frameWidth, frameHeight);
@@ -301,7 +272,6 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 		renderer.addMouseListener(new ClickListener());
 		renderer.addMouseWheelListener(new ScrollListener());
 		mouseClicked = false;
-		
 		camPos = new Vector3(0, 0, 0);
 		mouseDiff = new Point(0, 0);
 		settings.viewAngle = fovRadians;
@@ -312,6 +282,7 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 	public Display startRender() { // call this to make the frame visible and start rendering
 		if (!rendererStarted) {
 			particleKernel = new ParticleKernel(this);
+			objKernel = new ObjectKernel(this);
 			for (int i = 0; i < scene.object.length; i++) {
 				try {scene.object[i].start();} catch (NullPointerException ex) {}
 			}
@@ -492,7 +463,7 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 		try { // calculates multiple points concurrently on the selected OpenCL device
 			Range range = chosen.createRange(zAngleLength);
 			range.setLocalSize_0(zAngleLength);
-			execute(range);
+			objKernel.execute(range);
 		} catch (AssertionError err) {
 			if (!settings.assertion) {
 				System.err.println("java.lang.AssertionError: Selected OpenCL device not available. This is a bug with jse3d. In the meantime, try setting the number of points in the scene to a multiple of how many cores the selected device has as a temporary workaround. Normally this is a power of 2, however that is not always true.");
@@ -501,12 +472,12 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 		}
 	}
 	protected void prepareGPU(Vector3 localCamPos) {
-		localCamPosX[0] = (float) localCamPos.getX();
-		localCamPosY[0] = (float) localCamPos.getY();
-		localCamPosZ[0] = (float) localCamPos.getZ();
-		gpuViewAngle[0] = (float) settings.viewAngle;
-		viewAngleXInput[0] = (float) sphere.viewAngleX;
-		viewAngleYInput[0] = (float) sphere.viewAngleY;
+		objKernel.localCamPosX[0] = (float) localCamPos.getX();
+		objKernel.localCamPosY[0] = (float) localCamPos.getY();
+		objKernel.localCamPosZ[0] = (float) localCamPos.getZ();
+		objKernel.gpuViewAngle[0] = (float) settings.viewAngle;
+		objKernel.viewAngleXInput[0] = (float) sphere.viewAngleX;
+		objKernel.viewAngleYInput[0] = (float) sphere.viewAngleY;
 		zAngleLength = 0;
 		for (int x = 0; x < scene.object.length; x++) {
 			zAngleLength += scene.object[x].points.length;
@@ -514,9 +485,9 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 		for (int x = 0; x < scene.object.length; x++) {
 			for (int y = 0; y < scene.object[x].points.length; y++) {
 				int index = (scene.object[x].points.length*x)+y;
-				zAngleX[index] = (float) scene.object[x].points[y].getX();
-				zAngleY[index] = (float) scene.object[x].points[y].getY();
-				zAngleZ[index] = (float) scene.object[x].points[y].getZ();
+				objKernel.zAngleX[index] = (float) scene.object[x].points[y].getX();
+				objKernel.zAngleY[index] = (float) scene.object[x].points[y].getY();
+				objKernel.zAngleZ[index] = (float) scene.object[x].points[y].getZ();
 			}
 		}
 	}
@@ -638,11 +609,11 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 	protected Point calculatePointGPU(int a, int i, Dimension size, Point location) {
 		int id = (scene.object[a].points.length*a)+i;
 		distance[a][i] = new Distance(0.0, -1);
-		if (scene.object[a].points[i].getZ()*cosViewAngleX[0]*cosViewAngleY[0] + scene.object[a].points[i].getX()*sinViewAngleX[0]*cosViewAngleY[0] - scene.object[a].points[i].getY()*sinViewAngleY[0] < scene.camDist) {
-			xTransform = xTransforms[id];
-			yTransform = yTransforms[id];
-			distance[a][i] = new Distance(maths[id], i);
-			camScale[a][i] = distance[a][i].distance*cosThetas[id]*sinViewAngles[id];
+		if (scene.object[a].points[i].getZ()*objKernel.cosViewAngleX[0]*objKernel.cosViewAngleY[0] + scene.object[a].points[i].getX()*objKernel.sinViewAngleX[0]*objKernel.cosViewAngleY[0] - scene.object[a].points[i].getY()*objKernel.sinViewAngleY[0] < scene.camDist) {
+			xTransform = objKernel.xTransforms[id];
+			yTransform = objKernel.yTransforms[id];
+			distance[a][i] = new Distance(objKernel.maths[id], i);
+			camScale[a][i] = distance[a][i].distance*objKernel.cosThetas[id]*objKernel.sinViewAngles[id];
 			return new Point((int)((size.width+location.x)/2+xTransform/camScale[a][i]), (int)((size.height+location.y)/2-yTransform/camScale[a][i]));
 		}
 		return null;
@@ -763,36 +734,6 @@ public class Display extends Kernel { // extension of Kernel is necessary for Op
 		} else {
 			hints.add(new RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY));
 		}
-	}
-	// ORIGINAL CPU CODE BY SAM KRUG, GPU ADAPTATION BY EMERY FERRARI
-	/** Code to be recompiled to OpenCL and run on GPU or multithreaded CPU by Aparapi. Do not execute this method.
-	 */
-	public void run() {
-		int id = getGlobalId();
-		if (id == 0) {
-			sinViewAngleX[0] = sin(viewAngleXInput[0]);
-			sinViewAngleY[0] = sin(viewAngleYInput[0]);
-			cosViewAngleX[0] = cos(viewAngleXInput[0]);
-			cosViewAngleY[0] = cos(viewAngleYInput[0]);
-		}
-		float zAngles = 0f;
-		float mags = 0f;
-		if (!(zAngleX[id] == 0f && zAngleZ[id] == 0f)) {
-			zAngles = atan(zAngleZ[id]/zAngleX[id]);
-		}
-		sinViewAngleXzAngle[id] = sin(viewAngleXInput[0]+zAngles);
-		cosViewAngleXzAngle[id] = cos(viewAngleXInput[0]+zAngles);
-		mags = hypot(zAngleX[id], zAngleZ[id]);
-		if (zAngleX[id] < 0) {
-			xTransforms[id] = -mags*DisplaySettings.SCALE*cosViewAngleXzAngle[id];
-			yTransforms[id] = -mags*DisplaySettings.SCALE*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*DisplaySettings.SCALE*cosViewAngleY[0];
-		} else {
-			xTransforms[id] = mags*DisplaySettings.SCALE*cosViewAngleXzAngle[id];
-			yTransforms[id] = mags*DisplaySettings.SCALE*sinViewAngleXzAngle[id]*sinViewAngleY[0]+zAngleY[id]*DisplaySettings.SCALE*cosViewAngleY[0];
-		}
-		maths[id] = sqrt(pow(localCamPosX[0]-zAngleX[id], 2)+pow(localCamPosY[0]-zAngleY[id], 2)+pow(localCamPosZ[0]-zAngleZ[id], 2));
-		cosThetas[id] = cos(asin((hypot(xTransforms[id], yTransforms[id])/DisplaySettings.SCALE)/maths[id]));
-		sinViewAngles[id] = sin(gpuViewAngle[0]/2);
 	}
 	protected class ClickListener implements MouseListener { // calculations for CameraMode.DRAG
 		public void mouseEntered(MouseEvent ev) {}
