@@ -3,6 +3,10 @@ import java.awt.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.obj.*;
+/** Demo for rendering a square pyramid.
+ * @author Alyx Ferrari
+ * @since 2.5.6
+ */
 public class SquarePyramidDemo {
 	public static void main(String[] args) {
 		Object3D[] objects = new Object3D[1];
