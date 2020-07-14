@@ -15,6 +15,8 @@ import com.emeryferrari.jse3d.obj.*;
  * @since 1.0 beta
  */
 public class Display { // extension of Kernel is necessary for OpenCL rendering
+	private Image buffer;
+	protected Graphics2D graphics;
 	protected DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
 	protected JFrame frame; // the frame that the scene is rendered in
@@ -256,7 +258,7 @@ public class Display { // extension of Kernel is necessary for OpenCL rendering
 		renderer = new DisplayRenderer();
 		settings.maxPointsTotal = maxPointsTotal;
 		this.scene = scene;
-		frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " // " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") ? " development build" : ""));
+		frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " // " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") || System.getProperty("user.dir").equals("D:\\documents\\GitHub\\jse3d") ? " development build" : ""));
 		frame.setSize(frameWidth, frameHeight);
 		frame.setVisible(frameVisible);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -328,19 +330,20 @@ public class Display { // extension of Kernel is necessary for OpenCL rendering
 	}
 	protected class DisplayRenderer extends JComponent { // scene renderer
 		protected static final long serialVersionUID = 1L;
-		@Override
-		public void paintComponent(Graphics gfx) {
+		public void render() {
+			Dimension size = getSize();
+			buffer = createImage(size.width, size.height);
+			graphics = (Graphics2D) buffer.getGraphics();
 			if (rendering) {
-				renderFrame((Graphics2D)gfx, this);
+				renderFrame(size, getLocation());
+				getGraphics().drawImage(buffer, 0, 0, null);
 			}
 		}
 	}
-	protected void renderFrame(Graphics2D graphics, DisplayRenderer renderer) {
+	protected void renderFrame(Dimension size, Point location) {
 		localCamPos = new Vector3(0, 0, 0);
 		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
-		Dimension size = renderer.getSize();
-		Point location = renderer.getLocation();
 		if (settings.renderTarget == RenderTarget.CPU_SINGLETHREADED) { // this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
 			pointArrays = new Point[scene.object.length][];
 			renderBackground(graphics, size, location);
@@ -647,7 +650,7 @@ public class Display { // extension of Kernel is necessary for OpenCL rendering
 			        lastFpsTime = 0;
 			        fps = 0;
 			    }
-			    renderFrame();
+			    renderer.render();
 			    time.reset();
 			    for (int i = 0; i < scene.object.length; i++) {
 			    	try {scene.object[i].update();} catch (NullPointerException ex) {}
@@ -660,9 +663,6 @@ public class Display { // extension of Kernel is necessary for OpenCL rendering
 			    	try {Thread.sleep(tmp > 0 ? tmp : 0);} catch (InterruptedException ex) {ex.printStackTrace();}
 			    }
 			}
-		}
-		private void renderFrame() {
-			getFrame().repaint();
 		}
 	}
 	protected class Physics implements Runnable {
