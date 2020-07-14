@@ -14,9 +14,9 @@ import com.emeryferrari.jse3d.obj.*;
  * @author Sam Krug
  * @since 1.0 beta
  */
-public class Display { // extension of Kernel is necessary for OpenCL rendering
-	private Image buffer;
-	protected Graphics2D graphics;
+public class Display {
+	private Image buffer; // used for double buffering
+	protected Graphics2D graphics; // set to the above Image's Graphics component every frame
 	protected final DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
 	protected JFrame frame; // the frame that the scene is rendered in
