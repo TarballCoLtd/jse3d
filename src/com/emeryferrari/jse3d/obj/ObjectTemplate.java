@@ -23,6 +23,9 @@ public class ObjectTemplate {
 	public static Object3D getSquarePyramid() {
 		Vector3[] points = {new Vector3(-1, -1, -1), new Vector3(1, -1, -1), new Vector3(1, -1, 1), new Vector3(-1, -1, 1), new Vector3(0, 1, 0)};
 		Line[] edges = {new Line(0, 1), new Line(0, 3), new Line(2, 3), new Line(1, 2), new Line(0, 4), new Line(1, 4), new Line(2, 4), new Line(3, 4)};
-		return new Object3D(points, edges);
+		Triangle[] triangles1 = {new Triangle(0, 1, 2, Color.GREEN), new Triangle(0, 2, 3, Color.GREEN)};
+		Triangle[] triangles2 = {new Triangle(0, 1, 4, Color.RED)};
+		Face[] faces = {new Face(triangles1), new Face(triangles2)};
+		return new Object3D(points, faces, edges);
 	}
 }
