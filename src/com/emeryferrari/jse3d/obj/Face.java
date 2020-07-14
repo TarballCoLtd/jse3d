@@ -7,8 +7,13 @@ import java.io.*;
  */
 public class Face implements Serializable, Comparable<Face> {
 	// Note: this class has a natural ordering that is inconsistent with equals.
+	// The above disclaimer is recommended by the Java documentation based on the contents of this class.
 	private static final long serialVersionUID = 1L;
+	/** Triangles contained in this Face.
+	 */
 	public Triangle[] triangles;
+	/** Distance from this Face to the camera, updated every frame. Used internally by the face renderer.
+	 */
 	public double camDist;
 	/** Constructs a Face with the specified Triangles.
 	 * @param triangles Triangles with which to construct this Face.

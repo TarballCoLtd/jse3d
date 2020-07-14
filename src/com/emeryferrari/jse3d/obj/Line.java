@@ -6,7 +6,11 @@ import java.io.*;
  */
 public class Line implements Serializable {
 	private static final long serialVersionUID = 1L;
+	/** Object3D-specific point ID of the first point of this Line.
+	 */
 	public int pointID1;
+	/** Object3D-specific point ID of the second point of this Line.
+	 */
 	public int pointID2;
 	/** Constructs a Line between two points.
 	 * @param pointID1 The first point's ID.
