@@ -3,7 +3,7 @@ import java.io.*;
 import java.beans.*;
 import com.emeryferrari.jse3d.gfx.*;
 /** Represents a 3D vector.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 2.2
  */
 public class Vector3 implements Serializable {

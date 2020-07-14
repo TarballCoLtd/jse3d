@@ -2,7 +2,7 @@ package com.emeryferrari.jse3d.obj;
 import java.io.*;
 import java.util.*;
 /** Represents a collection of Object3Ds and Particles.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 1.0 beta
  */
 public class Scene implements Serializable {

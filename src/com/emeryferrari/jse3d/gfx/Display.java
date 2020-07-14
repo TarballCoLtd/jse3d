@@ -10,7 +10,7 @@ import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.exc.*;
 import com.emeryferrari.jse3d.obj.*;
 /** Represents a jse3d frame.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @author Sam Krug
  * @since 1.0 beta
  */

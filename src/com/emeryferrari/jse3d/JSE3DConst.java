@@ -1,6 +1,6 @@
 package com.emeryferrari.jse3d;
 /** Holds this library's name and version number.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 1.0 beta
  */
 public class JSE3DConst {

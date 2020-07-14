@@ -1,7 +1,7 @@
 package com.emeryferrari.jse3d.obj;
 import java.io.*;
 /** Saves various jse3d classes to files.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 1.3 beta 2
  */
 public class JSE3DSerializer {

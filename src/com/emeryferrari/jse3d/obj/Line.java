@@ -1,7 +1,7 @@
 package com.emeryferrari.jse3d.obj;
 import java.io.*;
 /** Represents a 2D line between two drawn 3D points.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 1.0 beta
  */
 public class Line implements Serializable {

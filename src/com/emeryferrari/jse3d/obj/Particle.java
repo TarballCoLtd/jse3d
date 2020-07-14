@@ -1,6 +1,6 @@
 package com.emeryferrari.jse3d.obj;
 /** Represents a particle.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 2.5
  */
 public class Particle {

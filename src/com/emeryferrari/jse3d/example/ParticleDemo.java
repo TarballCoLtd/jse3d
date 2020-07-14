@@ -5,7 +5,7 @@ import com.emeryferrari.jse3d.obj.*;
 import com.emeryferrari.jse3d.interfaces.*;
 import java.awt.*;
 /** Demo for particles.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 2.5
  */
 public class ParticleDemo {
@@ -20,7 +20,7 @@ public class ParticleDemo {
 		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
-		display.setRenderQuality(RenderMode.QUALITY);
+		display.setRenderQuality(RenderMode.PERFORMANCE);
 		display.setPointSize(new Dimension(40, 40));
 		display.startRender();
 		Trajectory trajectory = new Trajectory();

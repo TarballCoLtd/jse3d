@@ -3,7 +3,7 @@ import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.interfaces.*;
 import com.emeryferrari.jse3d.obj.update.*;
 /** Represents a Particle's trajectory.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 2.5
  */
 public class Trajectory {

@@ -2,6 +2,9 @@ package com.emeryferrari.jse3d.obj.update;
 import com.emeryferrari.jse3d.obj.*;
 import com.emeryferrari.jse3d.interfaces.*;
 import com.emeryferrari.jse3d.gfx.*;
+/** Represents a particle movement preset.
+ * @author Alyx Ferrari
+ */
 public class LinearUpdate implements Updatable {
 	private Particle particle;
 	private Vector3 increment;

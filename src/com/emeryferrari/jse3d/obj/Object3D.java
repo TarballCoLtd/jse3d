@@ -3,7 +3,7 @@ import java.io.*;
 import com.emeryferrari.jse3d.gfx.*;
 import com.emeryferrari.jse3d.interfaces.*;
 /** Represents a collection of Vector3s.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 1.0 beta
  */
 public class Object3D implements Serializable {

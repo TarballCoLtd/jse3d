@@ -2,7 +2,7 @@ package com.emeryferrari.jse3d.obj;
 import java.util.*;
 import java.io.*;
 /** Represents a collection of Triangles that form a face of an Object3D.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 1.0 beta
  */
 public class Face implements Serializable, Comparable<Face> {

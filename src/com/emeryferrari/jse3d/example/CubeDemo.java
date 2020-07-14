@@ -4,7 +4,7 @@ import java.awt.*;
 import com.emeryferrari.jse3d.enums.*;
 import com.emeryferrari.jse3d.obj.*;
 /** Demo for cube rendering.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 2.5
  */
 public class CubeDemo {

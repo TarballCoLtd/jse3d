@@ -1,4 +1,7 @@
 package com.emeryferrari.jse3d.gfx;
+/** Includes methods to get delta time and fixed delta time for timing physics and other operations.
+ * @author Alyx Ferrari
+ */
 public class Time {
 	private long fixedLast = System.nanoTime();
 	private long last = System.nanoTime();

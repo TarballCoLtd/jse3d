@@ -1,6 +1,6 @@
 package com.emeryferrari.jse3d.obj;
 /** Represents the distance between a point and the camera. Do not instantiate this class.
- * @author Emery Ferrari
+ * @author Alyx Ferrari
  * @since 1.0 beta
  */
 public class Distance {
