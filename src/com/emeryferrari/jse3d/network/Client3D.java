@@ -1,4 +1,7 @@
 package com.emeryferrari.jse3d.network;
+/** Used to establish a connection with a jse3dserver.
+ * @author Alyx Ferrari
+ */
 public class Client3D {
 	private String[] args;
 	private boolean started;
