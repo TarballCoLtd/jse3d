@@ -1,4 +1,5 @@
 package com.emeryferrari.jse3d.obj;
+import com.emeryferrari.jse3d.interfaces.*;
 /** Represents a particle.
  * @author Alyx Ferrari
  * @since 2.5
@@ -34,5 +35,9 @@ public class Particle {
 	}
 	public Trajectory getTrajectory() {
 		return trajectory;
+	}
+	public Particle setScript(Updatable script) {
+		getTrajectory().setScript(script);
+		return this;
 	}
 }
