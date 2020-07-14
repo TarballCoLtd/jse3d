@@ -17,7 +17,7 @@ import com.emeryferrari.jse3d.obj.*;
 public class Display { // extension of Kernel is necessary for OpenCL rendering
 	private Image buffer;
 	protected Graphics2D graphics;
-	protected DisplayRenderer renderer; // a JComponent that handles rendering
+	protected final DisplayRenderer renderer; // a JComponent that handles rendering
 	protected Scene scene; // the current scene
 	protected JFrame frame; // the frame that the scene is rendered in
 	protected boolean rendering; // true if the startRender() method has been called
@@ -40,7 +40,7 @@ public class Display { // extension of Kernel is necessary for OpenCL rendering
 	protected Time time; // controls delta time and fixed delta time for this Display instance
 	protected ParticleKernel particleKernel; // kernel responsible for calculating particle positions with OpenCL
 	protected ObjectKernel objKernel;
-	DisplaySettings settings; // display settings
+	final DisplaySettings settings; // display settings
 	protected int zAngleLength;
 	// OpenCL PARTICLE VARIABLES
 	// coming soon
