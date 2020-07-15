@@ -5,7 +5,11 @@ package com.emeryferrari.jse3d.gfx;
 public class Time {
 	private long fixedLast = System.nanoTime();
 	private long last = System.nanoTime();
+	/** The time between the last frame and the frame before. Used for timing.
+	 */
 	public double deltaTime = 0.0166666667;
+	/** The time between the last physics update and the update before. Used for timing physics operations.
+	 */
 	public double fixedDeltaTime = 0.0166666667;
 	Time() {}
 	final void reset() {
