@@ -3,7 +3,7 @@ package com.emeryferrari.jse3d.interfaces;
  * @author Alyx Ferrari
  * @since 2.5.2
  */
-public interface Scriptable {
+public interface Script {
 	/** This method is called once at the beginning of Scene rendering.
 	 */
 	public void start();

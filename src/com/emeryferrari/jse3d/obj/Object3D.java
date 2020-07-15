@@ -23,7 +23,7 @@ public class Object3D implements Serializable {
 	public double camDist = 0;
 	/** This Object3D's script.
 	 */
-	public Scriptable updatable = new Scriptable() {
+	public Script updatable = new Script() {
 		@Override
 		public void start() {}
 		@Override
@@ -223,7 +223,7 @@ public class Object3D implements Serializable {
 	 * @param updatable This Object3D's new script.
 	 * @return The Object3D on which this method was called.
 	 */
-	public Object3D setScript(Scriptable updatable) {
+	public Object3D setScript(Script updatable) {
 		this.updatable = updatable;
 		return this;
 	}

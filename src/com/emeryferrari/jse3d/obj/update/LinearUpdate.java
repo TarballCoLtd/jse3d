@@ -5,7 +5,7 @@ import com.emeryferrari.jse3d.gfx.*;
 /** Represents a particle movement preset.
  * @author Alyx Ferrari
  */
-public class LinearUpdate implements Scriptable {
+public class LinearUpdate implements Script {
 	private Particle particle;
 	private Vector3 increment;
 	private Time time;
