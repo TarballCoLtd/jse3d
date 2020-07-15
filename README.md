@@ -1,6 +1,6 @@
 # jse3d
 
-by Sam Krug and Emery Ferrari
+by Sam Krug and Alyx Ferrari
 
 ## Dependencies
 
@@ -8,11 +8,11 @@ If you would like a version with no dependencies, try jse3d v1.7.2, however this
 -Aparapi 2.0.0<br/>
 -Aparapi JNI 1.4.2<br/>
 -Apache Commons BCEL 6.5.0<br/>
--jse3dnetworklib 1.3
+-jse3dnetworklib 1.4
 
 ## Documentation
 
-Javadocs are being worked on. These will hopefully be finished by July 14, 2020.<br/>
+Javadocs are being worked on. They are being introduced slowly, with a commit after the completion of a class.<br/>
 Check src/com/emeryferrari/jse3d/example for examples on how to use jse3d.
 
 ## Contacting me

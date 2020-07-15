@@ -184,12 +184,21 @@ public class Vector3 implements Serializable {
 		movePosAbs((x*multiplierX)-around.x, (y*multiplierY)-around.y, (z*multiplierZ)-around.z, camPos);
 		return this;
 	}
+	/** Returns this vector's x value.
+	 * @return This vector's x value.
+	 */
 	public double getX() {
 		return x;
 	}
+	/** Returns this vector's y value.
+	 * @return This vector's y value.
+	 */
 	public double getY() {
 		return y;
 	}
+	/** Returns this vector's z value.
+	 * @return This vector's z value.
+	 */
 	public double getZ() {
 		return z;
 	}
@@ -198,6 +207,12 @@ public class Vector3 implements Serializable {
 		sqrMagnitude = Math.pow(magnitude, 2);
 		normal = new Vector3(x/magnitude, y/magnitude, z/magnitude, null);
 	}
+	/** Sets this vector's coordinates.
+	 * @param x The new x coordinate.
+	 * @param y The new y coordinate.
+	 * @param z The new z coordinate.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 set(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
@@ -205,28 +220,50 @@ public class Vector3 implements Serializable {
 		recalculate();
 		return this;
 	}
+	/** Sets this vector's x value.
+	 * @param x The new x value.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 setX(double x) {
 		this.x = x;
 		recalculate();
 		return this;
 	}
+	/** Sets this vector's y value.
+	 * @param y The new y value.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 setY(double y) {
 		this.y = y;
 		recalculate();
 		return this;
 	}
+	/** Sets this vector's z value.
+	 * @param z The new z value.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 setZ(double z) {
 		this.z = z;
 		recalculate();
 		return this;
 	}
+	/** Returns this vector's magnitude.
+	 * @return This vector's magnitude.
+	 */
 	public double getMagnitude() {
 		return magnitude;
 	}
+	/** Returns the square of this vector's magnitude.
+	 * @return The square of this vector's magnitude.
+	 */
 	public double getSquareMagnitude() {
 		return sqrMagnitude;
 	}
 	@Override
+	/** Checks for equality between this Vector3 and another object.
+	 * @param object The object to which this Vector3 will be compared.
+	 * @return True if the two objects are equal.
+	 */
 	public boolean equals(Object object) {
 		if (object instanceof Vector3) {
 			Vector3 temp = (Vector3) object;
@@ -237,30 +274,57 @@ public class Vector3 implements Serializable {
 		return false;
 	}
 	@Override
+	/** Converts this vector to a String.
+	 * @return This vector in String form.
+	 */
 	public String toString() {
 		return "<" + x + ", " + y + ", " + z + ">";
 	}
+	/** Returns this vector's normal.
+	 * @return This vector's normal.
+	 */
 	public Vector3 getNormal() {
 		return normal;
 	}
+	/** Normalizes the values of this vector.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 normalize() {
 		x /= magnitude;
 		y /= magnitude;
 		z /= magnitude;
 		return this;
 	}
+	/** Adds the values of one vector to another.
+	 * @param add1 The first vector.
+	 * @param add2 The second vector.
+	 * @return The sum of the two vectors.
+	 */
 	public static Vector3 add(Vector3 add1, Vector3 add2) {
 		return new Vector3(add1.x+add2.x, add1.y+add2.y, add1.z+add2.z);
 	}
+	/** Adds this vector to another.
+	 * @param add The vector to which this vector should be added.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 add(Vector3 add) {
 		x += add.x;
 		y += add.y;
 		z += add.z;
 		return this;
 	}
+	/** Subtracts the second vector from the first.
+	 * @param subtract1 The first vector.
+	 * @param subtract2 The second vector.
+	 * @return The difference between the two vectors.
+	 */
 	public static Vector3 subtract(Vector3 subtract1, Vector3 subtract2) {
 		return new Vector3(subtract1.x-subtract2.x, subtract1.y-subtract2.y, subtract1.z-subtract2.z);
 	}
+	/** Subtracts another vector from this vector.
+	 * @param subtract The vector that should be subtracted from this vector.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 subtract(Vector3 subtract) {
 		x -= subtract.x;
 		y -= subtract.y;
