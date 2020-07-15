@@ -370,9 +370,19 @@ public class Vector3 implements Serializable {
 	public static Vector3 cross(Vector3 cross1, Vector3 cross2) {
 		return new Vector3((cross1.y*cross2.z)-(cross1.z*cross2.y), (cross1.z*cross2.x)-(cross1.x*cross2.z), (cross1.x*cross2.y)-(cross1.y*cross2.x));
 	}
+	/** Returns the dot product of two vectors.
+	 * @param dot1 The first vector.
+	 * @param dot2 The second vector.
+	 * @return The dot product of the two vectors.
+	 */
 	public static double dot(Vector3 dot1, Vector3 dot2) {
 		return (dot1.x*dot2.x)+(dot1.y*dot2.y)+(dot1.z*dot2.z);
 	}
+	/** Returns the angle between two vectors.
+	 * @param angle1 The first vector.
+	 * @param angle2 The second vector.
+	 * @return The angle between the two vectors.
+	 */
 	public static double angle(Vector3 angle1, Vector3 angle2) {
 		return Math.acos(dot(angle1, angle2)/(angle1.magnitude*angle2.magnitude));
 	}

@@ -1014,8 +1014,8 @@ public class Display {
 		return this;
 	}
 	/** Enables printing the camera's actual position to the user-specified point on the frame.
-	 * @param pos
-	 * @return
+	 * @param pos The point at which the camera's actual position should be printed.
+	 * @return The Display object on which this method was called.
 	 */
 	public Display enableCameraPositionPrinting(Point pos) {
 		settings.camPosPrintPoint = pos;
@@ -1091,7 +1091,7 @@ public class Display {
 	}
 	/** Sets the device on which the current Scene should be computed. This can be set at any time with seamless switching.
 	 * @param renderMode The new compute device.
-	 * @return
+	 * @return The Display object on which this method was called.
 	 */
 	public Display setRenderTarget(RenderTarget renderMode) {
 		settings.renderTarget = renderMode;
@@ -1217,14 +1217,14 @@ public class Display {
 	}
 	/** Sets image interpolation mode.
 	 * @param mode The new image interpolation mode.
-	 * @return
+	 * @return The Display object on which this method was called.
 	 */
 	public Display setInterpolationMode(InterpolationMode mode) {
 		settings.interpolationHint = mode;
 		return this;
 	}
 	/** Returns the current image interpolation mode.
-	 * @return
+	 * @return The Display object on which this method was called.
 	 */
 	public InterpolationMode getInterpolationMode() {
 		return settings.interpolationHint;
@@ -1294,7 +1294,7 @@ public class Display {
 	}
 	/** Sets the size in 2D in which points should be rendered.
 	 * @param pointSize
-	 * @return
+	 * @return The Display object on which this method was called.
 	 */
 	public Display setPointSize(Dimension pointSize) {
 		settings.pointSize = pointSize;
