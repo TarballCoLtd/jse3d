@@ -1133,7 +1133,7 @@ public class Display {
 	}
 	/** Sets general render quality.
 	 * @param mode The new render quality.
-	 * @return
+	 * @return The Display object on which this method was called.
 	 */
 	public Display setRenderingMode(RenderMode mode) {
 		settings.renderingHint = mode;
@@ -1293,7 +1293,7 @@ public class Display {
 		return scene.particles;
 	}
 	/** Sets the size in 2D in which points should be rendered.
-	 * @param pointSize
+	 * @param pointSize The new size of points.
 	 * @return The Display object on which this method was called.
 	 */
 	public Display setPointSize(Dimension pointSize) {

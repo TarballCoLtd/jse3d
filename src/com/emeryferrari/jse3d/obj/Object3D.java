@@ -220,7 +220,7 @@ public class Object3D implements Serializable {
 		return -1;
 	}
 	/** Sets this Object3D's script.
-	 * @param updatable
+	 * @param updatable This Object3D's new script.
 	 * @return The Object3D on which this method was called.
 	 */
 	public Object3D setScript(Updatable updatable) {
