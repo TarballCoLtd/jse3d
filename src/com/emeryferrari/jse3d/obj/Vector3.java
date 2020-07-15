@@ -8,15 +8,35 @@ import com.emeryferrari.jse3d.gfx.*;
  */
 public class Vector3 implements Serializable {
 	private static final long serialVersionUID = 1L;
+	/** Represents a vector pointing backwards.
+	 */
 	public static final Vector3 back = new Vector3(0, 0, -1);
+	/** Represents a vector pointing downwards.
+	 */
 	public static final Vector3 down = new Vector3(0, -1, 0);
+	/** Represents a vector pointing forwards.
+	 */
 	public static final Vector3 forward = new Vector3(0, 0, 1);
+	/** Represents a vector with a magnitude of Math3D.hypot3(Double.NEGATIVE_INFINITY).
+	 */
 	public static final Vector3 negativeInfinity = new Vector3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+	/** Represents a vector with a magnitude of Math3D.hypot3(1.0).
+	 */
 	public static final Vector3 one = new Vector3(1, 1, 1);
+	/** Represents a vector with a magnitude of Math3D.hypot3(Double.POSITIVE_INFINITY).
+	 */
 	public static final Vector3 positiveInfinity = new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+	/** Represents a vector pointing right.
+	 */
 	public static final Vector3 right = new Vector3(1, 0, 0);
+	/** Represents a vector pointing left.
+	 */
 	public static final Vector3 left = new Vector3(-1, 0, 0);
+	/** Represents a vector pointing upwards.
+	 */
 	public static final Vector3 up = new Vector3(0, 1, 0);
+	/** Represents a vector with a magnitude of 0.
+	 */
 	public static final Vector3 zero = new Vector3(0, 0, 0);
 	protected double x;
 	protected double y;
@@ -24,10 +44,17 @@ public class Vector3 implements Serializable {
 	protected double magnitude;
 	protected double sqrMagnitude;
 	protected Vector3 normal;
+	/** Constructs a vector with a magnitude of 0.
+	 */
 	public Vector3() {
 		this(0, 0, 0);
 	}
 	@ConstructorProperties({"x", "y"})
+	/** Constructs a vector with the specified x, y, and z values.
+	 * @param x The desired x value.
+	 * @param y The desired y value.
+	 * @param z The desired z value.
+	 */
 	public Vector3(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
@@ -42,20 +69,51 @@ public class Vector3 implements Serializable {
 		sqrMagnitude = Math.pow(magnitude, 2);
 		normal = this;
 	}
+	/** Moves this vector relative to (0,0,0).
+	 * @param x Desired x value.
+	 * @param y Desired y value.
+	 * @param z Desired z value.
+	 * @param display The Display object being used to render this vector.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 movePosAbs(double x, double y, double z, Display display) {
 		movePosAbs(x, y, z, display.getCameraPosition());
 		return this;
 	}
+	/** Moves this vector relative to (0,0,0).
+	 * @param x Desired x value.
+	 * @param y Desired y value.
+	 * @param z Desired z value.
+	 * @param camPos Position of the camera (result of Display.getCameraPosition(), not Display.getCameraPositionActual()).
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 movePosAbs(double x, double y, double z, Vector3 camPos) {
 		this.x = x-camPos.x;
 		this.y = y-camPos.y;
 		this.z = z-camPos.z;
 		return this;
 	}
+	/** Transitions this vector's position relative to (0,0,0) over a specified number of milliseconds.
+	 * @param x Desired x value.
+	 * @param y Desired y value.
+	 * @param z Desired z value.
+	 * @param millis How many milliseconds it should take to transition this vector's position.
+	 * @param display The Display object being used to render this vector.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 transitionPosAbs(double x, double y, double z, int millis, Display display) {
 		transitionPosAbs(x, y, z, millis, display.getCameraPosition(), display.getPhysicsTimestep());
 		return this;
 	}
+	/** Transitions this vector's position relative to (0,0,0) over a specified number of milliseconds with a specified timestep.
+	 * @param x Desired x value.
+	 * @param y Desired y value.
+	 * @param z Desired z value.
+	 * @param millis How many milliseconds it should take to transition this vector's position.
+	 * @param camPos Position of the camera (result of Display.getCameraPosition(), not Display.getCameraPositionActual()).
+	 * @param physicsTimestep The timestep that should be used to transition this vector's position.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 transitionPosAbs(double x, double y, double z, int millis, Vector3 camPos, int physicsTimestep) {
 		Thread transition = new Transition(x, y, z, millis, camPos, physicsTimestep);
 		transition.start();
@@ -191,7 +249,6 @@ public class Vector3 implements Serializable {
 		z /= magnitude;
 		return this;
 	}
-	// VECTOR ARITHMETIC
 	public static Vector3 add(Vector3 add1, Vector3 add2) {
 		return new Vector3(add1.x+add2.x, add1.y+add2.y, add1.z+add2.z);
 	}
@@ -246,7 +303,6 @@ public class Vector3 implements Serializable {
 		z /= divisor;
 		return this;
 	}
-	// OTHER VECTOR MATH
 	public static Vector3 cross(Vector3 cross1, Vector3 cross2) {
 		return new Vector3((cross1.y*cross2.z)-(cross1.z*cross2.y), (cross1.z*cross2.x)-(cross1.x*cross2.z), (cross1.x*cross2.y)-(cross1.y*cross2.x));
 	}
@@ -301,13 +357,21 @@ public class Vector3 implements Serializable {
 		}
 		return new Vector3(tempX, tempY, tempZ);
 	}
+	/** Clamps a specified vector's magnitude to a value.
+	 * @param clamp The vector to be clamped.
+	 * @param maxLength The value to which the specified vector's magnitude should be clamped to.
+	 * @return The clamped vector.
+	 */
 	public static Vector3 clampMagnitude(Vector3 clamp, double maxLength) {
 		if (clamp.magnitude > maxLength) {
 			return multiply(clamp.normal, maxLength);
-		} else {
-			return clamp;
 		}
+		return clamp;
 	}
+	/** Clamps this vector's magnitude to a specified value.
+	 * @param maxLength The value to which this vector's magnitude should be clamped.
+	 * @return The Vector3 on which this method was called.
+	 */
 	public Vector3 clampMagnitude(double maxLength) {
 		if (magnitude > maxLength) {
 			Vector3 temp = multiply(this, maxLength);
@@ -316,11 +380,5 @@ public class Vector3 implements Serializable {
 			z = temp.z;
 		}
 		return this;
-	}
-	public static Vector3 scale(Vector3 scale1, Vector3 scale2) {
-		return multiply(scale1, scale2);
-	}
-	public Vector3 scale(Vector3 scale) {
-		return multiply(this, scale);
 	}
 }

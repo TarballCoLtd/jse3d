@@ -4,4 +4,7 @@ public class Math3D {
 	public static final double hypot3(double x, double y, double z) {
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 	}
+	public static final double hypot3(double i) {
+		return hypot3(i, i, i);
+	}
 }
