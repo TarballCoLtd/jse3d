@@ -60,7 +60,7 @@ public class Particle {
 	 * @param script This Particle's new script.
 	 * @return The Particle on which this method was called.
 	 */
-	public Particle setScript(Updatable script) {
+	public Particle setScript(Scriptable script) {
 		trajectory.setScript(script);
 		return this;
 	}

@@ -25,7 +25,7 @@ public class ParticleDemo {
 		display.startRender();
 		Trajectory trajectory = new Trajectory();
 		Particle particle = new Particle(new Vector3(0, 0, 0), trajectory);
-		Updatable runnable = new Updatable() {
+		Scriptable runnable = new Scriptable() {
 			private Vector3 increment;
 			private Vector3 currentPos;
 			@Override

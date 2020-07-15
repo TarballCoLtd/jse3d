@@ -8,12 +8,12 @@ import com.emeryferrari.jse3d.obj.update.*;
  * @since 2.5
  */
 public class Trajectory {
-	protected Updatable move;
+	protected Scriptable move;
 	protected Particle particle = null;
 	/** Creates a blank Trajectory with no actions.
 	 */
 	public Trajectory() {
-		move = new Updatable() {
+		move = new Scriptable() {
 			@Override
 			public void start() {}
 			@Override
@@ -25,7 +25,7 @@ public class Trajectory {
 	/** Creates a Trajectory with the specified script.
 	 * @param script A MonoBehaviour-like script used to control the Particle attached to this Trajectory.
 	 */
-	public Trajectory(Updatable script) {
+	public Trajectory(Scriptable script) {
 		this.move = script;
 	}
 	/** Gives this Particle linear movement given a direction and a Display object's Time variable. A Particle must have already been constructed with this Trajectory. (Display.getTime())
@@ -62,7 +62,7 @@ public class Trajectory {
 	 * @param script This Trajectory's new script.
 	 * @return The Trajectory on which this method was called.
 	 */
-	public Trajectory setScript(Updatable script) {
+	public Trajectory setScript(Scriptable script) {
 		move = script;
 		return this;
 	}
