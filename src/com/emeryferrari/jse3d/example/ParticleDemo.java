@@ -18,9 +18,10 @@ public class ParticleDemo {
 		Scene scene = new Scene(objects, 7.5);
 		Display display = new Display(scene, "jse3d particle demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
 		display.enableFPSLogging();
+		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
-		display.setRenderQuality(RenderMode.PERFORMANCE);
+		display.setRenderQuality(RenderMode.QUALITY);
 		display.setPointSize(new Dimension(40, 40));
 		display.startRender();
 		Trajectory trajectory = new Trajectory();
