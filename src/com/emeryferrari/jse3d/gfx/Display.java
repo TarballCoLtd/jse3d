@@ -423,23 +423,9 @@ public class Display {
 		}
 		return null;
 	}
-	@SuppressWarnings("deprecation")
 	protected void calculateOnGPU() {
-		if (settings.renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
-			chosen = Device.firstCPU();
-			if (chosen == null) {
-				System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
-				throw new CPU_OpenCLDriverNotFoundError();
-			}
-		} else {
-			chosen = Device.bestGPU();
-			if (chosen == null) {
-				System.err.println("FATAL ERROR: The OpenCL driver for your GPU is not installed, but it is required for the GPU rendering feature. Either install the OpenCL driver for the selected device, or set the render mode to RenderMode.CPU_SINGLETHREADED.");
-				throw new GPU_OpenCLDriverNotFoundError();
-			}
-		}
 		try { // calculates multiple points concurrently on the selected OpenCL device
-			Range range = chosen.createRange(zAngleLength);
+			Range range = renderer.openCLDevice.createRange(zAngleLength);
 			range.setLocalSize_0(zAngleLength);
 			objKernel.execute(range);
 		} catch (AssertionError err) {
