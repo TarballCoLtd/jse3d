@@ -15,6 +15,7 @@ import com.emeryferrari.jse3d.obj.*;
  * @since 1.0 beta
  */
 public class Display {
+	protected int maxFps;
 	protected int secondsOpen;
 	protected long frameFps;
 	private Image buffer; // used for double buffering
@@ -252,6 +253,7 @@ public class Display {
 	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
 	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		maxFps = 0;
 		frameFps = 0;
 		secondsOpen = 0;
 		time = new Time();
@@ -297,7 +299,8 @@ public class Display {
 		    	try {scene.particles.get(i).stop();} catch (NullPointerException ex) {}
 		    }
 		    if (settings.fpsLogging) {
-		    	System.out.println("Average over " + secondsOpen + " seconds: " + (frameFps/secondsOpen) + " FPS");
+		    	System.out.println("\nAverage over " + secondsOpen + " seconds: " + (frameFps/(long)secondsOpen) + " FPS");
+		    	System.out.println("Best FPS count: " + (maxFps-1));
 		    	System.exit(0);
 		    }
 		}
@@ -634,9 +637,12 @@ public class Display {
 			    if (lastFpsTime >= 1000000000) {
 			    	if (settings.fpsLogging) {
 			    		System.out.println("FPS: " + (fps < 1 ? 0 : fps-1));
+			    		if (fps > maxFps) {
+			    			maxFps = fps;
+			    		}
+			    		secondsOpen++;
+				    	frameFps += fps;
 			    	}
-			    	secondsOpen++;
-			    	frameFps += fps;
 			        lastFpsTime = 0;
 			        fps = 0;
 			    }
