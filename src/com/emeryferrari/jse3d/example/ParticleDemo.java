@@ -10,12 +10,12 @@ import java.awt.*;
  */
 public class ParticleDemo {
 	public static void main(String[] args) {
-		Object3D[] objects = new Object3D[1];
+		Object3D[] objects = new Object3D[16];
 		for (int i = 0; i < objects.length; i++) {
 			objects[i] = ObjectTemplate.getCube();
 			objects[i].movePosRel(new Vector3(i*2-objects.length/2, i*2-objects.length/2, i*2-objects.length/2), new Vector3(0, 0, 0));
 		}
-		Scene scene = new Scene(objects, 7.5);
+		Scene scene = new Scene(objects, 8+objects.length);
 		Display display = new Display(scene, "jse3d particle demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
 		display.enableFPSLogging();
 		display.disableFPSLimit();

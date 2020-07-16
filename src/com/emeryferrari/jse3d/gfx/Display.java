@@ -276,6 +276,7 @@ public class Display {
 		camPos = new Vector3(0, 0, 0);
 		mouseDiff = new Point(0, 0);
 		settings.viewAngle = fovRadians;
+		recalculateExtrasScript();
 	}
 	/** Starts render of the Scene.
 	 * @return The Display object on which this method was called.
@@ -330,6 +331,7 @@ public class Display {
 	protected class DisplayRenderer extends JComponent { // scene renderer
 		private static final long serialVersionUID = 1L;
 		public Runnable renderScript;
+		public Runnable extrasRenderer;
 		public Dimension size;
 		public Point location;
 		public Device openCLDevice;
@@ -337,6 +339,10 @@ public class Display {
 		public DisplayRenderer() {
 			openCLDevice = Device.best();
 			renderScript = new Runnable() {
+				@Override
+				public void run() {}
+			};
+			extrasRenderer = new Runnable() {
 				@Override
 				public void run() {}
 			};
@@ -361,24 +367,15 @@ public class Display {
 		calculateViewAngles(renderer.size, renderer.location);
 		renderer.renderScript.run();
 		fps++;
-		renderer.revalidate();
 	}
 	protected void renderExtras(Graphics2D graphics, Dimension size, Point location) {
-		if (settings.camPosPrint) {
-			printCameraPosition(graphics);
-		}
-		if (settings.faceRender) { // sorts faces so that they're rendered from back to front
-			renderFaces(graphics);
-		}
-		if (settings.lineRender) {
-			renderLines(graphics);
-		}
+		renderer.extrasRenderer.run();
 		for (int a = 0; a < scene.particles.size(); a++) {
 			renderParticle(graphics, calculateParticle(a, size, location), scene.particles.get(a).getPosition());
 		}
 	}
 	protected Point calculateParticle(int particleID, Dimension size, Point location) {
-		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
+		// the following if statement checks if this particle is in front of the camera, not behind, and hence, if it should be rendered or not
 		if (scene.particles.get(particleID).getPosition().getZ()*sphere.cosViewAngleX*sphere.cosViewAngleY + scene.particles.get(particleID).getPosition().getX()*sphere.sinViewAngleX*sphere.cosViewAngleY - scene.particles.get(particleID).getPosition().getY()*sphere.sinViewAngleY < scene.camDist) {
 			// 3D to 2D point conversion
 			double zAngle = Math.atan(scene.particles.get(particleID).getPosition().getZ()/scene.particles.get(particleID).getPosition().getX());
@@ -761,6 +758,7 @@ public class Display {
 	 */
 	public Display enableLineRendering() {
 		settings.lineRender = true;
+		recalculateExtrasScript();
 		return this;
 	}
 	/** Disables rendering Lines in the Scene.
@@ -768,6 +766,7 @@ public class Display {
 	 */
 	public Display disableLineRendering() {
 		settings.lineRender = false;
+		recalculateExtrasScript();
 		return this;
 	}
 	/** Enables rendering Faces in the Scene.
@@ -775,6 +774,7 @@ public class Display {
 	 */
 	public Display enableFaceRendering() {
 		settings.faceRender = true;
+		recalculateExtrasScript();
 		return this;
 	}
 	/** Disables rendering Faces in the Scene.
@@ -782,6 +782,7 @@ public class Display {
 	 */
 	public Display disableFaceRendering() {
 		settings.faceRender = false;
+		recalculateExtrasScript();
 		return this;
 	}
 	/** Sets the color in which Lines should be drawn.
@@ -969,6 +970,7 @@ public class Display {
 	 */
 	public Display enableCameraPositionPrinting() {
 		settings.camPosPrint = true;
+		recalculateExtrasScript();
 		return this;
 	}
 	/** Enables printing the camera's actual position to the user-specified point on the frame.
@@ -977,6 +979,7 @@ public class Display {
 	 */
 	public Display enableCameraPositionPrinting(Point pos) {
 		settings.camPosPrintPoint = pos;
+		recalculateExtrasScript();
 		return enableCameraPositionPrinting();
 	}
 	/** Disables printing the camera's actual position to the frame.
@@ -984,6 +987,7 @@ public class Display {
 	 */
 	public Display disableCameraPositionPrinting() {
 		settings.camPosPrint = false;
+		recalculateExtrasScript();
 		return this;
 	}
 	/** Sets the position on the frame at which the camera's actual position should be printed.
@@ -1286,12 +1290,14 @@ public class Display {
 	}
 	/** Adds a particle to the particle system.
 	 * @param particle The new particle to be added.
-	 * @return The particle ID needed to remove the particle.
+	 * @return The particle ID needed to remove the particle. -1 if the Particle was added unsuccessfully.
 	 */
 	public int addParticle(Particle particle) {
 		try {particle.start();} catch (NullPointerException ex) {}
-		scene.particles.add(particle);
-		return scene.particles.size()-1;
+		if (scene.particles.add(particle)) {
+			return scene.particles.size()-1;
+		}
+		return -1;
 	}
 	/** Removes a particle from the particle system.
 	 * @param particleID The particle ID of the particle you wish to remove.
@@ -1340,5 +1346,75 @@ public class Display {
 	public Display disablePointRendering() {
 		settings.renderPoints = false;
 		return this;
+	}
+	protected void recalculateExtrasScript() {
+		int state = 0;
+		if (settings.camPosPrint) {
+			state += 1;
+		}
+		if (settings.faceRender) {
+			state += 2;
+		}
+		if (settings.lineRender) {
+			state += 4;
+		}
+		switch (state) {
+		case 0:
+			renderer.extrasRenderer = new Runnable() {@Override public void run() {}};
+		case 1:
+			renderer.extrasRenderer = new Runnable() {
+				@Override
+				public void run() {
+					printCameraPosition(graphics);
+				}
+			};
+		case 2:
+			renderer.extrasRenderer = new Runnable() {
+				@Override
+				public void run() {
+					renderFaces(graphics);
+				}
+			};
+		case 3:
+			renderer.extrasRenderer = new Runnable() {
+				@Override
+				public void run() {
+					printCameraPosition(graphics);
+					renderFaces(graphics);
+				}
+			};
+		case 4:
+			renderer.extrasRenderer = new Runnable() {
+				@Override
+				public void run() {
+					renderLines(graphics);
+				}
+			};
+		case 5:
+			renderer.extrasRenderer = new Runnable() {
+				@Override
+				public void run() {
+					printCameraPosition(graphics);
+					renderLines(graphics);
+				}
+			};
+		case 6:
+			renderer.extrasRenderer = new Runnable() {
+				@Override
+				public void run() {
+					renderFaces(graphics);
+					renderLines(graphics);
+				}
+			};
+		default:
+			renderer.extrasRenderer = new Runnable() {
+				@Override
+				public void run() {
+					printCameraPosition(graphics);
+					renderFaces(graphics);
+					renderLines(graphics);
+				}
+			};
+		}
 	}
 }
