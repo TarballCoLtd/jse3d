@@ -332,7 +332,10 @@ public class Display {
 		public Runnable renderScript;
 		public Dimension size;
 		public Point location;
+		public Device openCLDevice;
+		@SuppressWarnings("deprecation")
 		public DisplayRenderer() {
+			openCLDevice = Device.best();
 			renderScript = new Runnable() {
 				@Override
 				public void run() {}
@@ -344,18 +347,18 @@ public class Display {
 			buffer = createImage(size.width, size.height);
 			graphics = (Graphics2D) buffer.getGraphics();
 			if (rendering) {
-				renderFrame(size, location);
+				renderFrame();
 				getGraphics().drawImage(buffer, 0, 0, null);
 			}
 		}
 	}
-	protected void renderFrame(Dimension size, Point location) {
+	protected void renderFrame() {
 		localCamPos = new Vector3(0, 0, 0);
 		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
-		renderBackground(graphics, size, location);
+		renderBackground(graphics, renderer.size, renderer.location);
 		calculateMouse();
-		calculateViewAngles(size, location);
+		calculateViewAngles(renderer.size, renderer.location);
 		renderer.renderScript.run();
 		fps++;
 		renderer.revalidate();
@@ -422,7 +425,6 @@ public class Display {
 	}
 	@SuppressWarnings("deprecation")
 	protected void calculateOnGPU() {
-		Device chosen = null;
 		if (settings.renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
 			chosen = Device.firstCPU();
 			if (chosen == null) {
@@ -1059,6 +1061,7 @@ public class Display {
 		settings.yAxisClamp = false;
 		return this;
 	}
+	@SuppressWarnings("deprecation")
 	/** Sets the device on which the current Scene should be computed. This can be set at any time with seamless switching.
 	 * @param renderMode The new compute device.
 	 * @return The Display object on which this method was called.
@@ -1086,6 +1089,19 @@ public class Display {
 				}
 			};
 		} else {
+			if (settings.renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
+				renderer.openCLDevice = Device.firstCPU();
+				if (renderer.openCLDevice == null) {
+					System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render target to RenderTarget.CPU_SINGLETHREADED.");
+					throw new CPU_OpenCLDriverNotFoundError();
+				}
+			} else {
+				renderer.openCLDevice = Device.bestGPU();
+				if (renderer.openCLDevice == null) {
+					System.err.println("FATAL ERROR: The OpenCL driver for your GPU is not installed, but it is required for the GPU rendering feature. Either install the OpenCL driver for the selected device, or set the render target to RenderTarget.CPU_SINGLETHREADED.");
+					throw new GPU_OpenCLDriverNotFoundError();
+				}
+			}
 			renderer.renderScript = new Runnable() {
 				@Override
 				public void run() {
