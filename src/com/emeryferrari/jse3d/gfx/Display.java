@@ -15,6 +15,8 @@ import com.emeryferrari.jse3d.obj.*;
  * @since 1.0 beta
  */
 public class Display {
+	protected int secondsOpen;
+	protected long frameFps;
 	private Image buffer; // used for double buffering
 	protected Graphics2D graphics; // set to the above Image's Graphics component every frame
 	protected final DisplayRenderer renderer; // a JComponent that handles rendering
@@ -250,6 +252,8 @@ public class Display {
 	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
 	 */
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, int fps, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
+		frameFps = 0;
+		secondsOpen = 0;
 		time = new Time();
 		settings = new DisplaySettings();
 		calculateRenderingHints();
@@ -277,6 +281,34 @@ public class Display {
 		mouseDiff = new Point(0, 0);
 		settings.viewAngle = fovRadians;
 		recalculateExtrasScript();
+		frame.addWindowListener(new FrameListener());
+	}
+	protected class FrameListener implements WindowListener {
+		@Override
+		public void windowActivated(WindowEvent arg0) {}
+		@Override
+		public void windowClosed(WindowEvent arg0) {}
+		@Override
+		public void windowClosing(WindowEvent arg0) {
+			for (int i = 0; i < scene.object.length; i++) {
+		    	try {scene.object[i].stop();} catch (NullPointerException ex) {}
+		    }
+		    for (int i = 0; i < scene.particles.size(); i++) {
+		    	try {scene.particles.get(i).stop();} catch (NullPointerException ex) {}
+		    }
+		    if (settings.fpsLogging) {
+		    	System.out.println("Average over " + secondsOpen + " seconds: " + (frameFps/secondsOpen) + " FPS");
+		    	System.exit(0);
+		    }
+		}
+		@Override
+		public void windowDeactivated(WindowEvent arg0) {}
+		@Override
+		public void windowDeiconified(WindowEvent arg0) {}
+		@Override
+		public void windowIconified(WindowEvent arg0) {}
+		@Override
+		public void windowOpened(WindowEvent arg0) {}
 	}
 	/** Starts render of the Scene.
 	 * @return The Display object on which this method was called.
@@ -297,6 +329,7 @@ public class Display {
 			renderer.start();
 			Thread physics = new Thread(new Physics());
 			physics.start();
+			rendererStarted = true;
 		}
 		return this;
 	}
@@ -602,6 +635,8 @@ public class Display {
 			    	if (settings.fpsLogging) {
 			    		System.out.println("FPS: " + (fps < 1 ? 0 : fps-1));
 			    	}
+			    	secondsOpen++;
+			    	frameFps += fps;
 			        lastFpsTime = 0;
 			        fps = 0;
 			    }

@@ -50,6 +50,12 @@ public class Particle {
 	public void fixedUpdate() {
 		trajectory.fixedUpdate();
 	}
+	/** Executes the stop() method of the Trajectory of this Particle. Do not call this unless you know what you're doing.
+	 * @since 2.6.2
+	 */
+	public void stop() {
+		trajectory.stop();
+	}
 	/** Returns the Trajectory of this Particle.
 	 * @return The Trajectory of this Particle.
 	 */

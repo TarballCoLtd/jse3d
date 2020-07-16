@@ -13,4 +13,7 @@ public interface Script {
 	/** Called once every physics update.
 	 */
 	public void fixedUpdate();
+	/** Called when the frame is closed.
+	 */
+	public void stop();
 }

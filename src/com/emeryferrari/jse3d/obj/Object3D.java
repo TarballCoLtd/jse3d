@@ -30,6 +30,8 @@ public class Object3D implements Serializable {
 		public void update() {}
 		@Override
 		public void fixedUpdate() {}
+		@Override
+		public void stop() {}
 	};
 	/** Constructs an Object3D with the specified points, Faces, and Lines.
 	 * @param points An array of points in the form of Vector3s.
@@ -244,6 +246,12 @@ public class Object3D implements Serializable {
 	 */
 	public void fixedUpdate() {
 		updatable.fixedUpdate();
+	}
+	/** Calls the stop() method of this Object3D's script. Do not call this method unless you know what you're doing.
+	 * @since 2.6.2
+	 */
+	public void stop() {
+		updatable.stop();
 	}
 	@Override
 	/** Checks for equality between this Object3D and the specified object.

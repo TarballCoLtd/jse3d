@@ -23,4 +23,6 @@ public class LinearUpdate implements Script {
 		Vector3 currentPos = particle.getPosition();
 		particle.setPosition(new Vector3(currentPos.getX()+(increment.getX()*time.fixedDeltaTime), currentPos.getY()+(increment.getY()*time.fixedDeltaTime), currentPos.getZ()+(increment.getZ()*time.fixedDeltaTime)));
 	}
+	@Override
+	public void stop() {}
 }

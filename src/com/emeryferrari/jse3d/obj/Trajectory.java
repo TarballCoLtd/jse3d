@@ -20,6 +20,8 @@ public class Trajectory {
 			public void update() {}
 			@Override
 			public void fixedUpdate() {}
+			@Override
+			public void stop() {}
 		};
 	}
 	/** Creates a Trajectory with the specified script.
@@ -54,6 +56,12 @@ public class Trajectory {
 	 */
 	public void fixedUpdate() {
 		move.fixedUpdate();
+	}
+	/** Runs the stop() method of this Trajectory's script. Execute this only if you know what you're doing.
+	 * @since 2.6.2
+	 */
+	public void stop() {
+		move.stop();
 	}
 	void setParticle(Particle particle) {
 		this.particle = particle;
