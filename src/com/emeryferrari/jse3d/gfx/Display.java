@@ -37,27 +37,25 @@ public class Display {
 	protected Point mouse;
 	protected Point[][] pointArrays; // array of 2D point arrays where 3D points should be rendered on the frame
 	protected Vector3 localCamPos;
-	protected Time time; // controls delta time and fixed delta time for this Display instance
+	protected final Time time; // controls delta time and fixed delta time for this Display instance
 	protected ParticleKernel particleKernel; // kernel responsible for calculating particle positions with OpenCL
 	protected ObjectKernel objKernel;
 	final DisplaySettings settings; // display settings
 	protected int zAngleLength;
-	// OpenCL PARTICLE VARIABLES
-	// coming soon
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 */
 	public Display(Scene scene) {
 		this(scene, "");
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 */
 	public Display(Scene scene, String frameTitle) {
 		this(scene, frameTitle, true);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
@@ -67,7 +65,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, int maxPointsTotal,int maxPointsObject,  int maxObjects) {
 		this(scene, frameTitle, true, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param fovRadians The FOV the scene should be rendered in, in radians.
@@ -75,7 +73,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, double fovRadians) {
 		this(scene, frameTitle, true, fovRadians);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param fovRadians The FOV the scene should be rendered in, in radians.
@@ -86,7 +84,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, true, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -94,7 +92,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible) {
 		this (scene, frameTitle, frameVisible, false);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -105,7 +103,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this (scene, frameTitle, frameVisible, false, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -114,7 +112,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians) {
 		this (scene, frameTitle, frameVisible, false, fovRadians);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -126,7 +124,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this (scene, frameTitle, frameVisible, false, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -135,7 +133,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -145,7 +143,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -158,7 +156,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, frameVisible, renderPoints, 500, 500, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -169,7 +167,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -181,7 +179,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight, fovRadians);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -196,7 +194,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, frameVisible, renderPoints, new Dimension(5, 5), frameWidth, frameHeight, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -208,7 +206,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, Math.toRadians(80));
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -221,7 +219,7 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, double fovRadians) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, 4096, 32, 128);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
@@ -237,12 +235,12 @@ public class Display {
 	public Display(Scene scene, String frameTitle, boolean frameVisible, boolean renderPoints, Dimension pointSize, int frameWidth, int frameHeight, double fovRadians, int maxPointsTotal, int maxPointsObject, int maxObjects) {
 		this(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, 60, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);
 	}
-	/**
+	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 * @param frameTitle The title of the frame created by this Display object.
 	 * @param frameVisible Whether the frame should be visible or not immediately after creation of this Display.
 	 * @param renderPoints Whether individual points should be rendered.
-	 * @param pointSize The size in 2D of points rendered onto the frame.
+	 * @param pointSize The preferred size in 2D of points rendered onto the frame.
 	 * @param frameWidth The preferred width of the frame.
 	 * @param frameHeight The preferred height of the frame.
 	 * @param fps The maximum FPS this Display should render the Scene in.
@@ -256,6 +254,7 @@ public class Display {
 		settings = new DisplaySettings();
 		calculateRenderingHints();
 		renderer = new DisplayRenderer();
+		setRenderTarget(RenderTarget.GPU);
 		settings.maxPointsTotal = maxPointsTotal;
 		this.scene = scene;
 		frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " // " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") || System.getProperty("user.dir").equals("D:\\documents\\GitHub\\jse3d") ? " development build" : ""));
@@ -329,13 +328,23 @@ public class Display {
 		return frame;
 	}
 	protected class DisplayRenderer extends JComponent { // scene renderer
-		protected static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
+		public Runnable renderScript;
+		public Dimension size;
+		public Point location;
+		public DisplayRenderer() {
+			renderScript = new Runnable() {
+				@Override
+				public void run() {}
+			};
+		}
 		public void render() {
-			Dimension size = getSize();
+			size = getSize();
+			location = getLocation();
 			buffer = createImage(size.width, size.height);
 			graphics = (Graphics2D) buffer.getGraphics();
 			if (rendering) {
-				renderFrame(size, getLocation());
+				renderFrame(size, location);
 				getGraphics().drawImage(buffer, 0, 0, null);
 			}
 		}
@@ -344,46 +353,10 @@ public class Display {
 		localCamPos = new Vector3(0, 0, 0);
 		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
-		if (settings.renderTarget == RenderTarget.CPU_SINGLETHREADED) { // this will be called if the render target is the CPU in singlethreaded mode, this does not require any dependencies
-			pointArrays = new Point[scene.object.length][];
-			renderBackground(graphics, size, location);
-			calculateMouse();
-			calculateViewAngles(size, location);
-			for (int a = 0; a < scene.object.length; a++) {
-				Point[] points = new Point[scene.object[a].points.length];
-				for (int i = 0; i < scene.object[a].points.length; i++) {
-					points[i] = calculatePoint(a, i, size, location);
-					if (settings.renderPoints) {
-						renderPoint(graphics, points[i], a, i);
-					}
-				}
-				if (settings.faceRender) { // sorts faces so that they're rendered back to front
-					sortFaces(a, points);
-				}
-			}					
-			renderExtras(graphics, size, location);
-		} else { // called if OpenCL should be used, whether its on a graphics card or CPU in multithreaded mode
-			// note: AMD discontinued OpenCL for their CPUs in a 2018 revision of their driver software
-			calculateMouse();
-			calculateViewAngles(size, location);
-			prepareGPU(localCamPos);
-			calculateOnGPU();
-			pointArrays = new Point[scene.object.length][];
-			renderBackground(graphics, size, location);
-			for (int a = 0; a < scene.object.length; a++) {
-				Point[] points = new Point[scene.object[a].points.length];
-				for (int i = 0; i < scene.object[a].points.length; i++) {
-					points[i] = calculatePointGPU(a, i, size, location);
-					if (settings.renderPoints) {
-						renderPoint(graphics, points[i], a, i);
-					}
-				}
-				if (settings.faceRender) { // sorts faces so that they're rendered from back to front
-					sortFaces(a, points);
-				}
-			}
-			renderExtras(graphics, size, location);
-		}
+		renderBackground(graphics, size, location);
+		calculateMouse();
+		calculateViewAngles(size, location);
+		renderer.renderScript.run();
 		fps++;
 		renderer.revalidate();
 	}
@@ -517,10 +490,7 @@ public class Display {
 		graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
 	}
 	protected static Color invertColor(Color color) {
-		int r = 255-color.getRed();
-		int g = 255-color.getGreen();
-		int b = 255-color.getGreen();
-		return new Color(r, g, b, color.getAlpha());
+		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
 	}
 	protected void calculateViewAngles(Dimension size, Point location) {
 		double viewAngleX = 0;
@@ -1095,6 +1065,49 @@ public class Display {
 	 */
 	public Display setRenderTarget(RenderTarget renderMode) {
 		settings.renderTarget = renderMode;
+		if (settings.renderTarget == RenderTarget.CPU_SINGLETHREADED) {
+			renderer.renderScript = new Runnable() {
+				@Override
+				public void run() {
+					pointArrays = new Point[scene.object.length][];
+					for (int a = 0; a < scene.object.length; a++) {
+						Point[] points = new Point[scene.object[a].points.length];
+						for (int i = 0; i < scene.object[a].points.length; i++) {
+							points[i] = calculatePoint(a, i, renderer.size, renderer.location);
+							if (settings.renderPoints) {
+								renderPoint(graphics, points[i], a, i);
+							}
+						}
+						if (settings.faceRender) { // sorts faces so that they're rendered back to front
+							sortFaces(a, points);
+						}
+					}					
+					renderExtras(graphics, renderer.size, renderer.location);
+				}
+			};
+		} else {
+			renderer.renderScript = new Runnable() {
+				@Override
+				public void run() {
+					prepareGPU(localCamPos);
+					calculateOnGPU();
+					pointArrays = new Point[scene.object.length][];
+					for (int a = 0; a < scene.object.length; a++) {
+						Point[] points = new Point[scene.object[a].points.length];
+						for (int i = 0; i < scene.object[a].points.length; i++) {
+							points[i] = calculatePointGPU(a, i, renderer.size, renderer.location);
+							if (settings.renderPoints) {
+								renderPoint(graphics, points[i], a, i);
+							}
+						}
+						if (settings.faceRender) { // sorts faces so that they're rendered from back to front
+							sortFaces(a, points);
+						}
+					}
+					renderExtras(graphics, renderer.size, renderer.location);
+				}
+			};
+		}
 		return this;
 	}
 	/** Returns the current compute device.

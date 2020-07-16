@@ -31,7 +31,7 @@ class DisplaySettings {
 	boolean assertion; // makes sure AssertionError's stack trace is only printed once
 	Point camPosPrintPoint; // where the camera position should be printed to on the frame
 	int maxPointsTotal;
-	public DisplaySettings() {
+	DisplaySettings() {
 		renderPoints = false;
 		camPosPrintPoint = new Point(0, 11);
 		assertion = false;
