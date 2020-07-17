@@ -358,6 +358,25 @@ public class Display {
 		frame.setVisible(visible);
 		return this;
 	}
+	/** Sets the frame's size.
+	 * @param width The frame's new width.
+	 * @param height The frame's new height.
+	 * @return The Display object on which this method was called.
+	 * @since 2.6.3
+	 */
+	public Display setSize(int width, int height) {
+		frame.setSize(width, height);
+		return this;
+	}
+	/** Sets the frame's size.
+	 * @param size The frame's new size.
+	 * @return The Display object on which this method was called.
+	 * @since 2.6.3
+	 */
+	public Display setSize(Dimension size) {
+		frame.setSize(size);
+		return this;
+	}
 	/** Returns the Display's JFrame.
 	 * @return The Display's JFrame.
 	 */
@@ -370,10 +389,9 @@ public class Display {
 		public Runnable extrasRenderer;
 		public Dimension size;
 		public Point location;
-		public Device openCLDevice;
-		@SuppressWarnings("deprecation")
+		public Device openCLDevice;		
 		public DisplayRenderer() {
-			openCLDevice = Device.best();
+			openCLDevice = null;
 			renderScript = new Runnable() {
 				@Override
 				public void run() {}

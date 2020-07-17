@@ -10,7 +10,7 @@ import java.awt.*;
  */
 public class ParticleDemo {
 	public static void main(String[] args) {
-		Object3D[] objects = new Object3D[1];
+		Object3D[] objects = new Object3D[2];
 		for (int i = 0; i < objects.length; i++) {
 			objects[i] = ObjectTemplate.getCube();
 			objects[i].movePosRel(new Vector3(i*2-objects.length/2, i*2-objects.length/2, i*2-objects.length/2), new Vector3(0, 0, 0));
