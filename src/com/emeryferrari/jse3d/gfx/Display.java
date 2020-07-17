@@ -494,8 +494,8 @@ public class Display {
 		objKernel.viewAngleXInput[0] = (float) sphere.viewAngleX;
 		objKernel.viewAngleYInput[0] = (float) sphere.viewAngleY;
 		zAngleLength = 0;
-		for (int x = 0; x < scene.object.length; x++) {
-			zAngleLength += scene.object[x].points.length;
+		for (Object3D object : scene.object) {
+			zAngleLength += object.points.length;
 		}
 		for (int x = 0; x < scene.object.length; x++) {
 			for (int y = 0; y < scene.object[x].points.length; y++) {
@@ -609,8 +609,8 @@ public class Display {
 		pointArrays[a] = points;
 	}
 	protected void renderLines() {
+		graphics.setColor(settings.lineColor);
 		for (int a = 0; a < scene.object.length; a++) {
-			graphics.setColor(settings.lineColor);
 			for (int i = 0; i < scene.object[a].edges.length; i++) {
 				int point1 = scene.object[a].edges[i].pointID1;
 				int point2 = scene.object[a].edges[i].pointID2;
