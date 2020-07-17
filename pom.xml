@@ -4,6 +4,8 @@
   <artifactId>jse3d</artifactId>
   <version>2.6.3</version>
   <name>jse3d</name>
+  <packaging>jar</packaging>
+  <url>https://github.com/alyxferrari/jse3d/</url>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
