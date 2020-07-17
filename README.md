@@ -4,11 +4,10 @@ by Sam Krug and Alyx Ferrari
 
 ## Dependencies
 
-If you would like a version with no dependencies, try jse3d v1.7.2, however this is an outdated version and is not guaranteed to be bug free.<br/>
--Aparapi 2.0.0 (handled by Maven)<br/>
--Aparapi JNI 1.4.2 (handled by Maven)<br/>
--Apache Commons BCEL 6.4.1 (handled by Maven)<br/>
--jse3dnetworklib 1.4 (can be found [here](https://github.com/alyxferrari/jse3dnetworklib/) or [here](https://github.com/alyxferrari/jse3d/releases/))
+If you would like a version with no dependencies, try jse3d v1.7.2, however that is an outdated version and is not guaranteed to be bug free or as feature-rich as newer versions.<br/>
+-Aparapi 2.0.0<br/>
+-Aparapi JNI 1.4.2<br/>
+-Apache Commons BCEL 6.4.1 (version 6.5.0 also works fine)<br/>
 
 ## Documentation
 
