@@ -398,22 +398,22 @@ public class Display {
 		localCamPos = new Vector3(0, 0, 0);
 		try {localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
 		try {graphics.setRenderingHints(hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
-		renderBackground(graphics, renderer.size, renderer.location);
+		renderBackground(renderer.size, renderer.location);
 		calculateMouse();
 		calculateViewAngles(renderer.size, renderer.location);
 		renderer.renderScript.run();
 		fps++;
 	}
-	protected void renderExtras(Graphics2D graphics, Dimension size, Point location) {
+	protected void renderExtras(Dimension size, Point location) {
 		renderer.extrasRenderer.run();
 		for (int a = 0; a < scene.particles.size(); a++) {
-			renderParticle(graphics, calculateParticle(a, size, location), scene.particles.get(a).getPosition());
+			renderParticle(calculateParticle(a, size, location), scene.particles.get(a).getPosition());
 		}
 	}
 	protected Point calculateParticle(int particleID, Dimension size, Point location) {
 		// the following if statement checks if this particle is in front of the camera, not behind, and hence, if it should be rendered or not
 		if (scene.particles.get(particleID).getPosition().getZ()*sphere.cosViewAngleX*sphere.cosViewAngleY + scene.particles.get(particleID).getPosition().getX()*sphere.sinViewAngleX*sphere.cosViewAngleY - scene.particles.get(particleID).getPosition().getY()*sphere.sinViewAngleY < scene.camDist) {
-			// 3D to 2D point conversion
+			// 3D to 2D particle conversion
 			double zAngle = Math.atan(scene.particles.get(particleID).getPosition().getZ()/scene.particles.get(particleID).getPosition().getX());
 			if (scene.particles.get(particleID).getPosition().getX() == 0 && scene.particles.get(particleID).getPosition().getZ() == 0) {
 				zAngle = 0;
@@ -488,11 +488,11 @@ public class Display {
 			}
 		}
 	}
-	protected void renderBackground(Graphics2D graphics, Dimension size, Point location) {
+	protected void renderBackground(Dimension size, Point location) {
 		graphics.setColor(settings.backgroundColor);
 		graphics.fillRect(0, 0, size.width+location.x, size.height+location.y);
 	}
-	protected void renderPoint(Graphics2D graphics, Point point, int a, int i) {
+	protected void renderPoint(Point point, int a, int i) {
 		graphics.setColor(Color.BLACK);
 		double reciprocal = 0.0;
 		try {reciprocal = 1.0/distance[a][i].distance;} catch (NullPointerException ex) {}
@@ -500,12 +500,12 @@ public class Display {
 		int height = (int)(settings.pointSize.height*reciprocal);
 		try {graphics.fillOval(point.x-(width/2), point.y-(height/2), width, height);} catch (NullPointerException ex) {}
 	}
-	protected void renderParticle(Graphics2D graphics, Point point, Vector3 position) {
+	protected void renderParticle(Point point, Vector3 position) {
 		graphics.setColor(Color.BLACK);
 		double reciprocal = 1.0/Math3D.hypot3(localCamPos.getX()-position.getX(), localCamPos.getY()-position.getY(), localCamPos.getZ()-position.getZ());
 		try {graphics.fillOval(point.x, point.y, (int)(settings.pointSize.width*reciprocal), (int)(settings.pointSize.height*reciprocal));} catch (NullPointerException ex) {}
 	}
-	protected void printCameraPosition(Graphics2D graphics) {
+	protected void printCameraPosition() {
 		Vector3 cameraPos = getCameraPositionActual();
 		graphics.setColor(invertColor(settings.backgroundColor));
 		graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
@@ -531,7 +531,7 @@ public class Display {
 		} catch (NullPointerException ex) {}
 		sphere = new ViewAngle(viewAngleX, viewAngleY);
 	}
-	protected void renderFaces(Graphics2D graphics) {
+	protected void renderFaces() {
 		for (int a = 0; a < scene.object.length; a++) {
 			for (int x = a+1; x < scene.object.length; x++) {
 				if (scene.object[a].camDist < scene.object[x].camDist) {
@@ -590,7 +590,7 @@ public class Display {
 		Arrays.sort(scene.object[a].faces, Collections.reverseOrder());
 		pointArrays[a] = points;
 	}
-	protected void renderLines(Graphics2D graphics) {
+	protected void renderLines() {
 		for (int a = 0; a < scene.object.length; a++) {
 			graphics.setColor(settings.lineColor);
 			for (int i = 0; i < scene.object[a].edges.length; i++) {
@@ -1109,14 +1109,14 @@ public class Display {
 						for (int i = 0; i < scene.object[a].points.length; i++) {
 							points[i] = calculatePoint(a, i, renderer.size, renderer.location);
 							if (settings.renderPoints) {
-								renderPoint(graphics, points[i], a, i);
+								renderPoint(points[i], a, i);
 							}
 						}
 						if (settings.faceRender) { // sorts faces so that they're rendered back to front
 							sortFaces(a, points);
 						}
 					}					
-					renderExtras(graphics, renderer.size, renderer.location);
+					renderExtras(renderer.size, renderer.location);
 				}
 			};
 		} else {
@@ -1144,14 +1144,14 @@ public class Display {
 						for (int i = 0; i < scene.object[a].points.length; i++) {
 							points[i] = calculatePointGPU(a, i, renderer.size, renderer.location);
 							if (settings.renderPoints) {
-								renderPoint(graphics, points[i], a, i);
+								renderPoint(points[i], a, i);
 							}
 						}
 						if (settings.faceRender) { // sorts faces so that they're rendered from back to front
 							sortFaces(a, points);
 						}
 					}
-					renderExtras(graphics, renderer.size, renderer.location);
+					renderExtras(renderer.size, renderer.location);
 				}
 			};
 		}
@@ -1406,54 +1406,54 @@ public class Display {
 			renderer.extrasRenderer = new Runnable() {
 				@Override
 				public void run() {
-					printCameraPosition(graphics);
+					printCameraPosition();
 				}
 			};
 		case 2:
 			renderer.extrasRenderer = new Runnable() {
 				@Override
 				public void run() {
-					renderFaces(graphics);
+					renderFaces();
 				}
 			};
 		case 3:
 			renderer.extrasRenderer = new Runnable() {
 				@Override
 				public void run() {
-					printCameraPosition(graphics);
-					renderFaces(graphics);
+					printCameraPosition();
+					renderFaces();
 				}
 			};
 		case 4:
 			renderer.extrasRenderer = new Runnable() {
 				@Override
 				public void run() {
-					renderLines(graphics);
+					renderLines();
 				}
 			};
 		case 5:
 			renderer.extrasRenderer = new Runnable() {
 				@Override
 				public void run() {
-					printCameraPosition(graphics);
-					renderLines(graphics);
+					printCameraPosition();
+					renderLines();
 				}
 			};
 		case 6:
 			renderer.extrasRenderer = new Runnable() {
 				@Override
 				public void run() {
-					renderFaces(graphics);
-					renderLines(graphics);
+					renderFaces();
+					renderLines();
 				}
 			};
 		default:
 			renderer.extrasRenderer = new Runnable() {
 				@Override
 				public void run() {
-					printCameraPosition(graphics);
-					renderFaces(graphics);
-					renderLines(graphics);
+					printCameraPosition();
+					renderFaces();
+					renderLines();
 				}
 			};
 		}
