@@ -38,7 +38,8 @@ You can include jse3d in your project by putting the following in your pomfile:<
 		<version>v3.0</version>
 	</dependency>
 </dependencies>
-```<br/>
+```
+<br/>
 Please substitute the version number between `<version>` and `</version>` with the latest version of jse3d.
 
 ## Contacting me
