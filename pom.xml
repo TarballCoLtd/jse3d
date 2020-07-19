@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.alyxferrari</groupId>
   <artifactId>jse3d</artifactId>
-  <version>2.6.3</version>
+  <version>3.0</version>
   <name>jse3d</name>
   <packaging>jar</packaging>
   <url>https://github.com/alyxferrari/jse3d</url>
@@ -48,6 +48,12 @@
       </plugin>
     </plugins>
   </build>
+  <repositories>
+  	<repository>
+  		<id>jitpack.io</id>
+  		<url>https://jitpack.io</url>
+  	</repository>
+  </repositories>
   <dependencies>
   	<dependency>
   		<groupId>com.aparapi</groupId>
@@ -59,6 +65,11 @@
   				<artifactId>scala-library</artifactId>
   			</exclusion>
   		</exclusions>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.github.mokiat</groupId>
+  		<artifactId>java-data-front</artifactId>
+  		<version>v2.0.0</version>
   	</dependency>
   </dependencies>
   <profiles>
