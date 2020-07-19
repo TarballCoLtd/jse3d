@@ -1,5 +1,4 @@
 package com.alyxferrari.jse3d.gfx;
-import java.awt.Image;
 import java.awt.Graphics2D;
 import java.awt.Graphics;
 import com.alyxferrari.jse3d.obj.Scene;

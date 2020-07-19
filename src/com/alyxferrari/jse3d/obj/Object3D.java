@@ -288,9 +288,21 @@ public class Object3D implements Serializable {
 		}
 		return ret;
 	}
+	/** Creates an Object3D from a Wavefront .obj file.
+	 * @param objFile Path to .obj file.
+	 * @return An Object3D roughly equal to the .obj file.
+	 * @throws IOException If an error occurs with loading the .obj path.
+	 * @since 3.0
+	 */
 	public static Object3D createFromObj(String objFile) throws IOException {
 		return createFromObj(objFile, null);
 	}
+	/** Creates an Object3D from a Wavefront .obj file.
+	 * @param objFile Path to .obj file.
+	 * @param triangleColor Color to color triangles.
+	 * @return An Object3D roughly equal to the .obj file.
+	 * @throws IOException If an error occurs with loading the .obj path.
+	 */
 	public static Object3D createFromObj(String objFile, Color triangleColor) throws IOException {
 		IOBJParser parser = new OBJParser();
 		OBJModel model = parser.parse(new FileInputStream(objFile));
@@ -348,6 +360,10 @@ public class Object3D implements Serializable {
 		}
 		return new Object3D(points, edges, faces);
 	}
+	/** Returns the Object3D-specific point ID of a specified vector.
+	 * @param toFind The vector to search for.
+	 * @return The point ID of the specified vector; -1 if it couldn't be found.
+	 */
 	public int getPointIDByVector(Vector3 toFind) {
 		for (int i = 0; i < points.length; i++) {
 			if (points[i].equals(toFind)) {
