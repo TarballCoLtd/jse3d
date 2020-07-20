@@ -611,9 +611,13 @@ public class Display {
 		fields.graphics.setColor(fields.settings.lineColor);
 		for (int a = 0; a < fields.scene.object.length; a++) {
 			for (int i = 0; i < fields.scene.object[a].edges.length; i++) {
-				int point1 = fields.scene.object[a].edges[i].pointID1;
-				int point2 = fields.scene.object[a].edges[i].pointID2;
-				try {fields.graphics.drawLine(fields.pointArrays[a][point1].x, fields.pointArrays[a][point1].y, fields.pointArrays[a][point2].x, fields.pointArrays[a][point2].y);} catch (NullPointerException ex) {System.out.println("oh shit");} catch (IndexOutOfBoundsException ex) {}
+				try {
+					int pos1 = fields.pointArrays[a][fields.scene.object[a].edges[i].pointID1].x;
+					int pos2 = fields.pointArrays[a][fields.scene.object[a].edges[i].pointID1].y;
+					int pos3 = fields.pointArrays[a][fields.scene.object[a].edges[i].pointID2].x;
+					int pos4 = fields.pointArrays[a][fields.scene.object[a].edges[i].pointID2].y;
+					fields.graphics.drawLine(pos1, pos2, pos3, pos4);
+				} catch (NullPointerException ex) {} catch (ArrayIndexOutOfBoundsException ex) {}
 			}
 		}
 	}
@@ -766,9 +770,10 @@ public class Display {
 	protected class ScrollListener implements MouseWheelListener { // controls scroll wheel camera distance changes
 		public void mouseWheelMoved(MouseWheelEvent ev) {
 			if (fields.settings.scrollWheel) {
-				if (ev.getWheelRotation() > 0) {
+				int rotation = ev.getWheelRotation();
+				if (rotation > 0) {
 					fields.scene.camDist *= 1.2;
-				} else {
+				} else if (!(rotation == 0)) {
 					fields.scene.camDist /= 1.2;
 				}
 			}
@@ -1479,5 +1484,8 @@ public class Display {
 			}
 			renderExtras();
 		}
+	}
+	protected synchronized void moveViewAngle() {
+		
 	}
 }
