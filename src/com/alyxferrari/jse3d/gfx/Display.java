@@ -563,16 +563,12 @@ public class Display {
 			}
 			for (int x = 0; x < fields.scene.object[a].faces.length; x++) {
 				for (int y = 0; y < fields.scene.object[a].faces[x].triangles.length; y++) {
-					int[] xs = {0, 0, 0};
-					int[] ys = {0, 0, 0};
 					try {
 						int[] xs2 = {fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].x, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].x, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].x};
 						int[] ys2 = {fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].y, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y};
-						xs = xs2;
-						ys = ys2;
+						fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
+						fields.graphics.fillPolygon(xs2, ys2, 3);
 					} catch (NullPointerException ex) {}
-					fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
-					fields.graphics.fillPolygon(xs, ys, 3);
 				}
 			}
 		}
@@ -617,7 +613,7 @@ public class Display {
 			for (int i = 0; i < fields.scene.object[a].edges.length; i++) {
 				int point1 = fields.scene.object[a].edges[i].pointID1;
 				int point2 = fields.scene.object[a].edges[i].pointID2;
-				try {fields.graphics.drawLine(fields.pointArrays[a][point1].x, fields.pointArrays[a][point1].y, fields.pointArrays[a][point2].x, fields.pointArrays[a][point2].y);} catch (NullPointerException ex) {} catch (IndexOutOfBoundsException ex) {}
+				try {fields.graphics.drawLine(fields.pointArrays[a][point1].x, fields.pointArrays[a][point1].y, fields.pointArrays[a][point2].x, fields.pointArrays[a][point2].y);} catch (NullPointerException ex) {System.out.println("oh shit");} catch (IndexOutOfBoundsException ex) {}
 			}
 		}
 	}
@@ -1121,25 +1117,7 @@ public class Display {
 	public Display setRenderTarget(RenderTarget renderMode) {
 		fields.settings.renderTarget = renderMode;
 		if (fields.settings.renderTarget == RenderTarget.CPU_SINGLETHREADED) {
-			fields.renderer.renderScript = new Runnable() {
-				@Override
-				public void run() {
-					fields.pointArrays = new Point[fields.scene.object.length][];
-					for (int a = 0; a < fields.scene.object.length; a++) {
-						Point[] points = new Point[fields.scene.object[a].points.length];
-						for (int i = 0; i < fields.scene.object[a].points.length; i++) {
-							points[i] = calculatePoint(a, i);
-							if (fields.settings.renderPoints) {
-								renderPoint(points[i], a, i);
-							}
-						}
-						if (fields.settings.faceRender) { // sorts faces so that they're rendered back to front
-							sortFaces(a, points);
-						}
-					}					
-					renderExtras();
-				}
-			};
+			fields.renderer.renderScript = new CPURenderer();
 		} else {
 			if (fields.settings.renderTarget == RenderTarget.CPU_MULTITHREADED) { // checks which device should be used for rendering
 				fields.renderer.openCLDevice = Device.firstCPU();
@@ -1154,27 +1132,7 @@ public class Display {
 					throw new GPU_OpenCLDriverNotFoundError();
 				}
 			}
-			fields.renderer.renderScript = new Runnable() {
-				@Override
-				public void run() {
-					prepareGPU(fields.localCamPos);
-					calculateOnGPU();
-					fields.pointArrays = new Point[fields.scene.object.length][];
-					for (int a = 0; a < fields.scene.object.length; a++) {
-						Point[] points = new Point[fields.scene.object[a].points.length];
-						for (int i = 0; i < fields.scene.object[a].points.length; i++) {
-							points[i] = calculatePointGPU(a, i);
-							if (fields.settings.renderPoints) {
-								renderPoint(points[i], a, i);
-							}
-						}
-						if (fields.settings.faceRender) { // sorts faces so that they're rendered from back to front
-							sortFaces(a, points);
-						}
-					}
-					renderExtras();
-				}
-			};
+			fields.renderer.renderScript = new OpenCLRenderer();
 		}
 		return this;
 	}
@@ -1481,5 +1439,45 @@ public class Display {
 	public Display setRenderScript(RenderScript script) {
 		fields.script = script;
 		return this;
+	}
+	protected class CPURenderer implements Runnable {
+		@Override
+		public void run() {
+			fields.pointArrays = new Point[fields.scene.object.length][];
+			for (int a = 0; a < fields.scene.object.length; a++) {
+				Point[] points = new Point[fields.scene.object[a].points.length];
+				for (int i = 0; i < fields.scene.object[a].points.length; i++) {
+					points[i] = calculatePoint(a, i);
+					if (fields.settings.renderPoints) {
+						renderPoint(points[i], a, i);
+					}
+				}
+				if (fields.settings.faceRender) { // sorts faces so that they're rendered back to front
+					sortFaces(a, points);
+				}
+			}					
+			renderExtras();
+		}
+	}
+	protected class OpenCLRenderer implements Runnable {
+		@Override
+		public void run() {
+			prepareGPU(fields.localCamPos);
+			calculateOnGPU();
+			fields.pointArrays = new Point[fields.scene.object.length][];
+			for (int a = 0; a < fields.scene.object.length; a++) {
+				Point[] points = new Point[fields.scene.object[a].points.length];
+				for (int i = 0; i < fields.scene.object[a].points.length; i++) {
+					points[i] = calculatePointGPU(a, i);
+					if (fields.settings.renderPoints) {
+						renderPoint(points[i], a, i);
+					}
+				}
+				if (fields.settings.faceRender) { // sorts faces so that they're rendered from back to front
+					sortFaces(a, points);
+				}
+			}
+			renderExtras();
+		}
 	}
 }

@@ -11,7 +11,6 @@ public class ObjModelDemo {
 		Display display = new Display(scene, "jse3d obj model demo", Math.toRadians(60), objects[0].points.length, objects[0].points.length, 1);
 		display.setPointSize(new Dimension(2000, 2000));
 		display.disableFPSLimit();
-		display.enableFaceRendering();
 		display.enableFPSLogging();
 		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		display.setRenderQuality(RenderMode.PERFORMANCE);
