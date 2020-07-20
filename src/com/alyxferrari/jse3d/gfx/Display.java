@@ -285,6 +285,7 @@ public class Display {
 			@Override public void preRender(Graphics graphics) {}
 			@Override public void postRender(Graphics graphics) {}
 		};
+		setCameraMode(CameraMode.DRAG);
 	}
 	protected class FrameListener implements WindowListener {
 		@Override
@@ -388,6 +389,7 @@ public class Display {
 		private static final long serialVersionUID = 1L;
 		public Runnable renderScript;
 		public Runnable extrasRenderer;
+		public Runnable mouseCalculator;
 		public Dimension size;
 		public Point location;
 		public Device openCLDevice;		
@@ -398,6 +400,10 @@ public class Display {
 				public void run() {}
 			};
 			extrasRenderer = new Runnable() {
+				@Override
+				public void run() {}
+			};
+			mouseCalculator = new Runnable() {
 				@Override
 				public void run() {}
 			};
@@ -636,16 +642,7 @@ public class Display {
 		return null;
 	}
 	protected void calculateMouse() {
-		if (fields.settings.mode == CameraMode.DRAG) {
-			if (fields.mouseClicked) {
-				Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-fields.frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-fields.frame.getLocationOnScreen().y);
-				fields.mouse = new Point(temp.x-fields.mouseDiff.x, temp.y-fields.mouseDiff.y);
-			} else {
-				fields.mouse = fields.lastMousePos;
-			}
-		} else {
-			fields.mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-fields.frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-fields.frame.getLocationOnScreen().y);
-		}
+		fields.renderer.mouseCalculator.run();
 	}
 	protected class Renderer implements Runnable {
 		public void run() {
@@ -1013,6 +1010,11 @@ public class Display {
 	 */
 	public Display setCameraMode(CameraMode mode) {
 		fields.settings.mode = mode;
+		if (fields.settings.mode == CameraMode.DRAG) {
+			fields.renderer.mouseCalculator = new MouseDrag();
+		} else {
+			fields.renderer.mouseCalculator = new MouseMove();
+		}
 		return this;
 	}
 	/** Returns the current camera mode.
@@ -1502,5 +1504,22 @@ public class Display {
 	 */
 	public double getScrollWheelMultiplier() {
 		return fields.settings.scrollMultiplier;
+	}
+	protected class MouseDrag implements Runnable {
+		@Override
+		public void run() {
+			if (fields.mouseClicked) {
+				Point temp = new Point(MouseInfo.getPointerInfo().getLocation().x-fields.frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-fields.frame.getLocationOnScreen().y);
+				fields.mouse = new Point(temp.x-fields.mouseDiff.x, temp.y-fields.mouseDiff.y);
+			} else {
+				fields.mouse = fields.lastMousePos;
+			}
+		}
+	}
+	protected class MouseMove implements Runnable {
+		@Override
+		public void run() {
+			fields.mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-fields.frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-fields.frame.getLocationOnScreen().y);
+		}
 	}
 }
