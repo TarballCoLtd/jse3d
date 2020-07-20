@@ -66,7 +66,7 @@ public class Vector3 implements Serializable {
 		this.y = y;
 		this.z = z;
 		magnitude = Math3D.hypot3(x, y, z);
-		sqrMagnitude = Math.pow(magnitude, 2);
+		sqrMagnitude = StrictMath.pow(magnitude, 2);
 		normal = this;
 	}
 	/** Moves this vector relative to (0,0,0).

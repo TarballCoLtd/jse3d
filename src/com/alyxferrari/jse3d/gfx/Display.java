@@ -423,7 +423,7 @@ public class Display {
 	protected void renderFrame() {
 		fields.localCamPos = new Vector3(0, 0, 0);
 		try {fields.localCamPos = getCameraPositionActual();} catch (NullPointerException ex) {}
-		try {fields.graphics.setRenderingHints(fields.hints);} catch (ConcurrentModificationException ex) {} // sets rendering hints
+		try {fields.graphics.setRenderingHints(fields.hints);} catch (ConcurrentModificationException ex) {} catch (NullPointerException ex) {} // sets rendering hints
 		renderBackground();
 		fields.script.preRender(fields.graphics);
 		calculateMouse();
@@ -441,21 +441,21 @@ public class Display {
 		// the following if statement checks if this particle is in front of the camera, not behind, and hence, if it should be rendered or not
 		if (fields.scene.particles.get(particleID).getPosition().getZ()*fields.sphere.cosViewAngleX*fields.sphere.cosViewAngleY + fields.scene.particles.get(particleID).getPosition().getX()*fields.sphere.sinViewAngleX*fields.sphere.cosViewAngleY - fields.scene.particles.get(particleID).getPosition().getY()*fields.sphere.sinViewAngleY < fields.scene.camDist) {
 			// 3D to 2D particle conversion
-			double zAngle = Math.atan(fields.scene.particles.get(particleID).getPosition().getZ()/fields.scene.particles.get(particleID).getPosition().getX());
+			double zAngle = StrictMath.atan(fields.scene.particles.get(particleID).getPosition().getZ()/fields.scene.particles.get(particleID).getPosition().getX());
 			if (fields.scene.particles.get(particleID).getPosition().getX() == 0 && fields.scene.particles.get(particleID).getPosition().getZ() == 0) {
 				zAngle = 0;
 			}
-			double mag = Math.hypot(fields.scene.particles.get(particleID).getPosition().getX(), fields.scene.particles.get(particleID).getPosition().getZ());
+			double mag = StrictMath.hypot(fields.scene.particles.get(particleID).getPosition().getX(), fields.scene.particles.get(particleID).getPosition().getZ());
 			if (fields.scene.particles.get(particleID).getPosition().getX() < 0) {
-				fields.xTransform = -mag*DisplaySettings.SCALE*Math.cos(fields.sphere.viewAngleX+zAngle);
-				fields.yTransform = -mag*DisplaySettings.SCALE*Math.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
+				fields.xTransform = -mag*DisplaySettings.SCALE*StrictMath.cos(fields.sphere.viewAngleX+zAngle);
+				fields.yTransform = -mag*DisplaySettings.SCALE*StrictMath.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
 			} else {
-				fields.xTransform = mag*DisplaySettings.SCALE*Math.cos(fields.sphere.viewAngleX+zAngle);
-				fields.yTransform = mag*DisplaySettings.SCALE*Math.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
+				fields.xTransform = mag*DisplaySettings.SCALE*StrictMath.cos(fields.sphere.viewAngleX+zAngle);
+				fields.yTransform = mag*DisplaySettings.SCALE*StrictMath.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
 			}
 			double distance = Math3D.hypot3(fields.localCamPos.getX()-fields.scene.particles.get(particleID).getPosition().getX(), fields.localCamPos.getY()-fields.scene.particles.get(particleID).getPosition().getY(), fields.localCamPos.getZ()-fields.scene.particles.get(particleID).getPosition().getZ());
-			double theta = Math.asin((Math.hypot(fields.xTransform, fields.yTransform)/DisplaySettings.SCALE)/distance);
-			double camScale = distance*Math.cos(theta)*Math.sin(fields.settings.viewAngle/2);
+			double theta = StrictMath.asin((Math.hypot(fields.xTransform, fields.yTransform)/DisplaySettings.SCALE)/distance);
+			double camScale = distance*StrictMath.cos(theta)*StrictMath.sin(fields.settings.viewAngle/2);
 			return new Point((int)((fields.renderer.size.width+fields.renderer.location.x)/2+fields.xTransform/camScale), (int)((fields.renderer.size.height+fields.renderer.location.y)/2-fields.yTransform/camScale));
 		}
 		return null;
@@ -464,21 +464,21 @@ public class Display {
 		// the following if statement checks if this point is in front of the camera, not behind, and hence, if it should be rendered or not
 		if (fields.scene.object[a].points[i].getZ()*fields.sphere.cosViewAngleX*fields.sphere.cosViewAngleY + fields.scene.object[a].points[i].getX()*fields.sphere.sinViewAngleX*fields.sphere.cosViewAngleY - fields.scene.object[a].points[i].getY()*fields.sphere.sinViewAngleY < fields.scene.camDist) {
 			// 3D to 2D point conversion
-			double zAngle = Math.atan((fields.scene.object[a].points[i].getZ())/(fields.scene.object[a].points[i].getX()));
+			double zAngle = StrictMath.atan((fields.scene.object[a].points[i].getZ())/(fields.scene.object[a].points[i].getX()));
 			if (fields.scene.object[a].points[i].getX() == 0 && fields.scene.object[a].points[i].getZ() == 0) {
 				zAngle = 0;
 			}
-			double mag = Math.hypot(fields.scene.object[a].points[i].getX(), fields.scene.object[a].points[i].getZ());
+			double mag = StrictMath.hypot(fields.scene.object[a].points[i].getX(), fields.scene.object[a].points[i].getZ());
 			if (fields.scene.object[a].points[i].getX() < 0) {
-				fields.xTransform = -mag*DisplaySettings.SCALE*Math.cos(fields.sphere.viewAngleX+zAngle);
-				fields.yTransform = -mag*DisplaySettings.SCALE*Math.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.object[a].points[i].getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
+				fields.xTransform = -mag*DisplaySettings.SCALE*StrictMath.cos(fields.sphere.viewAngleX+zAngle);
+				fields.yTransform = -mag*DisplaySettings.SCALE*StrictMath.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.object[a].points[i].getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
 			} else {
-				fields.xTransform = mag*DisplaySettings.SCALE*Math.cos(fields.sphere.viewAngleX+zAngle);
-				fields.yTransform = mag*DisplaySettings.SCALE*Math.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.object[a].points[i].getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
+				fields.xTransform = mag*DisplaySettings.SCALE*StrictMath.cos(fields.sphere.viewAngleX+zAngle);
+				fields.yTransform = mag*DisplaySettings.SCALE*StrictMath.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.object[a].points[i].getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
 			}
 			fields.distance[a][i] = new Distance(Math3D.hypot3(fields.localCamPos.getX()-fields.scene.object[a].points[i].getX(), fields.localCamPos.getY()-fields.scene.object[a].points[i].getY(), fields.localCamPos.getZ()-fields.scene.object[a].points[i].getZ()), i);
-			double theta = Math.asin((Math.hypot(fields.xTransform, fields.yTransform)/DisplaySettings.SCALE)/fields.distance[a][i].distance);
-			fields.camScale[a][i] = fields.distance[a][i].distance*Math.cos(theta)*Math.sin(fields.settings.viewAngle/2);
+			double theta = StrictMath.asin((StrictMath.hypot(fields.xTransform, fields.yTransform)/DisplaySettings.SCALE)/fields.distance[a][i].distance);
+			fields.camScale[a][i] = fields.distance[a][i].distance*StrictMath.cos(theta)*StrictMath.sin(fields.settings.viewAngle/2);
 			return new Point((int)((fields.renderer.size.width+fields.renderer.location.x)/2+fields.xTransform/fields.camScale[a][i]), (int)((fields.renderer.size.height+fields.renderer.location.y)/2-fields.yTransform/fields.camScale[a][i]));
 		}
 		return null;
@@ -1521,5 +1521,14 @@ public class Display {
 		public void run() {
 			fields.mouse = new Point(MouseInfo.getPointerInfo().getLocation().x-fields.frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-fields.frame.getLocationOnScreen().y);
 		}
+	}
+	/** Sets the rendering hints directly. This has no effect on the output of any specific rendering hint getters.
+	 * @param hints The new rendering hints.
+	 * @return The Display object on which this method was called.
+	 * @since 3.0.2
+	 */
+	public Display setRenderingHints(RenderingHints hints) {
+		fields.hints = hints;
+		return this;
 	}
 }
