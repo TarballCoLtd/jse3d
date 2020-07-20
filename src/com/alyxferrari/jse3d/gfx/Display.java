@@ -616,7 +616,9 @@ public class Display {
 					int pos2 = fields.pointArrays[a][fields.scene.object[a].edges[i].pointID1].y;
 					int pos3 = fields.pointArrays[a][fields.scene.object[a].edges[i].pointID2].x;
 					int pos4 = fields.pointArrays[a][fields.scene.object[a].edges[i].pointID2].y;
-					fields.graphics.drawLine(pos1, pos2, pos3, pos4);
+					if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0)) {
+						fields.graphics.drawLine(pos1, pos2, pos3, pos4);
+					}
 				} catch (NullPointerException ex) {} catch (ArrayIndexOutOfBoundsException ex) {}
 			}
 		}
@@ -772,9 +774,9 @@ public class Display {
 			if (fields.settings.scrollWheel) {
 				int rotation = ev.getWheelRotation();
 				if (rotation > 0) {
-					fields.scene.camDist *= 1.2;
+					fields.scene.camDist *= fields.settings.scrollMultiplier;
 				} else if (!(rotation == 0)) {
-					fields.scene.camDist /= 1.2;
+					fields.scene.camDist /= fields.settings.scrollMultiplier;
 				}
 			}
 		}
@@ -1485,7 +1487,20 @@ public class Display {
 			renderExtras();
 		}
 	}
-	protected synchronized void moveViewAngle() {
-		
+	/** Sets the multiplier for the camera distance change when the scroll wheel is 'clicked.'
+	 * @param multiplier The new multiplier.
+	 * @return The Display object on which this method was called.
+	 * @since 3.0.1
+	 */
+	public Display setScrollWheelMultiplier(double multiplier) {
+		fields.settings.scrollMultiplier = multiplier;
+		return this;
+	}
+	/** Returns the current scroll wheel multiplier.
+	 * @return The current scroll wheel multiplier.
+	 * @since 3.0.1
+	 */
+	public double getScrollWheelMultiplier() {
+		return fields.settings.scrollMultiplier;
 	}
 }

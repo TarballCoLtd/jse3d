@@ -31,6 +31,7 @@ class DisplaySettings {
 	boolean assertion; // makes sure AssertionError's stack trace is only printed once
 	Point camPosPrintPoint; // where the camera position should be printed to on the frame
 	int maxPointsTotal;
+	double scrollMultiplier;
 	DisplaySettings() {
 		renderPoints = false;
 		camPosPrintPoint = new Point(0, 11);
@@ -54,5 +55,6 @@ class DisplaySettings {
 		mode = CameraMode.DRAG;
 		yAxisClamp = true;
 		maxPointsTotal = 1;
+		scrollMultiplier = 1.2;
 	}
 }
