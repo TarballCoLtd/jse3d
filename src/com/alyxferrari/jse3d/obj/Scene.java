@@ -16,6 +16,12 @@ public class Scene implements Serializable {
 	/** The array of Particles contained in this Scene.
 	 */
 	public ArrayList<Particle> particles;
+	/** The Scene's directional light.
+	 */
+	private DirectionalLight sceneLight = null;
+	/** Specifies how much triangles should be tinted.
+	 */
+	private float ambientLight = 0.2f;
 	/** Constructs a Scene with the specified Object3Ds and camera distance.
 	 * @param object The objects desired to be in this Scene.
 	 * @param camDist The camera distance.
@@ -158,5 +164,19 @@ public class Scene implements Serializable {
 		}
 		ret += "camDist=" + camDist + "}";
 		return ret;
+	}
+	public DirectionalLight getDirectionalLight() {
+		return sceneLight;
+	}
+	public Scene setDirectionalLight(DirectionalLight light) {
+		sceneLight = light;
+		return this;
+	}
+	public float getAmbientLight() {
+		return ambientLight;
+	}
+	public Scene setAmbientLight(float ambientLight) {
+		this.ambientLight = ambientLight > 0.0f ? ambientLight : this.ambientLight;
+		return this;
 	}
 }

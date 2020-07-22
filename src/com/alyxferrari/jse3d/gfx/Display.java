@@ -411,7 +411,7 @@ public class Display {
 		public void render() {
 			size = getSize();
 			location = getLocation();
-			try {fields.buffer = createImage(size.width, size.height);} catch (IllegalArgumentException ex) {}
+			fields.buffer = createImage(size.width, size.height);
 			fields.graphics = (Graphics2D) fields.buffer.getGraphics();
 			if (fields.rendering) {
 				renderFrame();
@@ -572,7 +572,23 @@ public class Display {
 					try {
 						int[] xs2 = {fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].x, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].x, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].x};
 						int[] ys2 = {fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].y, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y};
-						fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
+						if (fields.scene.getDirectionalLight() == null) {
+							fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
+						} else {
+							double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), fields.scene.getDirectionalLight().getDirection());
+							dot *= fields.scene.getDirectionalLight().getLightStrength();
+							if (dot > 0) {
+								Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
+								int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
+								int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
+								int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
+								Color color = new Color(red > 255 ? 255: red, green > 255 ? 255 : green, blue > 255 ? 255 : blue, triColor.getAlpha());
+								fields.graphics.setColor(color);
+							} else {
+								Color base = fields.scene.object[a].faces[x].triangles[y].color;
+								fields.graphics.setColor(new Color((int)(base.getRed()*fields.scene.getAmbientLight()), (int)(base.getGreen()*fields.scene.getAmbientLight()), (int)(base.getBlue()*fields.scene.getAmbientLight()), base.getAlpha()));
+							}
+						}
 						fields.graphics.fillPolygon(xs2, ys2, 3);
 					} catch (NullPointerException ex) {}
 				}

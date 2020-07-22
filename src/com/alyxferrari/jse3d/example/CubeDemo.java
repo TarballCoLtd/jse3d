@@ -18,7 +18,6 @@ public class CubeDemo {
 		Display display = new Display(scene, "jse3d cube demo", Math.toRadians(60), ObjectTemplate.getCube().points.length*objects.length, ObjectTemplate.getCube().points.length, objects.length);
 		display.setPointSize(new Dimension(40, 40));
 		display.enableFPSLogging();
-		display.disableFPSLimit();
 		display.enableCameraPositionPrinting();
 		display.setRenderTarget(RenderTarget.GPU);
 		display.startRender();

@@ -68,4 +68,12 @@ public class Triangle implements Serializable {
 		}
 		return false;
 	}
+	public Vector3 cross(Object3D object) {
+		Vector3 one = object.points[pointID1];
+		Vector3 two = object.points[pointID2];
+		Vector3 three = object.points[pointID3];
+		Vector3 twoNew = new Vector3(two.x-one.x, two.y-one.y, two.z-one.z);
+		Vector3 threeNew = new Vector3(three.x-one.x, three.y-one.y, three.z-one.z);
+		return Vector3.cross(twoNew, threeNew).getNormal();
+	}
 }
