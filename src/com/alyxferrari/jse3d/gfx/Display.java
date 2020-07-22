@@ -411,7 +411,7 @@ public class Display {
 		public void render() {
 			size = getSize();
 			location = getLocation();
-			fields.buffer = createImage(size.width, size.height);
+			try {fields.buffer = createImage(size.width, size.height);} catch (IllegalArgumentException ex) {}
 			fields.graphics = (Graphics2D) fields.buffer.getGraphics();
 			if (fields.rendering) {
 				renderFrame();
