@@ -301,7 +301,7 @@ public class Display {
 		    	try {fields.scene.particles.get(i).stop();} catch (NullPointerException ex) {}
 		    }
 		    if (fields.settings.fpsLogging) {
-		    	System.out.println("\nAverage over " + fields.secondsOpen + " seconds: " + (fields.frameFps/(long)fields.secondsOpen) + " FPS");
+		    	try {System.out.println("\nAverage over " + fields.secondsOpen + " seconds: " + (fields.frameFps/(long)fields.secondsOpen) + " FPS");} catch (ArithmeticException ex) {}
 		    	System.out.println("Best FPS count: " + (fields.maxFps-1));
 		    	System.exit(0);
 		    }
