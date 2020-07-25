@@ -499,9 +499,7 @@ public class Display {
 		fields.objKernel.viewAngleXInput[0] = (float) fields.sphere.viewAngleX;
 		fields.objKernel.viewAngleYInput[0] = (float) fields.sphere.viewAngleY;
 		fields.zAngleLength = 0;
-		for (Object3D object : fields.scene.object) {
-			fields.zAngleLength += object.points.length;
-		}
+		for (Object3D object : fields.scene.object) fields.zAngleLength += object.points.length;
 		for (int x = 0; x < fields.scene.object.length; x++) {
 			for (int y = 0; y < fields.scene.object[x].points.length; y++) {
 				int index = (fields.scene.object[x].points.length*x)+y;
