@@ -265,7 +265,7 @@ public class Display {
 		fields.frame.setVisible(frameVisible);
 		fields.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		fields.rendering = false;
-		fields.frame.getContentPane().add(BorderLayout.CENTER, fields.renderer);
+		fields.frame.getContentPane().add(fields.renderer);
 		fields.distance = new Distance[maxObjects][maxPointsObject];
 		fields.camScale = new double[maxObjects][maxPointsObject];
 		fields.settings.renderPoints = renderPoints;
@@ -419,7 +419,7 @@ public class Display {
 					fields.script.postRender(fields.graphics);
 					getGraphics().drawImage(fields.buffer, 0, 0, null);
 				}
-			} catch (IllegalArgumentException ex) {}
+			} catch (IllegalArgumentException ex) {ex.printStackTrace();}
 		}
 	}
 	protected void renderFrame() {
