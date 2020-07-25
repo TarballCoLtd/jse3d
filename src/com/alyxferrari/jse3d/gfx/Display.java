@@ -288,10 +288,8 @@ public class Display {
 		setCameraMode(CameraMode.DRAG);
 	}
 	protected class FrameListener implements WindowListener {
-		@Override
-		public void windowActivated(WindowEvent arg0) {}
-		@Override
-		public void windowClosed(WindowEvent arg0) {}
+		@Override public void windowActivated(WindowEvent arg0) {}
+		@Override public void windowClosed(WindowEvent arg0) {}
 		@Override
 		public void windowClosing(WindowEvent arg0) {
 			for (int i = 0; i < fields.scene.object.length; i++) {
@@ -306,14 +304,10 @@ public class Display {
 		    	System.exit(0);
 		    }
 		}
-		@Override
-		public void windowDeactivated(WindowEvent arg0) {}
-		@Override
-		public void windowDeiconified(WindowEvent arg0) {}
-		@Override
-		public void windowIconified(WindowEvent arg0) {}
-		@Override
-		public void windowOpened(WindowEvent arg0) {}
+		@Override public void windowDeactivated(WindowEvent arg0) {}
+		@Override public void windowDeiconified(WindowEvent arg0) {}
+		@Override public void windowIconified(WindowEvent arg0) {}
+		@Override public void windowOpened(WindowEvent arg0) {}
 	}
 	/** Starts render of the Scene.
 	 * @return The Display object on which this method was called.
@@ -413,13 +407,13 @@ public class Display {
 				if (fields.rendering) {
 					size = getSize();
 					location = getLocation();
-					fields.buffer = createImage(size.width+1, size.height+1);
+					fields.buffer = createImage(size.width, size.height);
 					fields.graphics = (Graphics2D) fields.buffer.getGraphics();
 					renderFrame();
 					fields.script.postRender(fields.graphics);
 					getGraphics().drawImage(fields.buffer, 0, 0, null);
 				}
-			} catch (IllegalArgumentException ex) {ex.printStackTrace();}
+			} catch (IllegalArgumentException ex) {}
 		}
 	}
 	protected void renderFrame() {
