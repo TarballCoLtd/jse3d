@@ -564,8 +564,17 @@ public class Display {
 			for (int x = 0; x < fields.scene.object[a].faces.length; x++) {
 				for (int y = 0; y < fields.scene.object[a].faces[x].triangles.length; y++) {
 					try {
-						int[] xs2 = {fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].x, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].x, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].x};
-						int[] ys2 = {fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].y, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y, fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y};
+						int pos1 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].x;
+						int pos2 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].x;
+						int pos3 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].x;
+						int pos4 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].y;
+						int pos5 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y;
+						int pos6 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y;
+						if (pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0) {
+							break;
+						}
+						int[] xs2 = {pos1, pos2, pos3};
+						int[] ys2 = {pos4, pos5, pos6};
 						if (fields.scene.getDirectionalLight() == null) {
 							fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
 						} else {
