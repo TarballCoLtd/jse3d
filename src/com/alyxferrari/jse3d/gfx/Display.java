@@ -410,11 +410,11 @@ public class Display {
 		}
 		public void render() {
 			try {
-				size = getSize();
-				location = getLocation();
-				fields.buffer = createImage(size.width, size.height);
-				fields.graphics = (Graphics2D) fields.buffer.getGraphics();
 				if (fields.rendering) {
+					size = getSize();
+					location = getLocation();
+					fields.buffer = createImage(size.width+1, size.height+1);
+					fields.graphics = (Graphics2D) fields.buffer.getGraphics();
 					renderFrame();
 					fields.script.postRender(fields.graphics);
 					getGraphics().drawImage(fields.buffer, 0, 0, null);
@@ -685,6 +685,7 @@ public class Display {
 			        fields.fps = 0;
 			    }
 			    fields.renderer.render();
+			    getFrame().revalidate();
 			    fields.time.reset();
 			    for (int i = 0; i < fields.scene.object.length; i++) {
 			    	try {fields.scene.object[i].update();} catch (NullPointerException ex) {}
