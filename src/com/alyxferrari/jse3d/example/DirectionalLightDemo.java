@@ -13,6 +13,7 @@ public class DirectionalLightDemo {
 		display.setPointSize(new Dimension(200, 200));
 		display.disableFPSLimit();
 		display.enableFaceRendering();
+		display.enableCameraPositionPrinting();
 		display.disableLineRendering();
 		display.setScrollWheelMultiplier(1.2);
 		display.enableFPSLogging();

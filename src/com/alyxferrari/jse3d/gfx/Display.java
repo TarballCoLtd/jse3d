@@ -529,7 +529,10 @@ public class Display {
 	protected void printCameraPosition() {
 		Vector3 cameraPos = getCameraPositionActual();
 		fields.graphics.setColor(invertColor(fields.settings.backgroundColor));
-		fields.graphics.drawString("x: " + cameraPos.getX() + " // y: " + cameraPos.getY() + " // z: " + cameraPos.getZ(), 0, 11);
+		Point point = fields.settings.camPosPrintPoint;
+		fields.graphics.drawString("x: " + cameraPos.getX(), point.x, point.y);
+		fields.graphics.drawString("y: " + cameraPos.getY(), point.x, point.y+11);
+		fields.graphics.drawString("z: " + cameraPos.getZ(), point.x, point.y+22);
 	}
 	protected static Color invertColor(Color color) {
 		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
