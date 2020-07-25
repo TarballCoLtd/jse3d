@@ -243,7 +243,7 @@ public class Display {
 	 * @param frameWidth The preferred width of the frame.
 	 * @param frameHeight The preferred height of the frame.
 	 * @param fps The maximum FPS this Display should render the Scene in.
-	 * @param fovRadians The FOV the scene should be rendered in, in radians.
+	 * @param fovRadians The FOV in which the scene should be rendered, in radians.
 	 * @param maxPointsTotal The maximum number of points that will ever be in any Scene rendered.
 	 * @param maxPointsObject The maximum number of points that will ever be in any single Object3D.
 	 * @param maxObjects The maximum number of Object3Ds that will ever be in any Scene rendered.
