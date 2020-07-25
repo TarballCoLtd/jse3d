@@ -573,29 +573,28 @@ public class Display {
 						int pos4 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].y;
 						int pos5 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y;
 						int pos6 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y;
-						if (pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0) {
-							break;
-						}
-						int[] xs2 = {pos1, pos2, pos3};
-						int[] ys2 = {pos4, pos5, pos6};
-						if (fields.scene.getDirectionalLight() == null) {
-							fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
-						} else {
-							double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), fields.scene.getDirectionalLight().getDirection());
-							dot *= fields.scene.getDirectionalLight().getLightStrength();
-							if (dot > 0) {
-								Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
-								int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
-								int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
-								int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
-								Color color = new Color(red > 255 ? 255: red, green > 255 ? 255 : green, blue > 255 ? 255 : blue, triColor.getAlpha());
-								fields.graphics.setColor(color);
+						if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0)) {
+							int[] xs2 = {pos1, pos2, pos3};
+							int[] ys2 = {pos4, pos5, pos6};
+							if (fields.scene.getDirectionalLight() == null) {
+								fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
 							} else {
-								Color base = fields.scene.object[a].faces[x].triangles[y].color;
-								fields.graphics.setColor(new Color((int)(base.getRed()*fields.scene.getAmbientLight()), (int)(base.getGreen()*fields.scene.getAmbientLight()), (int)(base.getBlue()*fields.scene.getAmbientLight()), base.getAlpha()));
+								double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), fields.scene.getDirectionalLight().getDirection());
+								dot *= fields.scene.getDirectionalLight().getLightStrength();
+								if (dot > 0) {
+									Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
+									int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
+									int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
+									int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
+									Color color = new Color(red > 255 ? 255: red, green > 255 ? 255 : green, blue > 255 ? 255 : blue, triColor.getAlpha());
+									fields.graphics.setColor(color);
+								} else {
+									Color base = fields.scene.object[a].faces[x].triangles[y].color;
+									fields.graphics.setColor(new Color((int)(base.getRed()*fields.scene.getAmbientLight()), (int)(base.getGreen()*fields.scene.getAmbientLight()), (int)(base.getBlue()*fields.scene.getAmbientLight()), base.getAlpha()));
+								}
 							}
+							fields.graphics.fillPolygon(xs2, ys2, 3);
 						}
-						fields.graphics.fillPolygon(xs2, ys2, 3);
 					} catch (NullPointerException ex) {}
 				}
 			}
