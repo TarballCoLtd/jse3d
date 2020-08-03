@@ -299,8 +299,8 @@ public class Display {
 		    for (int i = 0; i < fields.scene.particles.size(); i++) {
 		    	try {fields.scene.particles.get(i).stop();} catch (NullPointerException ex) {}
 		    }
-		    for (int i = 0; i < fields.scene.lights.size(); i++) {
-		    	try {fields.scene.lights.get(i).stop();} catch (NullPointerException ex) {}
+		    for (int i = 0; i < fields.scene.lights.length; i++) {
+		    	try {fields.scene.lights[i].stop();} catch (NullPointerException ex) {}
 		    }
 		    if (fields.settings.fpsLogging) {
 		    	try {System.out.println("\nAverage over " + fields.secondsOpen + " seconds: " + (fields.frameFps/(long)fields.secondsOpen) + " FPS");} catch (ArithmeticException ex) {}
@@ -326,8 +326,8 @@ public class Display {
 			for (int i = 0; i < fields.scene.particles.size(); i++) {
 				try {fields.scene.particles.get(i).start();} catch (NullPointerException ex) {}
 			}
-			for (int i = 0; i < fields.scene.lights.size(); i++) {
-				try {fields.scene.lights.get(i).start();} catch (NullPointerException ex) {}
+			for (int i = 0; i < fields.scene.lights.length; i++) {
+				try {fields.scene.lights[i].start();} catch (NullPointerException ex) {}
 			}
 			Point mouseInfo = MouseInfo.getPointerInfo().getLocation();
 			Point locationOnScreen = fields.frame.getLocationOnScreen();
@@ -399,16 +399,13 @@ public class Display {
 		public DisplayRenderer() {
 			openCLDevice = null;
 			renderScript = new Runnable() {
-				@Override
-				public void run() {}
+				@Override public void run() {}
 			};
 			extrasRenderer = new Runnable() {
-				@Override
-				public void run() {}
+				@Override public void run() {}
 			};
 			mouseCalculator = new Runnable() {
-				@Override
-				public void run() {}
+				@Override public void run() {}
 			};
 		}
 		public void render() {
@@ -416,7 +413,7 @@ public class Display {
 				if (fields.rendering) {
 					size = getSize();
 					location = getLocation();
-					fields.buffer = createImage(500, 500);
+					fields.buffer = createImage(size.width, size.height);
 					fields.graphics = (Graphics2D) fields.buffer.getGraphics();
 					renderFrame();
 					fields.script.postRender(fields.graphics);
@@ -585,13 +582,13 @@ public class Display {
 						if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0)) {
 							int[] xs = {pos1, pos2, pos3};
 							int[] ys = {pos4, pos5, pos6};
-							ArrayList<DirectionalLight> lights = fields.scene.getDirectionalLights();
+							DirectionalLight[] lights = fields.scene.getDirectionalLights();
 							Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
 							Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
-							for (int z = 0; z < lights.size(); z++) {
-								if (lights.get(z) != null) {
-									double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), lights.get(z).getDirection());
-									dot *= lights.get(z).getLightStrength();
+							for (int z = 0; z < lights.length; z++) {
+								if (lights[z] != null) {
+									double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), lights[z].getDirection());
+									dot *= lights[z].getLightStrength();
 									if (dot > 0) {
 										int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
 										int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
@@ -710,8 +707,8 @@ public class Display {
 			    for (int i = 0; i < fields.scene.particles.size(); i++) {
 			    	try {fields.scene.particles.get(i).update();} catch (NullPointerException ex) {}
 			    }
-			    for (int i = 0; i < fields.scene.lights.size(); i++) {
-			    	try {fields.scene.lights.get(i).update();} catch (NullPointerException ex) {}
+			    for (int i = 0; i < fields.scene.lights.length; i++) {
+			    	try {fields.scene.lights[i].update();} catch (NullPointerException ex) {}
 			    }
 			    if (fields.settings.fpsLimit) {
 			    	long tmp = (lastLoopTime-System.nanoTime()+fields.optimalTime)/1000000;
@@ -740,8 +737,8 @@ public class Display {
 				for (int i = 0; i < fields.scene.particles.size(); i++) {
 					try {fields.scene.particles.get(i).fixedUpdate();} catch (NullPointerException ex) {}
 				}
-				for (int i = 0; i < fields.scene.lights.size(); i++) {
-					try {fields.scene.lights.get(i).fixedUpdate();} catch (NullPointerException ex) {}
+				for (int i = 0; i < fields.scene.lights.length; i++) {
+					try {fields.scene.lights[i].fixedUpdate();} catch (NullPointerException ex) {}
 				}
 				fields.time.fixedReset();
 				long tmp = (lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000;
