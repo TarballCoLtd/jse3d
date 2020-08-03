@@ -12,7 +12,6 @@ public class DirectionalLightDemo {
 		scene.addDirectionalLight(new DirectionalLight(new Vector3(0, 0, 1), 0.4f));
 		Display display = new Display(scene, "jse3d obj model demo", Math.toRadians(60), objects[0].points.length, objects[0].points.length, 1);
 		display.disableFPSLimit();
-		display.enableFaceRendering();
 		display.disableLineRendering();
 		display.enableFPSLogging();
 		display.setRenderTarget(RenderTarget.GPU);

@@ -299,6 +299,9 @@ public class Display {
 		    for (int i = 0; i < fields.scene.particles.size(); i++) {
 		    	try {fields.scene.particles.get(i).stop();} catch (NullPointerException ex) {}
 		    }
+		    for (int i = 0; i < fields.scene.lights.size(); i++) {
+		    	try {fields.scene.lights.get(i).stop();} catch (NullPointerException ex) {}
+		    }
 		    if (fields.settings.fpsLogging) {
 		    	try {System.out.println("\nAverage over " + fields.secondsOpen + " seconds: " + (fields.frameFps/(long)fields.secondsOpen) + " FPS");} catch (ArithmeticException ex) {}
 		    	System.out.println("Best FPS count: " + (fields.maxFps-1));
@@ -322,6 +325,9 @@ public class Display {
 			}
 			for (int i = 0; i < fields.scene.particles.size(); i++) {
 				try {fields.scene.particles.get(i).start();} catch (NullPointerException ex) {}
+			}
+			for (int i = 0; i < fields.scene.lights.size(); i++) {
+				try {fields.scene.lights.get(i).start();} catch (NullPointerException ex) {}
 			}
 			fields.lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-fields.frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-fields.frame.getLocationOnScreen().y);
 			fields.rendering = true;
@@ -702,6 +708,9 @@ public class Display {
 			    for (int i = 0; i < fields.scene.particles.size(); i++) {
 			    	try {fields.scene.particles.get(i).update();} catch (NullPointerException ex) {}
 			    }
+			    for (int i = 0; i < fields.scene.lights.size(); i++) {
+			    	try {fields.scene.lights.get(i).update();} catch (NullPointerException ex) {}
+			    }
 			    if (fields.settings.fpsLimit) {
 			    	long tmp = (lastLoopTime-System.nanoTime()+fields.optimalTime)/1000000;
 			    	try {Thread.sleep(tmp > 0 ? tmp : 0);} catch (InterruptedException ex) {ex.printStackTrace();}
@@ -728,6 +737,9 @@ public class Display {
 				}
 				for (int i = 0; i < fields.scene.particles.size(); i++) {
 					try {fields.scene.particles.get(i).fixedUpdate();} catch (NullPointerException ex) {}
+				}
+				for (int i = 0; i < fields.scene.lights.size(); i++) {
+					try {fields.scene.lights.get(i).fixedUpdate();} catch (NullPointerException ex) {}
 				}
 				fields.time.fixedReset();
 				long tmp = (lastLoopTime-System.nanoTime()+OPTIMAL_TIME)/1000000;
