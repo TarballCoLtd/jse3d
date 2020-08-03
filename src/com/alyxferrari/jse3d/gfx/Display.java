@@ -8,6 +8,7 @@ import java.awt.Point;
 import com.alyxferrari.jse3d.obj.Vector3;
 import com.alyxferrari.jse3d.obj.Distance;
 import com.alyxferrari.jse3d.obj.Object3D;
+import com.alyxferrari.jse3d.obj.DirectionalLight;
 import java.awt.RenderingHints;
 import java.awt.Dimension;
 import com.alyxferrari.jse3d.enums.RenderTarget;
@@ -407,13 +408,13 @@ public class Display {
 				if (fields.rendering) {
 					size = getSize();
 					location = getLocation();
-					fields.buffer = createImage(size.width, size.height);
+					fields.buffer = createImage(500, 500);
 					fields.graphics = (Graphics2D) fields.buffer.getGraphics();
 					renderFrame();
 					fields.script.postRender(fields.graphics);
 					getGraphics().drawImage(fields.buffer, 0, 0, null);
 				}
-			} catch (IllegalArgumentException ex) {}
+			} catch (IllegalArgumentException ex) {ex.printStackTrace();}
 		}
 	}
 	protected void renderFrame() {
@@ -450,7 +451,7 @@ public class Display {
 				fields.yTransform = mag*DisplaySettings.SCALE*StrictMath.sin(fields.sphere.viewAngleX+zAngle)*fields.sphere.sinViewAngleY+(fields.scene.particles.get(particleID).getPosition().getY())*DisplaySettings.SCALE*fields.sphere.cosViewAngleY;
 			}
 			double distance = Math3D.hypot3(fields.localCamPos.getX()-fields.scene.particles.get(particleID).getPosition().getX(), fields.localCamPos.getY()-fields.scene.particles.get(particleID).getPosition().getY(), fields.localCamPos.getZ()-fields.scene.particles.get(particleID).getPosition().getZ());
-			double theta = StrictMath.asin((Math.hypot(fields.xTransform, fields.yTransform)/DisplaySettings.SCALE)/distance);
+			double theta = StrictMath.asin((StrictMath.hypot(fields.xTransform, fields.yTransform)/DisplaySettings.SCALE)/distance);
 			double camScale = distance*StrictMath.cos(theta)*StrictMath.sin(fields.settings.viewAngle/2);
 			return new Point((int)((fields.renderer.size.width+fields.renderer.location.x)/2+fields.xTransform/camScale), (int)((fields.renderer.size.height+fields.renderer.location.y)/2-fields.yTransform/camScale));
 		}
@@ -574,26 +575,33 @@ public class Display {
 						int pos5 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y;
 						int pos6 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y;
 						if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0)) {
-							int[] xs2 = {pos1, pos2, pos3};
-							int[] ys2 = {pos4, pos5, pos6};
-							if (fields.scene.getDirectionalLight() == null) {
-								fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
-							} else {
-								double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), fields.scene.getDirectionalLight().getDirection());
-								dot *= fields.scene.getDirectionalLight().getLightStrength();
-								if (dot > 0) {
-									Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
-									int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
-									int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
-									int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
-									Color color = new Color(red > 255 ? 255: red, green > 255 ? 255 : green, blue > 255 ? 255 : blue, triColor.getAlpha());
-									fields.graphics.setColor(color);
-								} else {
-									Color base = fields.scene.object[a].faces[x].triangles[y].color;
-									fields.graphics.setColor(new Color((int)(base.getRed()*fields.scene.getAmbientLight()), (int)(base.getGreen()*fields.scene.getAmbientLight()), (int)(base.getBlue()*fields.scene.getAmbientLight()), base.getAlpha()));
+							int[] xs = {pos1, pos2, pos3};
+							int[] ys = {pos4, pos5, pos6};
+							ArrayList<DirectionalLight> lights = fields.scene.getDirectionalLights();
+							Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
+							System.out.println(triColor.getAlpha());
+							System.out.println(triColor.getBlue());
+							Color finalColor = new Color(0, 0, 0);
+							//Color finalColor = new Color(triColor.getRed()*fields.scene.getAmbientLight(), triColor.getGreen()*fields.scene.getAmbientLight(), triColor.getBlue()*fields.scene.getAmbientLight(), triColor.getAlpha());
+							for (int z = 0; z < lights.size(); z++) {
+								if (lights.get(z) != null) {
+									System.out.println("turd");
+									double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), lights.get(z).getDirection());
+									dot *= lights.get(z).getLightStrength();
+									if (dot > 0) {
+										int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
+										int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
+										int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
+										Color color = new Color(red > 255 ? 255 : red, green > 255 ? 255 : green, blue > 255 ? 255 : blue, triColor.getAlpha());
+										int newRed = color.getRed() > finalColor.getRed() ? color.getRed() : finalColor.getRed();
+										int newGreen = color.getGreen() > finalColor.getGreen() ? color.getGreen() : finalColor.getGreen();
+										int newBlue = color.getBlue() > finalColor.getBlue() ? color.getBlue() : finalColor.getBlue();
+										finalColor = new Color(newRed, newGreen, newBlue, finalColor.getAlpha());
+									}
 								}
 							}
-							fields.graphics.fillPolygon(xs2, ys2, 3);
+							fields.graphics.setColor(finalColor);
+							fields.graphics.fillPolygon(xs, ys, 3);
 						}
 					} catch (NullPointerException ex) {}
 				}

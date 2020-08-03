@@ -16,9 +16,9 @@ public class Scene implements Serializable {
 	/** The array of Particles contained in this Scene.
 	 */
 	public ArrayList<Particle> particles;
-	/** The Scene's directional light.
+	/** The array of directional lights in this Scene.
 	 */
-	private DirectionalLight sceneLight = null;
+	public ArrayList<DirectionalLight> lights;
 	/** Specifies how much triangles should be tinted.
 	 */
 	private float ambientLight = 0.2f;
@@ -38,6 +38,7 @@ public class Scene implements Serializable {
 		this.object = object;
 		this.camDist = camDist;
 		this.particles = particles;
+		this.lights = new ArrayList<DirectionalLight>();
 	}
 	/** Constructs a Scene with the specified Object3Ds, Particles, and camera distance.
 	 * @param object The objects desired to be in this Scene.
@@ -45,12 +46,11 @@ public class Scene implements Serializable {
 	 * @param particles The Particles desired to be in this Scene.
 	 */
 	public Scene(Object3D[] object, double camDist, Particle[] particles) {
+		this(object, camDist, new ArrayList<Particle>());
 		this.particles = new ArrayList<Particle>();
 		for (int i = 0; i < particles.length; i++) {
 			this.particles.add(particles[i]);
 		}
-		this.object = object;
-		this.camDist = camDist;
 	}
 	@Deprecated
 	/** Returns an array of all Object3Ds in the Scene. Do not set any values of this object, use setObjects().
@@ -165,11 +165,40 @@ public class Scene implements Serializable {
 		ret += "camDist=" + camDist + "}";
 		return ret;
 	}
-	public DirectionalLight getDirectionalLight() {
-		return sceneLight;
+	public ArrayList<DirectionalLight> getDirectionalLights() {
+		return lights;
 	}
-	public Scene setDirectionalLight(DirectionalLight light) {
-		sceneLight = light;
+	public DirectionalLight[] getDirectioanLightsPrimitive() {
+		DirectionalLight[] ret = new DirectionalLight[lights.size()];
+		for (int i = 0; i < ret.length; i++) {
+			ret[i] = lights.get(i);
+		}
+		return ret;
+	}
+	public DirectionalLight getDirectionalLight(int index) {
+		return lights.get(index);
+	}
+	public Scene setDirectionalLight(DirectionalLight light, int index) {
+		lights.set(index, light);
+		return this;
+	}
+	public Scene setDirectionalLight(int index, DirectionalLight light) {
+		lights.set(index, light);
+		return this;
+	}
+	public Scene setDirectionalLights(ArrayList<DirectionalLight> lights) {
+		this.lights = lights;
+		return this;
+	}
+	public Scene setDirectionalLight(DirectionalLight[] lights) {
+		this.lights = new ArrayList<DirectionalLight>();
+		for (int i = 0; i < lights.length; i++) {
+			this.lights.add(lights[i]);
+		}
+		return this;
+	}
+	public Scene addDirectionalLight(DirectionalLight light) {
+		this.lights.add(light);
 		return this;
 	}
 	public float getAmbientLight() {
