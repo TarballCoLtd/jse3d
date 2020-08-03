@@ -329,7 +329,9 @@ public class Display {
 			for (int i = 0; i < fields.scene.lights.size(); i++) {
 				try {fields.scene.lights.get(i).start();} catch (NullPointerException ex) {}
 			}
-			fields.lastMousePos = new Point(MouseInfo.getPointerInfo().getLocation().x-fields.frame.getLocationOnScreen().x, MouseInfo.getPointerInfo().getLocation().y-fields.frame.getLocationOnScreen().y);
+			Point mouseInfo = MouseInfo.getPointerInfo().getLocation();
+			Point locationOnScreen = fields.frame.getLocationOnScreen();
+			fields.lastMousePos = new Point(mouseInfo.x-locationOnScreen.x, mouseInfo.y-locationOnScreen.y);
 			fields.rendering = true;
 			Thread renderer = new Thread(new Renderer());
 			renderer.start();
