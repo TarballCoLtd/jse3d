@@ -588,10 +588,12 @@ public class Display {
 										int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
 										int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
 										int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
-										Color color = new Color(red > 255 ? 255 : red, green > 255 ? 255 : green, blue > 255 ? 255 : blue, triColor.getAlpha());
-										int newRed = color.getRed() > finalColor.getRed() ? color.getRed() : finalColor.getRed();
-										int newGreen = color.getGreen() > finalColor.getGreen() ? color.getGreen() : finalColor.getGreen();
-										int newBlue = color.getBlue() > finalColor.getBlue() ? color.getBlue() : finalColor.getBlue();
+										red = red > 255 ? 255 : red;
+										green = green > 255 ? 255 : green;
+										blue = blue > 255 ? 255 : blue;
+										int newRed = red > finalColor.getRed() ? red : finalColor.getRed();
+										int newGreen = green > finalColor.getGreen() ? green : finalColor.getGreen();
+										int newBlue = blue > finalColor.getBlue() ? blue : finalColor.getBlue();
 										finalColor = new Color(newRed, newGreen, newBlue, finalColor.getAlpha());
 									}
 								}
