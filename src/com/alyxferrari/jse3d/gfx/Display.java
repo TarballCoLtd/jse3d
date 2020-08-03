@@ -414,7 +414,7 @@ public class Display {
 					fields.script.postRender(fields.graphics);
 					getGraphics().drawImage(fields.buffer, 0, 0, null);
 				}
-			} catch (IllegalArgumentException ex) {ex.printStackTrace();}
+			} catch (IllegalArgumentException ex) {}
 		}
 	}
 	protected void renderFrame() {
@@ -579,13 +579,9 @@ public class Display {
 							int[] ys = {pos4, pos5, pos6};
 							ArrayList<DirectionalLight> lights = fields.scene.getDirectionalLights();
 							Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
-							System.out.println(triColor.getAlpha());
-							System.out.println(triColor.getBlue());
-							Color finalColor = new Color(0, 0, 0);
-							//Color finalColor = new Color(triColor.getRed()*fields.scene.getAmbientLight(), triColor.getGreen()*fields.scene.getAmbientLight(), triColor.getBlue()*fields.scene.getAmbientLight(), triColor.getAlpha());
+							Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
 							for (int z = 0; z < lights.size(); z++) {
 								if (lights.get(z) != null) {
-									System.out.println("turd");
 									double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), lights.get(z).getDirection());
 									dot *= lights.get(z).getLightStrength();
 									if (dot > 0) {

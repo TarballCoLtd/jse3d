@@ -1,5 +1,7 @@
 package com.alyxferrari.jse3d.obj;
-public class DirectionalLight {
+import java.io.*;
+public class DirectionalLight implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private Vector3 direction;
 	private float lightStrength;
 	public DirectionalLight(Vector3 direction, float lightStrength) {
