@@ -13,7 +13,6 @@ import java.awt.RenderingHints;
 import java.awt.Dimension;
 import com.alyxferrari.jse3d.enums.RenderTarget;
 import java.awt.MouseInfo;
-import java.awt.BorderLayout;
 import com.alyxferrari.jse3d.JSE3DConst;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowEvent;
@@ -261,7 +260,7 @@ public class Display {
 		setRenderTarget(RenderTarget.GPU);
 		fields.settings.maxPointsTotal = maxPointsTotal;
 		fields.scene = scene;
-		fields.frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " // " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") || System.getProperty("user.dir").equals("D:\\documents\\GitHub\\jse3d") ? " development build" : ""));
+		fields.frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " -- powered by " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") || System.getProperty("user.dir").equals("D:\\documents\\GitHub\\jse3d") ? " development build" : ""));
 		fields.frame.setSize(frameWidth, frameHeight);
 		fields.frame.setVisible(frameVisible);
 		fields.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
