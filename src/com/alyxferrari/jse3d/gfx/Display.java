@@ -260,7 +260,7 @@ public class Display {
 		setRenderTarget(RenderTarget.GPU);
 		fields.settings.maxPointsTotal = maxPointsTotal;
 		fields.scene = scene;
-		fields.frame = new JFrame((frameTitle.equals("") ? JSE3DConst.FULL_NAME : frameTitle + " -- powered by " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") || System.getProperty("user.dir").equals("D:\\documents\\GitHub\\jse3d") ? " development build" : ""));
+		fields.frame = new JFrame((frameTitle.equals("") ? "powered by " + JSE3DConst.FULL_NAME : frameTitle + " -- powered by " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") || System.getProperty("user.dir").equals("D:\\documents\\GitHub\\jse3d") ? " development build" : ""));
 		fields.frame.setSize(frameWidth, frameHeight);
 		fields.frame.setVisible(frameVisible);
 		fields.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
