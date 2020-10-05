@@ -12,6 +12,7 @@ import java.util.*;
 public class Object3D implements Serializable {
 	private static final long serialVersionUID = 1L;
 	protected boolean started = false;
+	private boolean stat;
 	/** The points contained in this Object3D.
 	 */
 	public Vector3[] points;
@@ -74,6 +75,21 @@ public class Object3D implements Serializable {
 	 */
 	public Object3D(Vector3[] points) {
 		this.points = points;
+		this.stat = false;
+	}
+	/** Returns a boolean representing if the object is static or not.
+	 * @return A boolean representing if the object is static or not.
+	 */
+	public boolean isStatic() {
+		return stat;
+	}
+	/** Makes this Object3D static, meaning not movable after instantiation (you can still forcefully move this object, however a new lightmap will not be calculated). This must be enabled to use baked lighting on an object. This action is irreversible within the current runtime context. Calling this method will automatically generate a baked lightmap for this object.
+	 * @return The Object3D on which this method was called.
+	 */
+	public Object3D setStatic(Display display) {
+		stat = true;
+		generateLightmap(display);
+		return this;
 	}
 	/** Moves this Object3D and its points relative to its current position.
 	 * @param diff Relative point to which this Object3D should be moved.
@@ -371,5 +387,29 @@ public class Object3D implements Serializable {
 			}
 		}
 		return -1;
+	}
+	public Object3D generateLightmap(Display display) {
+		int ret = -1;
+		for (int i = 0; i < display.getScene().object.length; i++) {
+			if (this.equals(display.getScene().object[i])) {
+				ret = i;
+				break;
+			}
+		}
+		if (ret == -1) {
+			throw new RuntimeException("The provided Display object does not appear to match the Display object tied to this Object3D.");
+		}
+		ArrayList<Color> arr = display.calculateBakedLightmap(this);
+		int index = 0;
+		for (int x = 0; x < faces.length; x++) {
+			for (int y = 0; y < faces[x].triangles.length; y++) {
+				Face face = faces[x];
+				Triangle triangle = face.triangles[y];
+				Color color = arr.get(index);
+				triangle.color = color;
+				index++;
+			}
+		}
+		return this;
 	}
 }

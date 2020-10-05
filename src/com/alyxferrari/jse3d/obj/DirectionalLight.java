@@ -6,7 +6,12 @@ public class DirectionalLight implements Serializable {
 	private Vector3 direction;
 	private float lightStrength;
 	private Script script;
+	private final boolean stat;
 	public DirectionalLight(Vector3 direction, float lightStrength) {
+		this(direction, lightStrength, false);
+	}
+	public DirectionalLight(Vector3 direction, float lightStrength, boolean isStatic) {
+		this.stat = isStatic;
 		this.direction = direction.getNormal();
 		this.lightStrength = lightStrength;
 		this.script = new Script() {
@@ -15,6 +20,9 @@ public class DirectionalLight implements Serializable {
 			@Override public void fixedUpdate() {}
 			@Override public void stop() {}
 		};
+	}
+	public boolean isStatic() {
+		return stat;
 	}
 	public Vector3 getDirection() {
 		return direction;

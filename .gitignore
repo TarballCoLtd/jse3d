@@ -25,3 +25,5 @@ hs_err_pid*
 /target/
 /doc/
 .classpath
+.classpath
+.project

@@ -485,7 +485,7 @@ public class Display {
 		return null;
 	}
 	protected void calculateOnGPU() {
-		try { // calculates multiple points concurrently on the selected OpenCL device
+		try { // calculates multiple points in parallel on the selected OpenCL device
 			Range range = fields.renderer.openCLDevice.createRange(fields.zAngleLength);
 			range.setLocalSize_0(1);
 			fields.objKernel.execute(range);
@@ -531,7 +531,7 @@ public class Display {
 		double reciprocal = 1.0/Math3D.hypot3(fields.localCamPos.getX()-position.getX(), fields.localCamPos.getY()-position.getY(), fields.localCamPos.getZ()-position.getZ());
 		try {fields.graphics.fillOval(point.x, point.y, (int)(fields.settings.pointSize.width*reciprocal), (int)(fields.settings.pointSize.height*reciprocal));} catch (NullPointerException ex) {}
 	}
-	protected void printCameraPosition() {
+	protected void printCameraPosition() { // TODO: add ability to choose from float, double, or integer precision
 		Vector3 cameraPos = getCameraPositionActual();
 		fields.graphics.setColor(invertColor(fields.settings.backgroundColor));
 		Point point = fields.settings.camPosPrintPoint;
@@ -563,15 +563,15 @@ public class Display {
 	protected void renderFaces() {
 		for (int a = 0; a < fields.scene.object.length; a++) {
 			for (int x = a+1; x < fields.scene.object.length; x++) {
-				if (fields.scene.object[a].camDist < fields.scene.object[x].camDist) {
+				if (fields.scene.object[a].camDist < fields.scene.object[x].camDist) { // sorting algorithm to sort objects by their distance from the camera
 					Point[] temp = fields.pointArrays[a];
 					fields.pointArrays[a] = fields.pointArrays[x];
 					fields.pointArrays[x] = temp;
 				}
 			}
-			for (int x = 0; x < fields.scene.object[a].faces.length; x++) {
-				for (int y = 0; y < fields.scene.object[a].faces[x].triangles.length; y++) {
-					try {
+			if (fields.scene.object[a].isStatic()) {
+				for (int x = 0; x < fields.scene.object[a].faces.length; x++) {
+					for (int y = 0; y < fields.scene.object[a].faces[x].triangles.length; y++) {
 						int pos1 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].x;
 						int pos2 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].x;
 						int pos3 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].x;
@@ -581,34 +581,94 @@ public class Display {
 						if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0)) {
 							int[] xs = {pos1, pos2, pos3};
 							int[] ys = {pos4, pos5, pos6};
-							DirectionalLight[] lights = fields.scene.getDirectionalLights();
-							Color triColor = fields.scene.object[a].faces[x].triangles[y].color;
-							Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
-							for (int z = 0; z < lights.length; z++) {
-								if (lights[z] != null) {
-									double dot = Vector3.dot(fields.scene.object[a].faces[x].triangles[y].cross(fields.scene.object[a]), lights[z].getDirection());
-									dot *= lights[z].getLightStrength();
-									if (dot > 0) {
-										int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
-										int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
-										int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
-										red = red > 255 ? 255 : red;
-										green = green > 255 ? 255 : green;
-										blue = blue > 255 ? 255 : blue;
-										int newRed = red > finalColor.getRed() ? red : finalColor.getRed();
-										int newGreen = green > finalColor.getGreen() ? green : finalColor.getGreen();
-										int newBlue = blue > finalColor.getBlue() ? blue : finalColor.getBlue();
-										finalColor = new Color(newRed, newGreen, newBlue, finalColor.getAlpha());
-									}
-								}
-							}
-							fields.graphics.setColor(finalColor);
+							fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
 							fields.graphics.fillPolygon(xs, ys, 3);
 						}
-					} catch (NullPointerException ex) {}
+					}
+				}
+			} else {
+				ArrayList<FinalizedTriangle> arr = calculateRealtimeLighting(a);
+				for (int y = 0; y < arr.size(); y++) {
+					FinalizedTriangle tri = arr.get(y);
+					fields.graphics.setColor(tri.color);
+					fields.graphics.fillPolygon(tri.xs, tri.ys, 3);
 				}
 			}
 		}
+	}
+	protected ArrayList<FinalizedTriangle> calculateRealtimeLighting(int object) {
+		ArrayList<FinalizedTriangle> ret = new ArrayList<FinalizedTriangle>();
+		try {
+			for (int x = 0; x < fields.scene.object[object].faces.length; x++) {
+				for (int y = 0; y < fields.scene.object[object].faces[x].triangles.length; y++) {
+					int pos1 = fields.pointArrays[object][fields.scene.object[object].faces[x].triangles[y].pointID1].x;
+					int pos2 = fields.pointArrays[object][fields.scene.object[object].faces[x].triangles[y].pointID2].x;
+					int pos3 = fields.pointArrays[object][fields.scene.object[object].faces[x].triangles[y].pointID3].x;
+					int pos4 = fields.pointArrays[object][fields.scene.object[object].faces[x].triangles[y].pointID1].y;
+					int pos5 = fields.pointArrays[object][fields.scene.object[object].faces[x].triangles[y].pointID2].y;
+					int pos6 = fields.pointArrays[object][fields.scene.object[object].faces[x].triangles[y].pointID3].y;
+					if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0)) {
+						int[] xs = {pos1, pos2, pos3};
+						int[] ys = {pos4, pos5, pos6};
+						DirectionalLight[] lights = fields.scene.getDirectionalLights();
+						Color triColor = fields.scene.object[object].faces[x].triangles[y].color;
+						Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
+						for (int z = 0; z < lights.length; z++) {
+							if (lights[z] != null && !lights[z].isStatic()) {
+								double dot = Vector3.dot(fields.scene.object[object].faces[x].triangles[y].cross(fields.scene.object[object]), lights[z].getDirection());
+								dot *= lights[z].getLightStrength();
+								if (dot > 0) {
+									int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
+									int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
+									int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
+									red = red > 255 ? 255 : red;
+									green = green > 255 ? 255 : green;
+									blue = blue > 255 ? 255 : blue;
+									int newRed = red > finalColor.getRed() ? red : finalColor.getRed();
+									int newGreen = green > finalColor.getGreen() ? green : finalColor.getGreen();
+									int newBlue = blue > finalColor.getBlue() ? blue : finalColor.getBlue();
+									finalColor = new Color(newRed, newGreen, newBlue, finalColor.getAlpha());
+								}
+							}
+						}
+						ret.add(new FinalizedTriangle(xs, ys, finalColor));
+					}
+				}
+			}
+		} catch (NullPointerException ex) {}
+		return ret;
+	}
+	public ArrayList<Color> calculateBakedLightmap(Object3D object) {
+		ArrayList<Color> ret = new ArrayList<Color>();
+		try {
+			for (int x = 0; x < object.faces.length; x++) {
+				for (int y = 0; y < object.faces[x].triangles.length; y++) {
+					DirectionalLight[] lights = fields.scene.getDirectionalLights();
+					Color triColor = object.faces[x].triangles[y].color;
+					Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
+					for (int z = 0; z < lights.length; z++) {
+						if (lights[z] != null) {
+							double dot = Vector3.dot(object.faces[x].triangles[y].cross(object), lights[z].getDirection());
+							dot *= lights[z].getLightStrength();
+							if (dot > 0) {
+								int red = (int)((triColor.getRed()*dot)+(triColor.getRed()*fields.scene.getAmbientLight()));
+								int green = (int)((triColor.getGreen()*dot)+(triColor.getGreen()*fields.scene.getAmbientLight()));
+								int blue = (int)((triColor.getBlue()*dot)+(triColor.getBlue()*fields.scene.getAmbientLight()));
+								red = red > 255 ? 255 : red;
+								green = green > 255 ? 255 : green;
+								blue = blue > 255 ? 255 : blue;
+								int newRed = red > finalColor.getRed() ? red : finalColor.getRed();
+								int newGreen = green > finalColor.getGreen() ? green : finalColor.getGreen();
+								int newBlue = blue > finalColor.getBlue() ? blue : finalColor.getBlue();
+								finalColor = new Color(newRed, newGreen, newBlue, finalColor.getAlpha());
+							}
+						}
+					}
+					ret.add(finalColor);
+				}
+			}
+		} catch (NullPointerException ex) {}
+		return ret;
 	}
 	protected void sortFaces(int a, Point[] points) {
 		double objDist = 0.0;
