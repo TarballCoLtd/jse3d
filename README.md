@@ -43,7 +43,7 @@ Please substitute the version number with the latest version of jse3d.
 
 ## Contacting me
 
-I will respond to any PM I receive on Reddit, however if it is about an issue or bug with jse3d, please create an issue on GitHub.<br/>
+I will respond to any PM I receive on Reddit, however if it is about an issue or bug with jse3d, please create an issue on GitHub instead.<br/>
 [u/verystrangebeing](https://reddit.com/user/verystrangebeing/)
 
 ## Donating
