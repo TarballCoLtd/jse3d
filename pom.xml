@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.alyxferrari</groupId>
   <artifactId>jse3d</artifactId>
-  <version>3.3</version>
+  <version>3.3.1</version>
   <name>jse3d</name>
   <packaging>jar</packaging>
   <url>https://github.com/alyxferrari/jse3d</url>

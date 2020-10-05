@@ -29,6 +29,7 @@ import java.util.Collections;
 import com.alyxferrari.jse3d.enums.CameraMode;
 import com.alyxferrari.jse3d.enums.RenderMode;
 import com.alyxferrari.jse3d.enums.InterpolationMode;
+import com.alyxferrari.jse3d.enums.PrecisionMode;
 import com.alyxferrari.jse3d.exc.CPU_OpenCLDriverNotFoundError;
 import com.alyxferrari.jse3d.exc.GPU_OpenCLDriverNotFoundError;
 import java.util.ArrayList;
@@ -286,6 +287,7 @@ public class Display {
 			@Override public void postRender(Graphics graphics) {}
 		};
 		setCameraMode(CameraMode.DRAG);
+		setCameraPositionPrecision(PrecisionMode.FLOAT);
 	}
 	protected class FrameListener implements WindowListener {
 		@Override public void windowActivated(WindowEvent arg0) {}
@@ -392,6 +394,7 @@ public class Display {
 		public Runnable renderScript;
 		public Runnable extrasRenderer;
 		public Runnable mouseCalculator;
+		public Runnable positionRenderer;
 		public Dimension size;
 		public Point location;
 		public Device openCLDevice;		
@@ -404,6 +407,9 @@ public class Display {
 				@Override public void run() {}
 			};
 			mouseCalculator = new Runnable() {
+				@Override public void run() {}
+			};
+			positionRenderer = new Runnable() {
 				@Override public void run() {}
 			};
 		}
@@ -532,12 +538,7 @@ public class Display {
 		try {fields.graphics.fillOval(point.x, point.y, (int)(fields.settings.pointSize.width*reciprocal), (int)(fields.settings.pointSize.height*reciprocal));} catch (NullPointerException ex) {}
 	}
 	protected void printCameraPosition() { // TODO: add ability to choose from float, double, or integer precision
-		Vector3 cameraPos = getCameraPositionActual();
-		fields.graphics.setColor(invertColor(fields.settings.backgroundColor));
-		Point point = fields.settings.camPosPrintPoint;
-		fields.graphics.drawString("x: " + cameraPos.getX(), point.x, point.y);
-		fields.graphics.drawString("y: " + cameraPos.getY(), point.x, point.y+11);
-		fields.graphics.drawString("z: " + cameraPos.getZ(), point.x, point.y+22);
+		fields.renderer.positionRenderer.run();
 	}
 	protected static Color invertColor(Color color) {
 		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue(), color.getAlpha());
@@ -1627,6 +1628,46 @@ public class Display {
 	 */
 	public Display setRenderingHints(RenderingHints hints) {
 		fields.hints = hints;
+		return this;
+	}
+	public Display setCameraPositionPrecision(PrecisionMode mode) {
+		if (mode == PrecisionMode.INTEGER) {
+			fields.renderer.positionRenderer = new Runnable() {
+				@Override
+				public void run() {
+					Vector3 cameraPos = getCameraPositionActual();
+					fields.graphics.setColor(invertColor(fields.settings.backgroundColor));
+					Point point = fields.settings.camPosPrintPoint;
+					fields.graphics.drawString("x: " + (int)cameraPos.getX(), point.x, point.y);
+					fields.graphics.drawString("y: " + (int)cameraPos.getY(), point.x, point.y+11);
+					fields.graphics.drawString("z: " + (int)cameraPos.getZ(), point.x, point.y+22);
+				}
+			};
+		} else if (mode == PrecisionMode.FLOAT) {
+			fields.renderer.positionRenderer = new Runnable() {
+				@Override
+				public void run() {
+					Vector3 cameraPos = getCameraPositionActual();
+					fields.graphics.setColor(invertColor(fields.settings.backgroundColor));
+					Point point = fields.settings.camPosPrintPoint;
+					fields.graphics.drawString("x: " + (float)cameraPos.getX(), point.x, point.y);
+					fields.graphics.drawString("y: " + (float)cameraPos.getY(), point.x, point.y+11);
+					fields.graphics.drawString("z: " + (float)cameraPos.getZ(), point.x, point.y+22);
+				}
+			};
+		} else {
+			fields.renderer.positionRenderer = new Runnable() {
+				@Override
+				public void run() {
+					Vector3 cameraPos = getCameraPositionActual();
+					fields.graphics.setColor(invertColor(fields.settings.backgroundColor));
+					Point point = fields.settings.camPosPrintPoint;
+					fields.graphics.drawString("x: " + cameraPos.getX(), point.x, point.y);
+					fields.graphics.drawString("y: " + cameraPos.getY(), point.x, point.y+11);
+					fields.graphics.drawString("z: " + cameraPos.getZ(), point.x, point.y+22);
+				}
+			};
+		}
 		return this;
 	}
 }

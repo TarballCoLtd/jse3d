@@ -14,6 +14,8 @@ public class DirectionalLightDemo {
 		display.disableFPSLimit();
 		display.disableLineRendering();
 		display.enableFPSLogging();
+		display.enableCameraPositionPrinting();
+		display.setCameraPositionPrecision(PrecisionMode.INTEGER);
 		display.setRenderTarget(RenderTarget.GPU);
 		display.setRenderQuality(RenderMode.PERFORMANCE);
 		display.startRender();
