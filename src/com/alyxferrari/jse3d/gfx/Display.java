@@ -571,22 +571,24 @@ public class Display {
 				}
 			}
 			if (fields.scene.object[a].isStatic()) {
-				for (int x = 0; x < fields.scene.object[a].faces.length; x++) {
-					for (int y = 0; y < fields.scene.object[a].faces[x].triangles.length; y++) {
-						int pos1 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].x;
-						int pos2 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].x;
-						int pos3 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].x;
-						int pos4 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].y;
-						int pos5 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y;
-						int pos6 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y;
-						if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0)) {
-							int[] xs = {pos1, pos2, pos3};
-							int[] ys = {pos4, pos5, pos6};
-							fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
-							fields.graphics.fillPolygon(xs, ys, 3);
+				try {
+					for (int x = 0; x < fields.scene.object[a].faces.length; x++) {
+						for (int y = 0; y < fields.scene.object[a].faces[x].triangles.length; y++) {
+							int pos1 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].x;
+							int pos2 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].x;
+							int pos3 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].x;
+							int pos4 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID1].y;
+							int pos5 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID2].y;
+							int pos6 = fields.pointArrays[a][fields.scene.object[a].faces[x].triangles[y].pointID3].y;
+							if (!(pos1 == 0 || pos2 == 0 || pos3 == 0 || pos4 == 0 || pos5 == 0 || pos6 == 0)) {
+								int[] xs = {pos1, pos2, pos3};
+								int[] ys = {pos4, pos5, pos6};
+								fields.graphics.setColor(fields.scene.object[a].faces[x].triangles[y].color);
+								fields.graphics.fillPolygon(xs, ys, 3);
+							}
 						}
 					}
-				}
+				} catch (NullPointerException ex) {}
 			} else {
 				ArrayList<FinalizedTriangle> arr = calculateRealtimeLighting(a);
 				for (int y = 0; y < arr.size(); y++) {

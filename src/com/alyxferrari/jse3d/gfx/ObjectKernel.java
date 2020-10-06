@@ -21,7 +21,7 @@ class ObjectKernel extends Kernel {
 	final float[] cosThetas;
 	final float[] gpuViewAngle = new float[1];
 	final float[] sinViewAngles;
-	public ObjectKernel(Display display) {
+	ObjectKernel(Display display) {
 		zAngleX = new float[display.fields.settings.maxPointsTotal];
 		zAngleY = new float[display.fields.settings.maxPointsTotal];
 		zAngleZ = new float[display.fields.settings.maxPointsTotal];

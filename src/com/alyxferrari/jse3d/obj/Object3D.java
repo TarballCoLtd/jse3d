@@ -84,12 +84,11 @@ public class Object3D implements Serializable {
 		return stat;
 	}
 	/** Makes this Object3D static, meaning not movable after instantiation (you can still forcefully move this object, however a new lightmap will not be calculated). This must be enabled to use baked lighting on an object. This action is irreversible within the current runtime context. Calling this method will automatically generate a baked lightmap for this object.
-	 * @return The Object3D on which this method was called.
+	 * @return How many milliseconds it took to generate this object's lightmap.
 	 */
-	public Object3D setStatic(Display display) {
+	public long setStatic(Display display) {
 		stat = true;
-		regenerateLightmap(display);
-		return this;
+		return regenerateLightmap(display);
 	}
 	/** Moves this Object3D and its points relative to its current position.
 	 * @param diff Relative point to which this Object3D should be moved.
@@ -388,8 +387,15 @@ public class Object3D implements Serializable {
 		}
 		return -1;
 	}
-	public Object3D regenerateLightmap(Display display) {
+	/** Regenerates the lightmap for this object. This should be called on static objects that have moved since being marked as static.
+	 * @param display The Display object belonging to this Object3D.
+	 * @return How many milliseconds it took to generate this object's lightmap.
+	 */
+	public long regenerateLightmap(Display display) {
+		long start = 1L;
+		long end = 0L;
 		if (stat) {
+			start = System.currentTimeMillis();
 			int ret = -1;
 			for (int i = 0; i < display.getScene().object.length; i++) {
 				if (this.equals(display.getScene().object[i])) {
@@ -411,7 +417,8 @@ public class Object3D implements Serializable {
 					index++;
 				}
 			}
+			end = System.currentTimeMillis();
 		}
-		return this;
+		return end-start;
 	}
 }

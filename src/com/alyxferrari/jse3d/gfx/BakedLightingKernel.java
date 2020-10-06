@@ -1,6 +1,15 @@
 package com.alyxferrari.jse3d.gfx;
 import com.aparapi.*;
 class BakedLightingKernel extends Kernel {
+	final int[] colorR;
+	final int[] colorG;
+	final int[] colorB;
+	final float[] ambientLight = new float[1];
+	BakedLightingKernel(Display display) {
+		colorR = new int[display.fields.settings.maxPointsTotal];
+		colorG = new int[display.fields.settings.maxPointsTotal];
+		colorB = new int[display.fields.settings.maxPointsTotal];
+	}
 	public void run() {
 		int id = getGlobalId();
 	}
