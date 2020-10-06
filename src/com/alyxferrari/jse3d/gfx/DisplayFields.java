@@ -1,19 +1,19 @@
 package com.alyxferrari.jse3d.gfx;
-
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.RenderingHints;
-
 import javax.swing.JFrame;
-
 import com.alyxferrari.jse3d.gfx.Display.DisplayRenderer;
 import com.alyxferrari.jse3d.interfaces.RenderScript;
 import com.alyxferrari.jse3d.obj.Distance;
 import com.alyxferrari.jse3d.obj.Scene;
 import com.alyxferrari.jse3d.obj.Vector3;
-
-class DisplayFields {
+/** Used internally. Do not edit.
+ * @author Alyx Ferrari
+ */
+public class DisplayFields {
+	DisplayFields() {}
 	int maxFps;
 	int secondsOpen;
 	long frameFps;
@@ -42,6 +42,9 @@ class DisplayFields {
 	Time time; // controls delta time and fixed delta time for this Display instance
 	ParticleKernel particleKernel; // kernel responsible for calculating particle positions with OpenCL
 	ObjectKernel objKernel; // kernel responsible for calculating point positions with OpenCL
+	/** Used internally. Do not modify.
+	 */
+	public BakedLightingKernel bakedKernel;
 	RenderScript script; // called before and after 3D rendering
 	DisplaySettings settings; // display settings
 	int zAngleLength;

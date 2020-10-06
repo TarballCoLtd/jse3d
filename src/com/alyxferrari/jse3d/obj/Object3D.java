@@ -3,8 +3,13 @@ import java.io.*;
 import java.awt.*;
 import com.alyxferrari.jse3d.gfx.*;
 import com.alyxferrari.jse3d.interfaces.*;
+import com.alyxferrari.jse3d.enums.*;
+import com.alyxferrari.jse3d.exc.CPU_OpenCLDriverNotFoundError;
+import com.alyxferrari.jse3d.exc.GPU_OpenCLDriverNotFoundError;
 import com.mokiat.data.front.parser.*;
 import java.util.*;
+import com.aparapi.*;
+import com.aparapi.device.*;
 /** Represents a collection of Vector3s.
  * @author Alyx Ferrari
  * @since 1.0 beta
@@ -84,11 +89,13 @@ public class Object3D implements Serializable {
 		return stat;
 	}
 	/** Makes this Object3D static, meaning not movable after instantiation (you can still forcefully move this object, however a new lightmap will not be calculated). This must be enabled to use baked lighting on an object. This action is irreversible within the current runtime context. Calling this method will automatically generate a baked lightmap for this object.
+	 * @param display The Display object belonging to this Object3D.
+	 * @param target The device which should be used to generate this object's lightmap.
 	 * @return How many milliseconds it took to generate this object's lightmap.
 	 */
-	public long setStatic(Display display) {
+	public long setStatic(Display display, RenderTarget target) {
 		stat = true;
-		return regenerateLightmap(display);
+		return regenerateLightmap(display, target);
 	}
 	/** Moves this Object3D and its points relative to its current position.
 	 * @param diff Relative point to which this Object3D should be moved.
@@ -387,37 +394,95 @@ public class Object3D implements Serializable {
 		}
 		return -1;
 	}
+	@SuppressWarnings("deprecation")
 	/** Regenerates the lightmap for this object. This should be called on static objects that have moved since being marked as static.
 	 * @param display The Display object belonging to this Object3D.
+	 * @param target The device which should be used to generate this object's lightmap.
 	 * @return How many milliseconds it took to generate this object's lightmap.
 	 */
-	public long regenerateLightmap(Display display) {
+	public long regenerateLightmap(Display display, RenderTarget target) {
 		long start = 1L;
 		long end = 0L;
-		if (stat) {
-			start = System.currentTimeMillis();
-			int ret = -1;
-			for (int i = 0; i < display.getScene().object.length; i++) {
-				if (this.equals(display.getScene().object[i])) {
-					ret = i;
-					break;
+		if (target == RenderTarget.CPU_SINGLETHREADED) {
+			if (stat) {
+				start = System.currentTimeMillis();
+				int ret = -1;
+				for (int i = 0; i < display.getScene().object.length; i++) {
+					if (this.equals(display.getScene().object[i])) {
+						ret = i;
+						break;
+					}
+				}
+				if (ret == -1) {
+					throw new RuntimeException("The provided Display object does not appear to match the Display object tied to this Object3D.");
+				}
+				ArrayList<Color> arr = display.calculateBakedLightmap(this);
+				int index = 0;
+				for (int x = 0; x < faces.length; x++) {
+					for (int y = 0; y < faces[x].triangles.length; y++) {
+						faces[x].triangles[y].color = arr.get(index);
+						index++;
+					}
+				}
+				end = System.currentTimeMillis();
+			}
+		} else {
+			Device device;
+			if (target == RenderTarget.CPU_MULTITHREADED) {
+				device = Device.firstCPU();
+				if (device == null) {
+					System.err.println("FATAL ERROR: The OpenCL driver for your CPU is not installed, but it is required for the CPU multithreading feature. Either install the OpenCL driver for the selected device, or set the render target to RenderTarget.CPU_SINGLETHREADED.");
+					throw new CPU_OpenCLDriverNotFoundError();
+				}
+			} else {
+				device = Device.bestGPU();
+				if (device == null) {
+					System.err.println("FATAL ERROR: The OpenCL driver for your GPU is not installed, but it is required for the GPU rendering feature. Either install the OpenCL driver for the selected device, or set the render target to RenderTarget.CPU_SINGLETHREADED.");
+					throw new GPU_OpenCLDriverNotFoundError();
 				}
 			}
-			if (ret == -1) {
-				throw new RuntimeException("The provided Display object does not appear to match the Display object tied to this Object3D.");
+			display.fields.bakedKernel.ambientLight[0] = display.getScene().getAmbientLight();
+			DirectionalLight[] lights = display.getScene().getDirectionalLights();
+			display.fields.bakedKernel.lightCount[0] = lights.length;
+			for (int i = 0; i < lights.length; i++) {
+				display.fields.bakedKernel.lightXs[i] = (float) lights[i].getDirection().getX();
+				display.fields.bakedKernel.lightYs[i] = (float) lights[i].getDirection().getY();
+				display.fields.bakedKernel.lightZs[i] = (float) lights[i].getDirection().getZ();
+				display.fields.bakedKernel.lightStrengths[i] = lights[i].getLightStrength();
 			}
-			ArrayList<Color> arr = display.calculateBakedLightmap(this);
-			int index = 0;
 			for (int x = 0; x < faces.length; x++) {
 				for (int y = 0; y < faces[x].triangles.length; y++) {
-					Face face = faces[x];
-					Triangle triangle = face.triangles[y];
-					Color color = arr.get(index);
-					triangle.color = color;
-					index++;
+					int id = (3*x)+y;
+					Vector3 one = points[faces[x].triangles[y].pointID1];
+					Vector3 two = points[faces[x].triangles[y].pointID2];
+					Vector3 three = points[faces[x].triangles[y].pointID3];
+					display.fields.bakedKernel.point1Xs[id] = (float) one.getX();
+					display.fields.bakedKernel.point1Ys[id] = (float) one.getY();
+					display.fields.bakedKernel.point1Zs[id] = (float) one.getZ();
+					display.fields.bakedKernel.point2Xs[id] = (float) two.getX();
+					display.fields.bakedKernel.point2Ys[id] = (float) two.getY();
+					display.fields.bakedKernel.point2Zs[id] = (float) two.getZ();
+					display.fields.bakedKernel.point3Xs[id] = (float) three.getX();
+					display.fields.bakedKernel.point3Ys[id] = (float) three.getY();
+					display.fields.bakedKernel.point3Zs[id] = (float) three.getZ();
+					display.fields.bakedKernel.inColorR[id] = faces[x].triangles[y].color.getRed();
+					display.fields.bakedKernel.inColorG[id] = faces[x].triangles[y].color.getGreen();
+					display.fields.bakedKernel.inColorB[id] = faces[x].triangles[y].color.getBlue();
 				}
 			}
-			end = System.currentTimeMillis();
+			try {
+				Range range = device.createRange(faces.length*3);
+				range.setLocalSize_0(1);
+				display.fields.bakedKernel.execute(range);
+			} catch (AssertionError err) {
+				System.err.println("java.lang.AssertionError: Selected OpenCL device not available. Create an issue on GitHub detailing your situation, as this was supposed to be fixed in jse3d v3.0.");
+			}
+			for (int x = 0; x < faces.length; x++) {
+				for (int y = 0; y < faces[x].triangles.length; y++) {
+					int id = (3*x)+y;
+					faces[x].triangles[y].color = new Color(display.fields.bakedKernel.outColorR[id], display.fields.bakedKernel.outColorG[id], display.fields.bakedKernel.outColorB[id], faces[x].triangles[y].color.getAlpha());
+				}
+			}
 		}
 		return end-start;
 	}

@@ -19,6 +19,6 @@ public class DirectionalLightDemo {
 		display.setRenderTarget(RenderTarget.GPU);
 		display.setRenderQuality(RenderMode.PERFORMANCE);
 		display.startRender();
-		System.out.println("Took " + display.getScene().object[0].setStatic(display) + " ms to generate a lightmap");
+		System.out.println("Took " + display.getScene().object[0].setStatic(display, RenderTarget.CPU_SINGLETHREADED) + " ms to generate a lightmap");
 	}
 }

@@ -41,7 +41,9 @@ import com.alyxferrari.jse3d.interfaces.RenderScript;
  * @since 1.0 beta
  */
 public class Display {
-	DisplayFields fields;
+	/** Used internally. Do not modify.
+	 */
+	public DisplayFields fields;
 	/** Constructs a Display object with the specified parameters.
 	 * @param scene The scene that should be rendered by this Display object.
 	 */
@@ -321,6 +323,7 @@ public class Display {
 		if (!fields.rendererStarted) {
 			fields.particleKernel = new ParticleKernel(this);
 			fields.objKernel = new ObjectKernel(this);
+			fields.bakedKernel = new BakedLightingKernel(this);
 			for (int i = 0; i < fields.scene.object.length; i++) {
 				try {fields.scene.object[i].start();} catch (NullPointerException ex) {}
 			}
@@ -537,7 +540,7 @@ public class Display {
 		double reciprocal = 1.0/Math3D.hypot3(fields.localCamPos.getX()-position.getX(), fields.localCamPos.getY()-position.getY(), fields.localCamPos.getZ()-position.getZ());
 		try {fields.graphics.fillOval(point.x, point.y, (int)(fields.settings.pointSize.width*reciprocal), (int)(fields.settings.pointSize.height*reciprocal));} catch (NullPointerException ex) {}
 	}
-	protected void printCameraPosition() { // TODO: add ability to choose from float, double, or integer precision
+	protected void printCameraPosition() {
 		fields.renderer.positionRenderer.run();
 	}
 	protected static Color invertColor(Color color) {
@@ -1590,7 +1593,7 @@ public class Display {
 			renderExtras();
 		}
 	}
-	/** Sets the multiplier for the camera distance change when the scroll wheel is 'clicked.'
+	/** Sets the multiplier for the camera distance change when the scroll wheel is 'turned.'
 	 * @param multiplier The new multiplier.
 	 * @return The Display object on which this method was called.
 	 * @since 3.0.1

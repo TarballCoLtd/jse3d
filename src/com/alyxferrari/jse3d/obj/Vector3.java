@@ -204,7 +204,7 @@ public class Vector3 implements Serializable {
 	}
 	protected void recalculate() {
 		magnitude = Math3D.hypot3(x, y, z);
-		sqrMagnitude = Math.pow(magnitude, 2);
+		sqrMagnitude = magnitude*magnitude;
 		normal = new Vector3(x/magnitude, y/magnitude, z/magnitude, null);
 	}
 	/** Sets this vector's coordinates.

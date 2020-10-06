@@ -63,7 +63,4 @@ class ObjectKernel extends Kernel {
 		cosThetas[id] = cos(asin((hypot(xTransforms[id], yTransforms[id])/DisplaySettings.SCALE)/maths[id]));
 		sinViewAngles[id] = sin(gpuViewAngle[0]/2);
 	}
-	public void test() {
-		
-	}
 }
