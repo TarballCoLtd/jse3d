@@ -88,7 +88,7 @@ public class Object3D implements Serializable {
 	 */
 	public Object3D setStatic(Display display) {
 		stat = true;
-		generateLightmap(display);
+		regenerateLightmap(display);
 		return this;
 	}
 	/** Moves this Object3D and its points relative to its current position.
@@ -388,26 +388,28 @@ public class Object3D implements Serializable {
 		}
 		return -1;
 	}
-	public Object3D generateLightmap(Display display) {
-		int ret = -1;
-		for (int i = 0; i < display.getScene().object.length; i++) {
-			if (this.equals(display.getScene().object[i])) {
-				ret = i;
-				break;
+	public Object3D regenerateLightmap(Display display) {
+		if (stat) {
+			int ret = -1;
+			for (int i = 0; i < display.getScene().object.length; i++) {
+				if (this.equals(display.getScene().object[i])) {
+					ret = i;
+					break;
+				}
 			}
-		}
-		if (ret == -1) {
-			throw new RuntimeException("The provided Display object does not appear to match the Display object tied to this Object3D.");
-		}
-		ArrayList<Color> arr = display.calculateBakedLightmap(this);
-		int index = 0;
-		for (int x = 0; x < faces.length; x++) {
-			for (int y = 0; y < faces[x].triangles.length; y++) {
-				Face face = faces[x];
-				Triangle triangle = face.triangles[y];
-				Color color = arr.get(index);
-				triangle.color = color;
-				index++;
+			if (ret == -1) {
+				throw new RuntimeException("The provided Display object does not appear to match the Display object tied to this Object3D.");
+			}
+			ArrayList<Color> arr = display.calculateBakedLightmap(this);
+			int index = 0;
+			for (int x = 0; x < faces.length; x++) {
+				for (int y = 0; y < faces[x].triangles.length; y++) {
+					Face face = faces[x];
+					Triangle triangle = face.triangles[y];
+					Color color = arr.get(index);
+					triangle.color = color;
+					index++;
+				}
 			}
 		}
 		return this;

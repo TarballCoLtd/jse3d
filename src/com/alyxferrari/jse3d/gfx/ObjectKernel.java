@@ -33,7 +33,7 @@ class ObjectKernel extends Kernel {
 		cosThetas = new float[display.fields.settings.maxPointsTotal];
 		sinViewAngles = new float[display.fields.settings.maxPointsTotal];
 	}
-	// ORIGINAL CPU CODE BY SAM KRUG, GPU ADAPTATION BY EMERY FERRARI
+	// ORIGINAL CPU CODE BY SAM KRUG, GPU ADAPTATION BY ALYX FERRARI
 	/** Code to be recompiled to OpenCL and run on GPU or multithreaded CPU by Aparapi. Do not execute this method.
 	*/
 	public void run() {

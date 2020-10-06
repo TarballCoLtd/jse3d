@@ -615,7 +615,7 @@ public class Display {
 						Color triColor = fields.scene.object[object].faces[x].triangles[y].color;
 						Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
 						for (int z = 0; z < lights.length; z++) {
-							if (lights[z] != null && !lights[z].isStatic()) {
+							if (lights[z] != null) {
 								double dot = Vector3.dot(fields.scene.object[object].faces[x].triangles[y].cross(fields.scene.object[object]), lights[z].getDirection());
 								dot *= lights[z].getLightStrength();
 								if (dot > 0) {
@@ -648,7 +648,7 @@ public class Display {
 					Color triColor = object.faces[x].triangles[y].color;
 					Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
 					for (int z = 0; z < lights.length; z++) {
-						if (lights[z] != null) {
+						if (lights[z] != null && lights[z].isStatic()) {
 							double dot = Vector3.dot(object.faces[x].triangles[y].cross(object), lights[z].getDirection());
 							dot *= lights[z].getLightStrength();
 							if (dot > 0) {
