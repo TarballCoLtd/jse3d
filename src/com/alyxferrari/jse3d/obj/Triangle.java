@@ -17,6 +17,7 @@ public class Triangle implements Serializable {
 	/** Object3D-specific point ID of the first point in this triangle.
 	 */
 	public int pointID3;
+	public Color preLightmap = null;
 	/** The desired color of this triangle.
 	 */
 	public Color color;

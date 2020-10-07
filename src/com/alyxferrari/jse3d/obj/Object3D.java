@@ -95,6 +95,11 @@ public class Object3D implements Serializable {
 	 */
 	public long setStatic(Display display, RenderTarget target) {
 		if (!stat) {
+			for (int x = 0; x < faces.length; x++) {
+				for (int y = 0; y < faces[x].triangles.length; y++) {
+					faces[x].triangles[y].preLightmap = faces[x].triangles[y].color;
+				}
+			}
 			stat = true;
 			return regenerateLightmap(display, target);
 		}
@@ -444,6 +449,7 @@ public class Object3D implements Serializable {
 					throw new GPU_OpenCLDriverNotFoundError();
 				}
 			}
+			start = System.currentTimeMillis();
 			display.fields.bakedKernel.ambientLight[0] = display.getScene().getAmbientLight();
 			DirectionalLight[] lights = display.getScene().getDirectionalLights();
 			display.fields.bakedKernel.lightCount[0] = lights.length;
@@ -486,6 +492,7 @@ public class Object3D implements Serializable {
 					faces[x].triangles[y].color = new Color(display.fields.bakedKernel.outColorR[id], display.fields.bakedKernel.outColorG[id], display.fields.bakedKernel.outColorB[id], faces[x].triangles[y].color.getAlpha());
 				}
 			}
+			end = System.currentTimeMillis();
 		}
 		return end-start;
 	}

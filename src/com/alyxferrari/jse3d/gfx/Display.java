@@ -650,7 +650,7 @@ public class Display {
 			for (int x = 0; x < object.faces.length; x++) {
 				for (int y = 0; y < object.faces[x].triangles.length; y++) {
 					DirectionalLight[] lights = fields.scene.getDirectionalLights();
-					Color triColor = object.faces[x].triangles[y].color;
+					Color triColor = object.faces[x].triangles[y].preLightmap;
 					Color finalColor = new Color((int)(triColor.getRed()*fields.scene.getAmbientLight()), (int)(triColor.getGreen()*fields.scene.getAmbientLight()), (int)(triColor.getBlue()*fields.scene.getAmbientLight()), triColor.getAlpha());
 					for (int z = 0; z < lights.length; z++) {
 						if (lights[z] != null && lights[z].isStatic()) {
