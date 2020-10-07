@@ -5,24 +5,24 @@ import com.aparapi.*;
  * @since 3.3.2
  */
 public class BakedLightingKernel extends Kernel {
-	public final float[] lightXs; // done
-	public final float[] lightYs; // done
-	public final float[] lightZs; // done
-	public final float[] lightStrengths; // done
-	public final int[] lightCount = new int[1]; // done
-	public final float[] ambientLight = new float[1]; // done
-	public final float[] point1Xs; // done
-	public final float[] point1Ys; // done
-	public final float[] point1Zs; // done
-	public final float[] point2Xs; // done
-	public final float[] point2Ys; // done
-	public final float[] point2Zs; // done
-	public final float[] point3Xs; // done
-	public final float[] point3Ys; // done
-	public final float[] point3Zs; // done
-	public final int[] inColorR; // done
-	public final int[] inColorG; // done
-	public final int[] inColorB; // done
+	public final float[] lightXs;
+	public final float[] lightYs;
+	public final float[] lightZs;
+	public final float[] lightStrengths;
+	public final int[] lightCount = new int[1];
+	public final float[] ambientLight = new float[1];
+	public final float[] point1Xs;
+	public final float[] point1Ys;
+	public final float[] point1Zs;
+	public final float[] point2Xs;
+	public final float[] point2Ys;
+	public final float[] point2Zs;
+	public final float[] point3Xs;
+	public final float[] point3Ys;
+	public final float[] point3Zs;
+	public final int[] inColorR;
+	public final int[] inColorG;
+	public final int[] inColorB;
 	public final int[] outColorR;
 	public final int[] outColorG;
 	public final int[] outColorB;
@@ -50,10 +50,13 @@ public class BakedLightingKernel extends Kernel {
 		lightStrengths = new float[display.fields.settings.maxPointsTotal];
 	}
 	public void run() {
-		int id = getGlobalId();
+		int id = getGlobalId();/*
 		outColorR[id] = (int)(inColorR[id]*ambientLight[0]);
 		outColorG[id] = (int)(inColorG[id]*ambientLight[0]);
-		outColorB[id] = (int)(inColorB[id]*ambientLight[0]);
+		outColorB[id] = (int)(inColorB[id]*ambientLight[0]);*/
+		outColorR[id] = 0;
+		outColorG[id] = 0;
+		outColorB[id] = 0;
 		for (int i = 0; i < lightCount[0]; i++) {
 			float crossX = crossXTriangle(point1Xs[id], point1Ys[id], point1Zs[id], point2Xs[id], point2Ys[id], point2Zs[id], point3Xs[id], point3Ys[id], point3Zs[id]);
 			float crossY = crossYTriangle(point1Xs[id], point1Ys[id], point1Zs[id], point2Xs[id], point2Ys[id], point2Zs[id], point3Xs[id], point3Ys[id], point3Zs[id]);
@@ -64,12 +67,30 @@ public class BakedLightingKernel extends Kernel {
 				int red = (int)((inColorR[id]*dot)+(inColorR[id]*ambientLight[0]));
 				int green = (int)((inColorG[id]*dot)+(inColorG[id]*ambientLight[0]));
 				int blue = (int)((inColorB[id]*dot)+(inColorB[id]*ambientLight[0]));
+				if (red > 255) {
+					red = 255;
+				}
+				if (green > 255) {
+					green = 255;
+				}
+				if (blue > 255) {
+					blue = 255;
+				}/*
 				red = red > 255 ? 255 : red;
 				green = green > 255 ? 255 : red;
-				blue = blue > 255 ? 255 : blue;
+				blue = blue > 255 ? 255 : blue;*/
+				if (red > outColorR[id]) {
+					outColorR[id] = red;
+				}
+				if (green > outColorG[id]) {
+					outColorG[id] = green;
+				}
+				if (blue > outColorB[id]) {
+					outColorB[id] = blue;
+				}/*
 				outColorR[id] = red > outColorR[id] ? red : outColorR[id];
 				outColorG[id] = green > outColorG[id] ? green : outColorG[id];
-				outColorB[id] = blue > outColorB[id] ? blue : outColorB[id];
+				outColorB[id] = blue > outColorB[id] ? blue : outColorB[id];*/
 			}
 		}
 	}

@@ -94,8 +94,11 @@ public class Object3D implements Serializable {
 	 * @return How many milliseconds it took to generate this object's lightmap.
 	 */
 	public long setStatic(Display display, RenderTarget target) {
-		stat = true;
-		return regenerateLightmap(display, target);
+		if (!stat) {
+			stat = true;
+			return regenerateLightmap(display, target);
+		}
+		return -1L;
 	}
 	/** Moves this Object3D and its points relative to its current position.
 	 * @param diff Relative point to which this Object3D should be moved.
