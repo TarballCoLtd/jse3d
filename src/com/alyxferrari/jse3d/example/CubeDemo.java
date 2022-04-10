@@ -19,7 +19,7 @@ public class CubeDemo {
 		display.setPointSize(new Dimension(40, 40));
 		display.enableFPSLogging();
 		display.enableCameraPositionPrinting();
-		display.setRenderTarget(RenderTarget.GPU);
+		display.setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		display.startRender();
 	}
 }

@@ -17,48 +17,62 @@ public class DisplayBuilder {
 	public DisplayBuilder(Scene scene) {
 		this.scene = scene;
 	}
-	public void setScene(Scene scene) {
+	public DisplayBuilder setScene(Scene scene) {
 		this.scene = scene;
+		return this;
 	}
-	public void setFrameTitle(String frameTitle) {
+	public DisplayBuilder setFrameTitle(String frameTitle) {
 		this.frameTitle = frameTitle;
+		return this;
 	}
-	public void setFrameVisible(boolean frameVisible) {
+	public DisplayBuilder setFrameVisible(boolean frameVisible) {
 		this.frameVisible = frameVisible;
+		return this;
 	}
-	public void setRenderPoints(boolean renderPoints) {
+	public DisplayBuilder setRenderPoints(boolean renderPoints) {
 		this.renderPoints = renderPoints;
+		return this;
 	}
-	public void setPointSize(Dimension pointSize) {
+	public DisplayBuilder setPointSize(Dimension pointSize) {
 		this.pointSize = pointSize;
+		return this;
 	}
-	public void setFrameWidth(int frameWidth) {
+	public DisplayBuilder setFrameWidth(int frameWidth) {
 		this.frameWidth = frameWidth;
+		return this;
 	}
-	public void setFrameHeight(int frameHeight) {
+	public DisplayBuilder setFrameHeight(int frameHeight) {
 		this.frameHeight = frameHeight;
+		return this;
 	}
-	public void setFrameSize(int frameWidth, int frameHeight) {
+	public DisplayBuilder setFrameSize(int frameWidth, int frameHeight) {
 		setFrameWidth(frameWidth);
 		setFrameHeight(frameHeight);
+		return this;
 	}
-	public void setFrameSize(Dimension size) {
+	public DisplayBuilder setFrameSize(Dimension size) {
 		setFrameSize(size.width, size.height);
+		return this;
 	}
-	public void setFps(int fps) {
+	public DisplayBuilder setFps(int fps) {
 		this.fps = fps;
+		return this;
 	}
-	public void setFovRadians(int fovRadians) {
+	public DisplayBuilder setFovRadians(int fovRadians) {
 		this.fovRadians = fovRadians;
+		return this;
 	}
-	public void setMaxPointsTotal(int maxPointsTotal) {
+	public DisplayBuilder setMaxPointsTotal(int maxPointsTotal) {
 		this.maxPointsTotal = maxPointsTotal;
+		return this;
 	}
-	public void setMaxPointsObject(int maxPointsObject) {
+	public DisplayBuilder setMaxPointsObject(int maxPointsObject) {
 		this.maxPointsObject = maxPointsObject;
+		return this;
 	}
-	public void setMaxObjects(int maxObjects) {
+	public DisplayBuilder setMaxObjects(int maxObjects) {
 		this.maxObjects = maxObjects;
+		return this;
 	}
 	public Display build() {
 		return new Display(scene, frameTitle, frameVisible, renderPoints, pointSize, frameWidth, frameHeight, fps, fovRadians, maxPointsTotal, maxPointsObject, maxObjects);

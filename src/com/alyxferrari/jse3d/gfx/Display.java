@@ -260,7 +260,7 @@ public class Display {
 		fields.settings = new DisplaySettings();
 		calculateRenderingHints();
 		fields.renderer = new DisplayRenderer();
-		setRenderTarget(RenderTarget.GPU);
+		setRenderTarget(RenderTarget.CPU_SINGLETHREADED);
 		fields.settings.maxPointsTotal = maxPointsTotal;
 		fields.scene = scene;
 		fields.frame = new JFrame((frameTitle.equals("") ? "powered by " + JSE3DConst.FULL_NAME : frameTitle + " -- powered by " + JSE3DConst.FULL_NAME) + (System.getProperty("user.dir").equals("X:\\Libraries\\Documents\\GitHub\\jse3d") || System.getProperty("user.dir").equals("D:\\documents\\GitHub\\jse3d") ? " development build" : ""));
