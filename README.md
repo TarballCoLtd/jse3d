@@ -1,6 +1,6 @@
 # jse3d
 
-by Sam Krug and Alyx Ferrari
+by Tarball and Samuel Krug
 
 ## Dependencies
 
@@ -40,12 +40,3 @@ You can include jse3d in your project by putting the following in your pomfile:<
 </dependencies>
 ```
 Please substitute the version number with the latest version of jse3d.
-
-## Contacting me
-
-I will respond to any PM I receive on Reddit, however if it is about an issue or bug with jse3d, please create an issue on GitHub instead.<br/>
-[u/verystrangebeing](https://reddit.com/user/verystrangebeing/)
-
-## Donating
-
-If you like my work, please consider [buying me a coffee](https://paypal.me/alyxferrari/)! It would be greatly appreciated.
