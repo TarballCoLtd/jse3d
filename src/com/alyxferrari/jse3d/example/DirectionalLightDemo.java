@@ -4,7 +4,7 @@ import com.alyxferrari.jse3d.enums.*;
 import com.alyxferrari.jse3d.gfx.*;
 import java.awt.*;
 public class DirectionalLightDemo {
-	public static final String OBJ_PATH = "/Users/alyxferrari/cat.obj"; // change this if you want to use this example
+	public static final String OBJ_PATH = "/home/alyxandra/lowpolycat/cat.obj"; // change this if you want to use this example
 	public static void main(String[] args) throws Exception {
 		Object3D[] objects = {Object3D.createFromObj(OBJ_PATH, new Color(255, 20, 20, 255))};
 		Scene scene = new Scene(objects, 550);
