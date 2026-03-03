@@ -1,6 +1,6 @@
 # jse3d
 
-by Tarball and Samuel Krug
+by Alyxandra Ferrari and Samuel Krug
 
 ## Dependencies
 
